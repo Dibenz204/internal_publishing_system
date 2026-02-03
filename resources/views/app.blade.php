@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -130,4 +130,23 @@
             </div>
         </div>
     </body>
+</html>
+ --}}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>React Test</title>
+    @viteReactRefresh
+    @vite('resources/js/appE.jsx')
+</head>
+<body>
+    <div id="root">
+        Loading React...
+    </div>
+    
+    <noscript>
+        <h1>JavaScript is required!</h1>
+    </noscript>
+</body>
 </html>
