@@ -10,3 +10,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 require __DIR__ . '/api/employeeRoute.php';
 require __DIR__ . '/api/positionRoute.php';
 require __DIR__ . '/api/departmentRoute.php';
+require __DIR__ . '/api/BookCategoryRoute.php';
