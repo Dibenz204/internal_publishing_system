@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('booktimes', function (Blueprint $table) {
+        Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('starttime');
-            $table->dateTime('endtime');
-            $table->dateTime('actual_finish_time');
-            $table->boolean('status');
-            $table->timestamps();
+            $table->string('name');
+            $table->boolean('status')->default(1);
+
         });
     }
 
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('booktimes');
+        Schema::dropIfExists('positions');
     }
 };

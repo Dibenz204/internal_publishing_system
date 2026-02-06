@@ -21,7 +21,6 @@ Schema::create('books', function (Blueprint $table) {
     $table->boolean('status')->default(1);
     $table->foreignId('assignedBy')->constrained('employees')->cascadeOnDelete();
     $table->foreignId('booktimeId')->constrained('booktimes');
-    $table->timestamps();
 });
     }
 

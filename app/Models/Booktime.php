@@ -15,4 +15,9 @@ class Booktime extends Model
         'status',
     ];
 
+    public function books()
+    {
+        return $this->hasMany(Book::class, 'booktimeId');
+    }
+
 }

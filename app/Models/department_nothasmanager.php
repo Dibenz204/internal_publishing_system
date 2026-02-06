@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Book_BookCategory extends Model
+class Department extends Model
 {
     use HasFactory;
-      protected $fillable = [
-        'employeeId',
-        'bookcategoryId',
+        protected $fillable = [
+        'name',
+        'status',
     ];
 }

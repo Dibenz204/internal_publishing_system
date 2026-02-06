@@ -14,4 +14,14 @@ class Bookcategory extends Model
         'status',
     ];
 
+    public function books()
+{
+    return $this->belongsToMany(
+        Book::class,
+        'book_book_categories',
+        'bookcategoryId',
+        'bookId'
+    );
+}
+
 }

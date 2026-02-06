@@ -11,4 +11,16 @@ class Position extends Model
         protected $fillable = [
         'name',
     ];
+    
+public function employees()
+{
+    return $this->belongsToMany(
+        Employee::class,
+        'position_employee',
+        'positionId',
+        'employeeId'
+    )->withPivot(['description', 'status'])
+     ->withTimestamps();
+}
+
 }

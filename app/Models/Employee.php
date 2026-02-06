@@ -16,4 +16,35 @@ class Employee extends Model
         'departmentId',
         'positionId',
     ];
+    public function department()
+{
+    return $this->belongsTo(Department::class, 'departmentId');
+}
+
+    public function managedDepartment()
+{
+    return $this->hasOne(Department::class, 'managerId');
+}
+
+    public function assignedBooks()
+{
+    return $this->hasMany(Book::class, 'assignedBy');
+}
+
+    public function account()
+{
+    return $this->hasOne(Account::class, 'employeeId');
+}
+
+public function positions()
+{
+    return $this->belongsToMany(
+        Position::class,
+        'position_employee',
+        'employeeId',
+        'positionId'
+    )->withPivot(['description', 'status'])
+     ->withTimestamps();
+}
+
 }
