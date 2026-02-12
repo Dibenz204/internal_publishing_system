@@ -36,7 +36,8 @@ class Book extends Model
         Bookcategory::class,
         'book_book_categories',
         'bookId',
-        'bookcategoryId'
+        'bookcategoryId',
+        'status',
     );
 }
 

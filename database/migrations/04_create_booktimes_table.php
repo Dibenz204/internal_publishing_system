@@ -16,7 +16,8 @@ return new class extends Migration
             $table->dateTime('starttime');
             $table->dateTime('endtime');
             $table->dateTime('actual_finish_time');
-            $table->boolean('status');
+            $table->boolean('status')->default(1);
+
         });
     }
 

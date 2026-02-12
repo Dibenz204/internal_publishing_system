@@ -20,7 +20,9 @@ class Bookcategory extends Model
         Book::class,
         'book_book_categories',
         'bookcategoryId',
-        'bookId'
+        'bookId',
+        'status',
+
     );
 }
 

@@ -12,7 +12,6 @@ class Department extends Model
     protected $fillable = [
         'name',
         'status',
-        'managerId',
     ];
 
     public function manager()

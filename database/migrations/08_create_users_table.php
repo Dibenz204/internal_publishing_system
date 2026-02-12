@@ -8,22 +8,24 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table) {
             $table->id();
-
             $table->string('username')->unique();
+            $table->string('email')->unique();
             $table->string('password');
             $table->boolean('status')->default(1);
-
-            $table->foreignId('employeeId')
-                  ->unique() // 1 employee co 1 acc
+            $table->foreignId('employee_id')
+                  ->nullable()
+                  ->unique() 
                   ->constrained('employees')
                   ->cascadeOnDelete();
+            $table->rememberToken();
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('accounts');
+        Schema::dropIfExists('users');
     }
 };
