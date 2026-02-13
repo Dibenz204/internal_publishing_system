@@ -11,14 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
- Schema::create('book_book_categories', function (Blueprint $table) {
+        Schema::create('book_book_categories', function (Blueprint $table) {
             $table->id();
-            // khóa ngoại employee
-            $table->foreignId('employeeId')->constrained('employees')->cascadeOnDelete();
-            // khóa ngoại bookcategory
-            $table->foreignId('bookcategoryId')->constrained('bookcategories')->cascadeOnDelete();
+
+            $table->foreignId('book_id')
+                ->constrained('books')
+                ->cascadeOnDelete();
+
+            $table->foreignId('bookcategory_id')
+                ->constrained('bookcategories')
+                ->cascadeOnDelete();
+            $table->string('status')->default('active');
+            $table->unique(['book_id', 'bookcategory_id']);
             $table->timestamps();
-            $table->unique(['employeeId', 'bookcategoryId']);
         });
     }
 
