@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->dateTime('starttime');
             $table->dateTime('endtime');
-            $table->dateTime('actual_finish_time');
+            $table->dateTime('finish_time');
             $table->boolean('status')->default(1);
-
+            $table->timestamps();
         });
     }
 

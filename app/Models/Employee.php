@@ -34,14 +34,8 @@ class Employee extends Model
         return $this->hasOne(User::class, 'employee_id');
     }
 
-    public function positions()
+    public function position()
     {
-        return $this->belongsToMany(
-            Position::class,
-            'position_employee',
-            'employee_id',
-            'position_id'
-        )->withPivot(['description', 'status'])
-         ->withTimestamps();
+        return $this->belongsTo(Position::class, 'position_id');
     }
 }

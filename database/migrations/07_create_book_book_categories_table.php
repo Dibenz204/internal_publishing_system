@@ -12,19 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('book_book_categories', function (Blueprint $table) {
-    $table->id();
+            $table->id();
 
-    $table->foreignId('bookId')
-          ->constrained('books')
-          ->cascadeOnDelete();
+            $table->foreignId('book_id')
+                ->constrained('books')
+                ->cascadeOnDelete();
 
-    $table->foreignId('bookcategoryId')
-          ->constrained('bookcategories')
-          ->cascadeOnDelete();
-
-    $table->unique(['bookId', 'bookcategoryId']);
-});
-
+            $table->foreignId('bookcategory_id')
+                ->constrained('bookcategories')
+                ->cascadeOnDelete();
+            $table->string('status')->default('active');
+            $table->unique(['book_id', 'bookcategory_id']);
+            $table->timestamps();
+        });
     }
 
     /**

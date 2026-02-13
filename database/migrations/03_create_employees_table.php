@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('employees', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('email')->unique();
-        $table->string('phone');
-        $table->date('birthday')->nullable();
-        $table->boolean('sex')->nullable(); // 1=male,0=female
-        $table->boolean('status')->default(1);
-        $table->foreignId('department_id')->constrained('departments');
-        $table->foreignId('position_id')->constrained('positions');
-        $table->timestamps();
-    });
+        Schema::create('employees', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('phone');
+            $table->date('birthday')->nullable();
+            $table->boolean('sex')->nullable(); // 1=male,0=female
+            $table->boolean('status')->default(1);
+            $table->foreignId('department_id')->constrained('departments');
+            $table->foreignId('position_id')->constrained('positions');
+            $table->timestamps();
+        });
     }
 
     /**

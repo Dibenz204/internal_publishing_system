@@ -39,36 +39,28 @@ class User extends Authenticatable
         return $this->employee_id !== null;
     }
 
-    public function getPositionsAttribute()
+    public function getPositionAttribute()
     {
-        if ($this->employee) {
-            return $this->employee->positions;
-        }
-        return collect();
+        return $this->employee?->position;
     }
 
-    public function getPositionNamesAttribute()
+    public function getPositionNameAttribute()
     {
-        return $this->positions->pluck('name')->toArray();
+        return $this->employee?->position?->name;
     }
 
     public function hasPosition($positionName)
     {
-        if ($this->employee) {
-            return $this->employee->positions()
-                ->where('name', $positionName)
-                ->exists();
-        }
-        return false;
+        return $this->employee &&
+            $this->employee->position &&
+            $this->employee->position->name === $positionName;
     }
 
     public function hasAnyPosition($positionNames)
     {
-        if ($this->employee) {
-            return $this->employee->positions()
-                ->whereIn('name', (array) $positionNames)
-                ->exists();
+        if (!$this->employee || !$this->employee->position) {
+            return false;
         }
-        return false;
+        return in_array($this->employee->position->name, (array) $positionNames);
     }
 }

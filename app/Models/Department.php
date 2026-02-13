@@ -14,8 +14,8 @@ class Department extends Model
         'status',
     ];
 
-    public function manager()
+    public function employees()
     {
-        return $this->belongsTo(Employee::class, 'managerId');
+        return $this->hasMany(Employee::class, 'department_id');
     }
 }

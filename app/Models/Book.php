@@ -16,29 +16,28 @@ class Book extends Model
         'currentPage',
         'bookSize',
         'status',
-        'assignedBy',
-        'booktimeId',
+        'assigned_by',
+        'booktime_id',
     ];
 
     public function assignedEmployee()
     {
-        return $this->belongsTo(Employee::class, 'assignedBy');
+        return $this->belongsTo(Employee::class, 'assigned_by');
     }
 
     public function booktime()
     {
-        return $this->belongsTo(Booktime::class, 'booktimeId');
+        return $this->belongsTo(Booktime::class, 'booktime_id');
     }
-    
-    public function categories()
-{
-    return $this->belongsToMany(
-        Bookcategory::class,
-        'book_book_categories',
-        'bookId',
-        'bookcategoryId',
-        'status',
-    );
-}
 
+    public function categories()
+    {
+        return $this->belongsToMany(
+            Bookcategory::class,
+            'book_book_categories',
+            'book_id',
+            'bookcategory_id'
+        )->withPivot('status')
+            ->withTimestamps();
+    }
 }

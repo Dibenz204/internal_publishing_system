@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('books', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('bookCode')->unique();
-    $table->integer('page');
-    $table->integer('currentPage')->default(0);
-    $table->string('bookSize');
-    $table->boolean('status')->default(1);
-    $table->foreignId('assignedBy')->constrained('employees')->cascadeOnDelete();
-    $table->foreignId('booktimeId')->constrained('booktimes');
-});
+        Schema::create('books', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('bookCode')->unique();
+            $table->integer('page');
+            $table->integer('currentPage')->default(0);
+            $table->string('bookSize');
+            $table->boolean('status')->default(1);
+            $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('booktime_id')->constrained('booktimes');
+            $table->timestamps();
+        });
     }
 
     /**

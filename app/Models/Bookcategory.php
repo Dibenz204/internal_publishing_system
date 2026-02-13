@@ -8,22 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Bookcategory extends Model
 {
     use HasFactory;
-        protected $fillable = [
+    protected $fillable = [
         'name',
         'description',
         'status',
     ];
 
     public function books()
-{
-    return $this->belongsToMany(
-        Book::class,
-        'book_book_categories',
-        'bookcategoryId',
-        'bookId',
-        'status',
-
-    );
-}
-
+    {
+        return $this->belongsToMany(
+            Book::class,
+            'book_book_categories',
+            'bookcategory_id',
+            'book_id'
+        )->withPivot('status')
+            ->withTimestamps();
+    }
 }
