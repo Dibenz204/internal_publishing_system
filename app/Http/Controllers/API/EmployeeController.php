@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Employee\StoreEmployeeRequest;
 use Exception;
 
 class EmployeeController extends Controller
@@ -29,27 +30,34 @@ class EmployeeController extends Controller
 
     public function index()
     {
-        return response()->json(
-            $this->employeeService->getAllEmployees()
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee list retrieved successfully',
+            'data' => $this->employeeService->getAllEmployees()
+        ], 200);
     }
+    
 
 
     /**
      * POST /api/employees
      */
-    public function store(Request $request)
-    {
-        try {
-            $employee = $this->employeeService->create($request->all());
+   
 
-            return response()->json($employee, 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'errors' => $e->errors()
-            ], 422);
-        }
-    }
+     public function store(Request $request)
+{
+    $employee = $this->employeeService->create(
+        $request->all()
+    );
+
+    return response()->json([
+        'message' => 'Tạo nhân viên thành công',
+        'data' => $employee
+    ], 201);
+}
+     
+     
+
 
     /**
      * PUT /api/employees/{id}
@@ -67,23 +75,7 @@ class EmployeeController extends Controller
         }
     }
 
-    /**
-     * DELETE /api/employees/{id}
-     */
-    public function destroy(int $id)
-    {
-        try {
-            $this->employeeService->delete($id);
 
-            return response()->json([
-                'message' => 'Employee deleted'
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
 
     /**
      * PATCH /api/employees/{id}/deactivate (đổi trạng thái thành 0)
@@ -117,28 +109,25 @@ class EmployeeController extends Controller
      * GET /api/employees/search
      */
     public function search(Request $request)
-    {
-        $filters = [
-            //search chung
-            'keyword'      => $request->query('keyword'),
+{
+    $filters = [
+        'keyword'       => $request->query('keyword'),
+        'department_id' => $request->query('department_id'),
+        'position_id'   => $request->query('position_id'),
+        'per_page'      => $request->query('per_page', 10),
+    ];
 
-            'departmentId' => $request->query('departmentId'),
+    $result = $this->employeeService->search($filters);
 
-            // phân trang
-            'per_page'     => $request->query('per_page', 10),
-        ];
-
-        $result = $this->employeeService->search($filters);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $result->items(),
-            'meta'    => [
-                'current_page' => $result->currentPage(),
-                'per_page'     => $result->perPage(),
-                'total'        => $result->total(),
-                'last_page'    => $result->lastPage(),
-            ]
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data'    => $result->items(),
+        'meta'    => [
+            'current_page' => $result->currentPage(),
+            'per_page'     => $result->perPage(),
+            'total'        => $result->total(),
+            'last_page'    => $result->lastPage(),
+        ]
+    ]);
+}
 }
