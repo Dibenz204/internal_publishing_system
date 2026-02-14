@@ -10,4 +10,6 @@ Route::prefix('departments')->group(function () {
 
     Route::post('/', [DepartmentController::class, 'store']);
     Route::put('/{id}', [DepartmentController::class, 'update']);
+    Route::patch('/{id}/activate', [DepartmentController::class, 'activate']);
+    Route::patch('/{id}/deactivate', [DepartmentController::class, 'deactivate']);
 });
