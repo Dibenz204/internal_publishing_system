@@ -16,18 +16,13 @@ class DepartmentController extends Controller
     }
 
     // GET /api/departments
-    // GET /api/departments
     public function index(Request $request)
-    {
-        $keyword = trim((string) $request->query('keyword'));
+{
+    return response()->json(
+        $this->departmentService->getAll($request->query('keyword'))
+    );
+}
 
-        $departments = $this->departmentService->search($keyword);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $departments,
-        ]);
-    }
 
 
 
@@ -53,5 +48,28 @@ class DepartmentController extends Controller
         $department = $this->departmentService->update($id, $request->all());
 
         return response()->json($department);
+    }
+    // PATCH /api/departments/{id}/activate
+    public function activate($id)
+    {
+        $department = $this->departmentService->activate($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department activated successfully',
+            'data'    => $department,
+        ]);
+    }
+
+    // PATCH /api/departments/{id}/deactivate
+    public function deactivate($id)
+    {
+        $department = $this->departmentService->deactivate($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department deactivated successfully',
+            'data'    => $department,
+        ]);
     }
 }
