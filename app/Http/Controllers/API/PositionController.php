@@ -6,50 +6,73 @@ use App\Http\Controllers\Controller;
 use App\Services\PositionService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-
 class PositionController extends Controller
 {
-    protected $positionService;
+    protected PositionService $positionService;
 
     public function __construct(PositionService $positionService)
     {
         $this->positionService = $positionService;
     }
 
-    public function index()
+    /**
+     * GET /api/positions
+     * Có thể filter theo status
+     */
+    public function index(Request $request)
     {
         return response()->json(
-            $this->positionService->getAll()
+            $this->positionService->getAll($request->query('keyword'))
         );
     }
+    
+ 
 
-    public function show($id)
-    {
-        return response()->json(
-            $this->positionService->findById($id)
-        );
-    }
-
+    /**
+     * POST /api/positions
+     */
     public function store(Request $request)
     {
-        try {
-            return response()->json(
-                $this->positionService->create($request->all()),
-                201
-            );
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        $position = $this->positionService->create($request->all());
+
+        return response()->json([
+            'success' => true,
+            'data'    => $position,
+        ], 201);
     }
 
-    public function update(Request $request, $id)
+    /**
+     * PUT /api/positions/{id}
+     */
+    public function update(Request $request, int $id)
     {
-        try {
-            return response()->json(
-                $this->positionService->update($id, $request->all())
-            );
-        } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        $position = $this->positionService->update($id, $request->all());
+
+        return response()->json([
+            'success' => true,
+            'data'    => $position,
+        ]);
+    }
+
+    /**
+     * PATCH /api/positions/{id}/activate
+     */
+    public function activate(int $id)
+    {
+        return response()->json([
+            'success' => true,
+            'data'    => $this->positionService->activate($id),
+        ]);
+    }
+
+    /**
+     * PATCH /api/positions/{id}/deactivate
+     */
+    public function deactivate(int $id)
+    {
+        return response()->json([
+            'success' => true,
+            'data'    => $this->positionService->deactivate($id),
+        ]);
     }
 }
