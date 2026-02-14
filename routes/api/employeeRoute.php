@@ -14,7 +14,6 @@ Route::prefix('employees')->group(function () {
     Route::put('/{id}', [EmployeeController::class, 'update']);
     Route::patch('/{id}/deactivate', [EmployeeController::class, 'deactivate']);
     Route::patch('/{id}/activate', [EmployeeController::class, 'activate']);
-    Route::delete('/{id}', [EmployeeController::class, 'destroy']);
     Route::get('/{id}', [EmployeeController::class, 'show'])
         ->whereNumber('id');
 });
