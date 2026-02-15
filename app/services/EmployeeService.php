@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\Position;
+use App\Models\Department;
+
 
 
 class EmployeeService
@@ -20,7 +23,7 @@ class EmployeeService
     $rules = [
         'name'          => 'sometimes|required|string|max:255',
         'email'         => 'sometimes|required|email|unique:employees,email' . ($id ? ',' . $id : ''),
-        'phone'         => 'required|digits:11|unique:employees,phone' . ($id ? ',' . $id : ''),
+        'phone'         => 'sometimes|nullable|digits:11|unique:employees,phone' . ($id ? ',' . $id : ''),
         'birthday'      => 'nullable|date',
         'sex'           => 'nullable|in:0,1',
         'status'        => 'nullable|in:0,1',
@@ -96,6 +99,23 @@ class EmployeeService
 
         $data = $this->validateEmployee($data);
 
+        //kiểm tra department active
+        $department = Department::findOrFail($data['department_id']);
+        if ($department->status != 1) {
+            throw ValidationException::withMessages([
+                'department_id' => ['Department is inactive'],
+            ]);
+        }
+
+        //kiểm tra position active
+        $position = Position::findOrFail($data['position_id']);
+        if ($position->status != 1) {
+            throw ValidationException::withMessages([
+                'position_id' => ['Position is inactive'],
+            ]);
+        }
+
+        // normalize data
         $data['name'] = trim($data['name']);
         $data['email'] = strtolower(trim($data['email']));
         $data['sex'] = isset($data['sex']) ? (int)$data['sex'] : null;
@@ -115,6 +135,29 @@ class EmployeeService
 
         $data = $this->validateEmployee($data, $id);
 
+        //check department active nếu có gửi
+        if (isset($data['department_id'])) {
+            $department = Department::findOrFail($data['department_id']);
+
+            if ($department->status != 1) {
+                throw ValidationException::withMessages([
+                    'department_id' => ['Department is inactive'],
+                ]);
+            }
+        }
+
+        // check position active nếu có gửi
+        if (isset($data['position_id'])) {
+            $position = Position::findOrFail($data['position_id']);
+
+            if ($position->status != 1) {
+                throw ValidationException::withMessages([
+                    'position_id' => ['Position is inactive'],
+                ]);
+            }
+        }
+
+        // normalize
         if (isset($data['name'])) {
             $data['name'] = trim($data['name']);
         }
@@ -136,6 +179,7 @@ class EmployeeService
         return $employee->fresh();
     });
 }
+
 
     /**
      * Vô hiệu hoá nhân viên( đổi trạng thái thành 0)

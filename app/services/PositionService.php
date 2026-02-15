@@ -31,35 +31,35 @@ class PositionService
      * Tạo mới position
      */
     public function create(array $data): Position
-    {
-        $validated = $this->validate($data);
+{
+    $validated = $this->validate($data);
 
-        return DB::transaction(function () use ($validated) {
-            return Position::create([
-                'name'   => trim($validated['name']),
-                'status' => $validated['status'] ?? 1,
-            ]);
-        });
-    }
+    return DB::transaction(function () use ($validated) {
+        return Position::create([
+            'name'   => trim($validated['name']),
+            'status' => 1, // luôn mặc định active
+        ]);
+    });
+}
 
     /**
-     * Cập nhật position
+     * Cập nhật position theo name
      */
     public function update(int $id, array $data): Position
-    {
-        $validated = $this->validate($data, $id);
+{
+    $validated = $this->validate($data, $id);
 
-        return DB::transaction(function () use ($id, $validated) {
-            $position = Position::findOrFail($id);
+    return DB::transaction(function () use ($id, $validated) {
+        $position = Position::findOrFail($id);
 
-            $position->update([
-                'name'   => trim($validated['name']),
-                'status' => $validated['status'] ?? $position->status,
-            ]);
+        $position->update([
+            'name' => trim($validated['name']),
+        ]);
 
-            return $position;
-        });
-    }
+        return $position;
+    });
+}
+
 
     /**
      * Bật position

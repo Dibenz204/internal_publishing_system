@@ -20,13 +20,18 @@ class PositionController extends Controller
      * Có thể filter theo status
      */
     public function index(Request $request)
-    {
-        return response()->json(
-            $this->positionService->getAll($request->query('keyword'))
-        );
-    }
-    
- 
+{
+    $positions = $this->positionService->getAll(
+        $request->query('keyword')
+    );
+
+    return response()->json([
+        'success' => true,
+        'message' => 'List retrieved successfully',
+        'data'    => $positions
+    ], 200);
+}
+
 
     /**
      * POST /api/positions
@@ -37,6 +42,7 @@ class PositionController extends Controller
 
         return response()->json([
             'success' => true,
+            'message' => 'Position created successfully',
             'data'    => $position,
         ], 201);
     }
@@ -50,6 +56,7 @@ class PositionController extends Controller
 
         return response()->json([
             'success' => true,
+            'message' => 'Updated successfully',
             'data'    => $position,
         ]);
     }
@@ -61,6 +68,7 @@ class PositionController extends Controller
     {
         return response()->json([
             'success' => true,
+            'message' => 'Status has been changed to 1',
             'data'    => $this->positionService->activate($id),
         ]);
     }
@@ -72,6 +80,7 @@ class PositionController extends Controller
     {
         return response()->json([
             'success' => true,
+            'message' => 'Status has been changed to 0',
             'data'    => $this->positionService->deactivate($id),
         ]);
     }

@@ -17,38 +17,60 @@ class DepartmentController extends Controller
 
     // GET /api/departments
     public function index(Request $request)
-{
-    return response()->json(
-        $this->departmentService->getAll($request->query('keyword'))
-    );
-}
+    {
+        $departments = $this->departmentService->getAll(
+            $request->query('keyword')
+        );
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Department list retrieved successfully',
+            'data'    => $departments
+        ], 200);
+    }
+    
 
 
 
 
     // GET /api/departments/{id}
-    public function show($id)
+    public function show(int $id)
     {
-        return response()->json(
-            $this->departmentService->findById($id)
-        );
+        $department = $this->departmentService->findById($id);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Department details retrieved successfully',
+            'data'    => $department
+        ], 200);
     }
+    
 
     // POST /api/departments
     public function store(Request $request)
     {
         $department = $this->departmentService->create($request->all());
-
-        return response()->json($department, 201);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Department created successfully',
+            'data'    => $department
+        ], 201);
     }
+    
 
-    // PUT /api/departments/{id}
-    public function update(Request $request, $id)
+    // PATCH /api/departments/{id} (CHỈ THAY ĐỔI ĐƯỢC NAME)
+    public function update(Request $request, int $id)
     {
         $department = $this->departmentService->update($id, $request->all());
-
-        return response()->json($department);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Department updated successfully',
+            'data'    => $department
+        ], 200);
     }
+    
     // PATCH /api/departments/{id}/activate
     public function activate($id)
     {

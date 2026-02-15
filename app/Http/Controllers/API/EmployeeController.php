@@ -51,7 +51,8 @@ class EmployeeController extends Controller
     );
 
     return response()->json([
-        'message' => 'Tạo nhân viên thành công',
+        'success' => true,
+        'message' => 'Employee created successfully',
         'data' => $employee
     ], 201);
 }
@@ -63,17 +64,24 @@ class EmployeeController extends Controller
      * PUT /api/employees/{id}
      */
     public function update(Request $request, int $id)
-    {
-        try {
-            $employee = $this->employeeService->update($id, $request->all());
+{
+    try {
+        $employee = $this->employeeService->update($id, $request->all());
 
-            return response()->json($employee);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'errors' => $e->errors()
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee updated successfully',
+            'data' => $employee
+        ], 200);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid data',
+            'errors' => $e->errors()
+        ], 422);
     }
+}
 
 
 
@@ -81,28 +89,29 @@ class EmployeeController extends Controller
      * PATCH /api/employees/{id}/deactivate (đổi trạng thái thành 0)
      */
     public function deactivate(int $id)
-    {
-        $employee = $this->employeeService->deactivate($id);
+{
+    $employee = $this->employeeService->deactivate($id);
 
-        return response()->json($employee);
-    }
-
-    public function show($id)
-    {
-        return response()->json(
-            $this->employeeService->findById($id)
-        );
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Employee deactivated successfully',
+        'data' => $employee
+    ], 200);
+}
 
     /**
      * PATCH /api/employees/{id}/activate (đổi trạng thái thành 1)
      */
     public function activate(int $id)
-    {
+{
+    $employee = $this->employeeService->activate($id);
 
-        $employee = $this->employeeService->activate($id);
-        return response()->json($employee);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Employee activated successfully',
+        'data' => $employee
+    ], 200);
+}
 
     /**
      * Search / Filter / Pagination

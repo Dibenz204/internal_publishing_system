@@ -39,48 +39,49 @@ class DepartmentService
      * Tạo phòng ban
      */
     public function create(array $data): Department
-    {
-        $this->validate($data);
+{
+    $this->validate($data);
 
-        return Department::create([
-            'name'   => $data['name'],
-            'status' => (int) $data['status'], // bit
-        ]);
-    }
+    return Department::create([
+        'name'   => trim($data['name']),
+        'status' => 1, // luôn active khi tạo
+    ]);
+}
+
 
     /**
      * Cập nhật phòng ban
      */
     public function update(int $id, array $data): Department
-    {
-        $this->validate($data, $id);
+{
+    $this->validate($data, $id);
 
-        $department = Department::findOrFail($id);
+    $department = Department::findOrFail($id);
 
-        $department->update([
-            'name'   => $data['name'],
-            'status' => (int) $data['status'],
-        ]);
+    $department->update([
+        'name' => trim($data['name']),
+    ]);
 
-        return $department;
-    }
+    return $department;
+}
+
 
 
     /**
      * Validate dữ liệu
      */
     protected function validate(array $data, ?int $id = null): void
-    {
-        validator($data, [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('departments', 'name')->ignore($id),
-            ],
-            'status' => 'required|in:0,1',
-        ])->validate();
-    }
+{
+    validator($data, [
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('departments', 'name')->ignore($id),
+        ],
+    ])->validate();
+}
+
     /**
      * Lọc theo keyword
      */

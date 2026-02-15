@@ -11,8 +11,8 @@ Route::prefix('positions')->group(function () {
     // Tạo mới
     Route::post('/', [PositionController::class, 'store']);
 
-    // Cập nhật
-    Route::put('/{id}', [PositionController::class, 'update']);
+    // Cập nhật theo name
+    Route::patch('/{id}', [PositionController::class, 'update']);
 
     // Bật position
     Route::patch('/{id}/activate', [PositionController::class, 'activate']);
