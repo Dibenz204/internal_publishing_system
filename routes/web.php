@@ -1,19 +1,16 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 
-// Route cho React app
-Route::get('/', function () {
+// Route đăng nhập - KHÔNG cần auth
+Route::get('/login', function () {
     return view('app');
-});
+})->name('login');
 
-// Route cho các page React (SPA)
-Route::get('/{any}', function () {
-    return view('app');
-})->where('any', '.*');
+Route::middleware('auth')->group(function () {
 
-// Giữ route welcome nếu muốn
-Route::get('/welcome', function () {
-    return view('welcome');
+    Route::get('/{any}', function () {
+        return view('app');
+    })->where('any', '^(?!api).*$');
 });
