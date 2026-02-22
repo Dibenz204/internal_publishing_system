@@ -15,6 +15,7 @@ class Book extends Model
         'page',
         'current_page',
         'bookSize',
+        'status',
         'assigned_by',
         'start_time',
         'end_time',

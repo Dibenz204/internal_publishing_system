@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('page');
             $table->integer('current_page')->default(0);
             $table->string('bookSize');
+            $table->boolean('status')->default(1);
             $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete();
             $table->dateTime('start_time');
             $table->dateTime('end_time');
