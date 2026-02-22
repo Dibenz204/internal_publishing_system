@@ -16,11 +16,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('bookCode')->unique();
             $table->integer('page');
-            $table->integer('currentPage')->default(0);
+            $table->integer('current_page')->default(0);
             $table->string('bookSize');
             $table->boolean('status')->default(1);
             $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete();
-            $table->foreignId('booktime_id')->constrained('booktimes');
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
             $table->timestamps();
         });
     }

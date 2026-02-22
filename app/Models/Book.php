@@ -13,21 +13,17 @@ class Book extends Model
         'name',
         'bookCode',
         'page',
-        'currentPage',
+        'current_page',
         'bookSize',
         'status',
         'assigned_by',
-        'booktime_id',
+        'start_time',
+        'end_time',
     ];
 
     public function assignedEmployee()
     {
         return $this->belongsTo(Employee::class, 'assigned_by');
-    }
-
-    public function booktime()
-    {
-        return $this->belongsTo(Booktime::class, 'booktime_id');
     }
 
     public function categories()
