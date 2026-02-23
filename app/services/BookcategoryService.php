@@ -36,7 +36,7 @@ class BookCategoryService
      */
     public function create(array $data): Bookcategory
     {
-        $data['status'] = $data['status'] ?? 1;
+        $data['status'] = 1;
         return Bookcategory::create($data);
     }
 

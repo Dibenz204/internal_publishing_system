@@ -11,3 +11,4 @@ require __DIR__ . '/api/employeeRoute.php';
 require __DIR__ . '/api/positionRoute.php';
 require __DIR__ . '/api/departmentRoute.php';
 require __DIR__ . '/api/BookCategoryRoute.php';
+require __DIR__ . '/api/BookRoute.php';
