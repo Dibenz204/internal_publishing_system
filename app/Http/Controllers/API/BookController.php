@@ -43,14 +43,15 @@ class BookController extends Controller
 
     // Tạo mới sách
     public function store(Request $request): JsonResponse
-    {
-        $book = $this->bookService->create($request->all());
+{
+    $book = $this->bookService->create($request->all());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Book created successfully',
-        ], 201);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Book created successfully',
+        'data' => $book
+    ], 201);
+}
 
     // Cập nhật thông tin sách
     public function update(Request $request, int $id): JsonResponse
