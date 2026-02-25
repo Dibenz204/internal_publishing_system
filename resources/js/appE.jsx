@@ -1,13 +1,36 @@
+// import './bootstrap';
+// import React from 'react';
+// import ReactDOM from 'react-dom/client';
+// import { createRoot } from 'react-dom/client';
+// import App from './App';
+
+// const container = document.getElementById('root');
+// const root = createRoot(container);
+
+// root.render(
+//     <React.StrictMode>
+//         <App />
+//     </React.StrictMode>
+// );
+
 import './bootstrap';
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-const container = document.getElementById('root');
-const root = createRoot(container);
+// debug nếu có lỗi
+console.log('React version:', React.version);
 
-root.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
-);
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+    ReactDOM.createRoot(rootElement).render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>
+    );
+    console.log('React rendered successfully!');
+} else {
+    console.error('Root element not found!');
+}

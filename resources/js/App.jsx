@@ -1,30 +1,41 @@
 
 // import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Home from './pages/Home';
-// import About from './pages/About';
-// import Layout from './components/Layout';
+// import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+// import Login from './pages/Login';
+// import Dashboard from './pages/dashboard';
 
 // function App() {
 //     return (
-//         <Router>
-//             <Routes>
-//                 <Route path="/" element={<Layout />}>
-//                     <Route index element={<Home />} />
-//                     <Route path="about" element={<About />} />
-//                 </Route>
-//             </Routes>
-//         </Router>
+//         <Routes>
+//             <Route path="/login" element={<Login />} />
+//             <Route path="/dashboard" element={<Dashboard />} />
+//             {/* <Route path="/" element={<Navigate to="/dashboard" replace />} />
+//                 <Route path="*" element={<Navigate to="/login" replace />} /> */}
+//         </Routes>
 //     );
 // }
 
 // export default App;
 
+
 import React from 'react';
-import Home from './pages/Home';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-    return <Home />;
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+
+                <Route path="/" element={<Navigate to="/login" replace />} />
+
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;
