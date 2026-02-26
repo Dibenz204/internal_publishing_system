@@ -11,19 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('book_book_categories', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id(); //NOT NULL
+
+            $table->string('description')->nullable();
+ 
+            $table->unsignedTinyInteger('status') //NOT NULL
+            ->default(1)
+            ->comment('0=cancel,1=accepted,2=processing,3=completed'); //có 4 trạng thái, sử dụng kiểu unsignedTinyInteger cho đỡ tốn bộ nhớ
+
+            $table->foreignId('department_id') 
+            ->nullable()
+            ->constrained('departments')
+            ->nullOnDelete();
 
             $table->foreignId('book_id') //NOT NULL
             ->constrained('books')
             ->cascadeOnDelete();
 
-            $table->foreignId('bookcategory_id') //NOT NULL
-            ->constrained('bookcategories')
-            ->cascadeOnDelete();
-
-            $table->string('status')->default('active'); //NOT NULL
-            $table->unique(['book_id', 'bookcategory_id']); //NOT NULL
             $table->timestamps();
         });
     }
@@ -33,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('book_book_categories');
+        Schema::dropIfExists('projects');
     }
 };

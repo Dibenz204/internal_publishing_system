@@ -36,4 +36,9 @@ class Book extends Model
         )->withPivot('status')
             ->withTimestamps();
     }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'book_id');
+    }
 }
