@@ -12,16 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('books', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('bookCode')->unique();
-            $table->integer('page');
-            $table->integer('current_page')->default(0);
-            $table->string('bookSize');
-            $table->boolean('status')->default(1);
-            $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete();
-            $table->dateTime('start_time');
-            $table->dateTime('end_time');
+            $table->id(); //NOT NULL
+            $table->string('name'); //NOT NULL
+            $table->string('bookCode')->nullable()->unique();
+            $table->integer('page')->nullable();
+            $table->integer('current_page')->nullable()->default(0);
+            $table->string('bookSize')->nullable();
+
+            $table->unsignedTinyInteger('status')->default(1) //NOT NULL
+            ->comment('0=cancel,1=assigned,2=processing,3=completed'); //có 4 trạng thái, sử dụng kiểu unsingedTinyInteger cho đỡ tốn bộ nhớ
+
+            $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete(); //NOT NULL
+            
+            $table->dateTime('start_time'); //NOT NULL
+            $table->dateTime('end_time')->nullable();
             $table->timestamps();
         });
     }
