@@ -41,4 +41,9 @@ class Book extends Model
     {
         return $this->hasMany(Project::class, 'book_id');
     }
+
+    public function transfers()
+    {
+    return $this->hasMany(BookTransfer::class, 'book_id');
+    }
 }

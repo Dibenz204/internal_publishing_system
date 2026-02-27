@@ -18,7 +18,7 @@ return new class extends Migration
  
             $table->unsignedTinyInteger('status') //NOT NULL
             ->default(1)
-            ->comment('0=cancel,1=accepted,2=processing,3=completed'); //có 4 trạng thái, sử dụng kiểu unsignedTinyInteger cho đỡ tốn bộ nhớ
+            ->comment('0=CANCELLED,1=PROCESSING,2=ACCEPTED,3=COMPLETED'); //có 4 trạng thái, sử dụng kiểu unsignedTinyInteger cho đỡ tốn bộ nhớ
 
             $table->foreignId('department_id') 
             ->nullable()

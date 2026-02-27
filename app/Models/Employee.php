@@ -39,4 +39,14 @@ class Employee extends Model
     {
         return $this->belongsTo(Position::class, 'position_id');
     }
+
+    public function transfersFrom()
+    {
+    return $this->hasMany(BookTransfer::class, 'from_employee_id');
+    }   
+
+    public function transfersTo()
+    {
+    return $this->hasMany(BookTransfer::class, 'to_employee_id');
+    }
 }
