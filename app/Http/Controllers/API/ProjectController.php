@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\ProjectService;
@@ -16,7 +17,7 @@ class ProjectController extends Controller
 
     /*
    
-     1. Accept Project (1 -> 2)
+     1. Accept Project (2 -> 1)
    
     */
     public function accept($id)
@@ -32,7 +33,7 @@ class ProjectController extends Controller
 
     /*
    
-    2. Cancel Project (1 -> 0)
+    2. Cancel Project (2 -> 0)
    
     */
     public function cancel($id)
@@ -48,7 +49,7 @@ class ProjectController extends Controller
 
     /*
     
-    3. Complete Project (2 -> 3)
+    3. Complete Project (1 -> 3)
     
     */
     public function complete($id)
@@ -68,17 +69,18 @@ class ProjectController extends Controller
    
     */
     public function search(Request $request)
-{
-    $bookName = $request->query('bookName');
-    $departmentName = $request->query('departmentName');
+    {
+        $bookName = $request->query('bookName');
+        $departmentName = $request->query('departmentName');
 
-    $projects = $this->projectService->searchProject($bookName, $departmentName);
+        $projects = $this->projectService->searchProject($bookName, $departmentName);
 
-    return response()->json([
-        'message' => 'Projects retrieved successfully.',
-        'data' => $projects
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Projects retrieved successfully.',
+            'data' => $projects
+        ]);
+    }
 
     /*
    
@@ -102,24 +104,33 @@ class ProjectController extends Controller
     
     */
     public function assign(Request $request)
-{
-    $request->validate([
-        'book_id' => 'required|exists:books,id',
-        'department_ids' => 'required|array',
-        'department_ids.*' => 'exists:departments,id',
-        'description' => 'nullable|string'
-    ]);
+    {
+        $request->validate([
+            'book_id' => 'required|exists:books,id',
+            'department_ids' => 'required|array',
+            'department_ids.*' => 'exists:departments,id',
+            'description' => 'nullable|string'
+        ]);
 
-    $projects = $this->projectService->assignBookToDepartments(
-        $request->book_id,
-        $request->department_ids,   
-        $request->description      
-    );
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Book assigned to departments successfully.',
-        'data'    => $projects
-    ], 201);
-}
+        try {
+            $projects = $this->projectService->assignBookToDepartments(
+                $request->book_id,
+                $request->department_ids,
+                $request->description
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Book assigned to departments successfully.',
+                'data'    => $projects
+            ], 201);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
 }

@@ -74,26 +74,26 @@ class ProjectService
     
     */
     public function completeProject($id)
-{
-    $project = Project::findOrFail($id);
+    {
+        $project = Project::findOrFail($id);
 
-    //Nếu đã hoàn thành rồi
-    if ((int) $project->status === self::STATUS_COMPLETED) {
-        throw new \Exception("The project has already been completed");
+        //Nếu đã hoàn thành rồi
+        if ((int) $project->status === self::STATUS_COMPLETED) {
+            throw new \Exception("The project has already been completed");
+        }
+
+        //Nếu chưa được nhận
+        if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
+            throw new \Exception("You must accept the project before completing it");
+        }
+
+        //Cập nhật hoàn thành
+        $project->update([
+            'status' => self::STATUS_COMPLETED
+        ]);
+
+        return $project;
     }
-
-    //Nếu chưa được nhận
-    if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
-        throw new \Exception("You must accept the project before completing it");
-    }
-
-    //Cập nhật hoàn thành
-    $project->update([
-        'status' => self::STATUS_COMPLETED
-    ]);
-
-    return $project;
-}
 
 
     /*
@@ -137,31 +137,31 @@ class ProjectService
     public function assignBookToDepartments($bookId, array $departmentIds, ?string $description = null)
     {
         return DB::transaction(function () use ($bookId, $departmentIds, $description) {
-    
+
             $book = Book::findOrFail($bookId);
-    
-            if ((int) $book->status !== $this->bookService->processingStatus()) {
-                throw new \Exception("Only books with status = Processing can be assigned.");
+
+            if ((int) $book->status !== $this->bookService->pendingStatus()) {
+                throw new \Exception("Only books with status = Pending can be assigned.");
             }
-    
+
             $projects = [];
-    
+
             foreach ($departmentIds as $departmentId) {
-    
+
                 $department = Department::findOrFail($departmentId);
-    
+
                 if ((int) $department->status !== 1) {
                     throw new \Exception("Department ID {$departmentId} is not active.");
                 }
-    
+
                 $exists = Project::where('book_id', $bookId)
                     ->where('department_id', $departmentId)
                     ->exists();
-    
+
                 if ($exists) {
                     continue;
                 }
-    
+
                 $projects[] = Project::create([
                     'book_id'       => $bookId,
                     'department_id' => $departmentId,
@@ -169,13 +169,13 @@ class ProjectService
                     'status'        => self::STATUS_PENDING
                 ]);
             }
-    
+
             if (!empty($projects)) {
                 $book->update([
-                    'status' => $this->bookService->pendingStatus()
+                    'status' => $this->bookService->processingStatus()
                 ]);
             }
-    
+
             return $projects;
         });
     }
