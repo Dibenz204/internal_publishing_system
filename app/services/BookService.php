@@ -347,4 +347,23 @@ class BookService
             ]);
         }
     }
+    public function processingStatus(): int
+{
+    return self::STATUS_PROCESSING;
+}
+
+public function pendingStatus(): int
+{
+    return self::STATUS_PENDING;
+}
+
+public function cancelledStatus(): int
+{
+    return self::STATUS_CANCELLED;
+}
+
+public function completedStatus(): int
+{
+    return self::STATUS_COMPLETED;
+}
 }
