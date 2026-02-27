@@ -4,9 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 
-Route::get('/sanctum/csrf-cookie', function (Request $request) {
-    return response()->json(['message' => 'CSRF cookie set']);
-})->middleware('web');
+// Route::get('/sanctum/csrf-cookie', function (Request $request) {
+//     return response()->json(['message' => 'CSRF cookie set']);
+// })->middleware('web');
 
 Route::post('/login', [LoginController::class, 'apiLogin'])->middleware('web');
 

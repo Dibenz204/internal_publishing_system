@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import AuthService from '../services/auth';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -15,23 +15,10 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-            const response = await api.post('/login', {
-                username,
-                password
-            }, {
-                headers: {
-                    'X-CSRF-TOKEN': token
-                }
-            });
-
-            if (response.data.success) {
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                navigate('/dashboard');
-            }
+            await AuthService.login(username, password);
+            navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Đăng nhập thất bại');
+            setError(err.message || 'Đăng nhập thất bại');
         } finally {
             setLoading(false);
         }

@@ -1,29 +1,26 @@
+import axios from 'axios';
 import api from './api';
 
 const AuthService = {
     async getCsrfCookie() {
-        await api.get('/sanctum/csrf-cookie');
+        // Gọi thẳng /sanctum/csrf-cookie của Laravel (không qua /api)
+        await axios.get('/sanctum/csrf-cookie', {
+            withCredentials: true,
+        });
     },
 
     async login(username, password) {
         try {
-            // Bước 1: Lấy CSRF cookie
-            await this.getCsrfCookie();
+            await this.getCsrfCookie(); // Lấy XSRF-TOKEN cookie trước
 
-            // Bước 2: Gửi request login
-            const response = await api.post('/login', {
-                username,
-                password
-            });
+            const response = await api.post('/login', { username, password });
 
             if (response.data.success) {
-                // Lưu thông tin user
                 localStorage.setItem('user', JSON.stringify(response.data.user));
             }
 
             return response.data;
         } catch (error) {
-
             if (error.response) {
                 throw new Error(error.response.data.message || 'Đăng nhập thất bại');
             }
