@@ -4,17 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\BookService;
+use App\Services\BookTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class BookController extends Controller
 {
     protected BookService $bookService;
-
+    protected BookTransferService $bookTransferService;
     // Khởi tạo BookService
-    public function __construct(BookService $bookService)
+    public function __construct(BookService $bookService, BookTransferService $bookTransferService)
     {
         $this->bookService = $bookService;
+        $this->bookTransferService = $bookTransferService;
     }
 
     // Lấy danh sách tất cả sách
@@ -43,15 +45,15 @@ class BookController extends Controller
 
     // Tạo mới sách
     public function store(Request $request): JsonResponse
-{
-    $book = $this->bookService->create($request->all());
+    {
+        $book = $this->bookService->create($request->all());
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Book created successfully',
-        'data' => $book
-    ], 201);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Book created successfully',
+            'data' => $book
+        ], 201);
+    }
 
     // Cập nhật thông tin sách
     public function update(Request $request, int $id): JsonResponse
@@ -112,11 +114,47 @@ class BookController extends Controller
     public function search(Request $request)
     {
         $books = $this->bookService->search($request->query());
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Search completed successfully',
             'data' => $books
+        ]);
+    }
+
+    //Lấy danh sách book transfer theo book ID
+    public function getTransfers(int $id): JsonResponse
+    {
+        $transfers = $this->bookTransferService->getTransfersByBookId($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfers retrieved successfully',
+            'data'    => $transfers
+        ]);
+    }
+
+    //Tạo book transfer
+    public function createTransfer(Request $request, int $id): JsonResponse
+    {
+        $transfer = $this->bookTransferService->createTransfer($id, $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer created successfully',
+            'data'    => $transfer
+        ]);
+    }
+
+    //Cập nhật book transfer
+    public function updateTransfer(Request $request, int $id, int $transferId): JsonResponse
+    {
+        $transfer = $this->bookTransferService->updateTransfer($id, $transferId, $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer updated successfully',
+            'data'    => $transfer
         ]);
     }
 }

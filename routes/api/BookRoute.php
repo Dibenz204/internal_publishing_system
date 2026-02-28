@@ -5,27 +5,36 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('books')->group(function () {
 
-// Lấy danh sách tất cả sách
-Route::get('/', [BookController::class, 'index']);
+    // Lấy danh sách tất cả sách
+    Route::get('/', [BookController::class, 'index']);
 
-// Tìm kiếm sách
-Route::get('/search', [BookController::class, 'search']);
+    // Tìm kiếm sách
+    Route::get('/search', [BookController::class, 'search']);
 
-// Lấy chi tiết 1 sách theo ID
-Route::get('/{id}', [BookController::class, 'show']);
+    // Lấy chi tiết 1 sách theo ID
+    Route::get('/{id}', [BookController::class, 'show']);
 
-// Tạo mới sách
-Route::post('/', [BookController::class, 'store']);
+    // Tạo mới sách
+    Route::post('/', [BookController::class, 'store']);
 
-// Cập nhật toàn bộ thông tin sách
-Route::put('/{id}', [BookController::class, 'update']);
+    // Cập nhật toàn bộ thông tin sách
+    Route::put('/{id}', [BookController::class, 'update']);
 
-// Cập nhật tiến độ đọc
-Route::patch('/{id}/progress', [BookController::class, 'updateProgress']);
+    // Cập nhật tiến độ đọc
+    Route::patch('/{id}/progress', [BookController::class, 'updateProgress']);
 
-// Đánh dấu hoàn thành
-Route::patch('/{id}/finish', [BookController::class, 'finish']);
+    // Đánh dấu hoàn thành
+    Route::patch('/{id}/finish', [BookController::class, 'finish']);
 
-// Hủy sách
-Route::patch('/{id}/cancel', [BookController::class, 'cancel']);
+    // Hủy sách
+    Route::patch('/{id}/cancel', [BookController::class, 'cancel']);
+
+    //Lấy danh sách book transfer theo book ID
+    Route::get('/{id}/transfers', [BookController::class, 'getTransfers']);
+
+    //Tạo book transfer
+    Route::post('/{id}/transfers', [BookController::class, 'createTransfer']);
+
+    //Cập nhật book transfer
+    Route::put('/{id}/transfers/{transferId}', [BookController::class, 'updateTransfer']);
 });

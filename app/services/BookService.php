@@ -130,10 +130,6 @@ class BookService
 
             $book = Book::create($data);
 
-            // Yến thêm 2 dòng này để phục vụ cho tự động sinh bảng BookTransfer
-            app(BookTransferService::class)
-            ->createInitialTransfer($book);
-
             if (!empty($categories)) {
 
                 // Chỉ lấy category có status = 1
