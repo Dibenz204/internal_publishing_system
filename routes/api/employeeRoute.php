@@ -11,6 +11,9 @@ Route::prefix('employees')->group(function () {
     Route::get('/search', [EmployeeController::class, 'search']);
 
     Route::post('/', [EmployeeController::class, 'store']);
+    Route::post('/{id}/create-user', [EmployeeController::class, 'createUser'])
+        ->whereNumber('id');
+
     Route::put('/{id}', [EmployeeController::class, 'update']);
     Route::patch('/{id}/deactivate', [EmployeeController::class, 'deactivate']);
     Route::patch('/{id}/activate', [EmployeeController::class, 'activate']);

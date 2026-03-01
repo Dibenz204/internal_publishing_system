@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\EmployeeService;
 use Illuminate\Http\Request;
+use App\Services\UserService;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
 class EmployeeController extends Controller
 {
     protected EmployeeService $employeeService;
+    protected UserService $userService;
 
-    public function __construct(EmployeeService $employeeService)
+    public function __construct(EmployeeService $employeeService, UserService $userService)
     {
         $this->employeeService = $employeeService;
+        $this->userService = $userService;
     }
 
     /**
@@ -44,6 +47,33 @@ class EmployeeController extends Controller
             $employee = $this->employeeService->create($request->all());
 
             return response()->json($employee, 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
+        }
+    }
+
+    public function createUser(int $id, Request $request)
+    {
+        try {
+            $employee = $this->employeeService->findById($id);
+
+            // Kiểm tra employee đã có user chưa
+            if ($employee->user) {
+                return response()->json([
+                    'message' => 'Nhân viên này đã có tài khoản'
+                ], 409);
+            }
+
+            $user = $this->userService->create([
+                'username'    => $request->input('username'),
+                'password'    => $request->input('password'),
+                'status'      => true,
+                'employee_id' => $id,
+            ]);
+
+            return response()->json($user, 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'errors' => $e->errors()

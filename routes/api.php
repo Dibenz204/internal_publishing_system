@@ -4,10 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 
-// Route::get('/sanctum/csrf-cookie', function (Request $request) {
-//     return response()->json(['message' => 'CSRF cookie set']);
-// })->middleware('web');
-
 Route::post('/login', [LoginController::class, 'apiLogin'])->middleware('web');
 
 
@@ -23,7 +19,6 @@ Route::middleware('auth', 'web')->group(function () {
         return $request->user();
     });
 
-    //Dùng để debug cho phiên đăng nhập bằng session
     Route::get('/debug-session', function (Request $request) {
         return response()->json([
             'session_id' => session()->getId(),
