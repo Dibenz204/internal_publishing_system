@@ -38,9 +38,15 @@ class Book extends Model
             ->withTimestamps();
     }
 
-    public function projects()
+    public function departments()
     {
-        return $this->hasMany(Project::class, 'book_id');
+    return $this->belongsToMany(
+        Department::class,
+        'projects',
+        'book_id',
+        'department_id'
+    )->withPivot(['description', 'status'])
+     ->withTimestamps();
     }
 
     public function paper()
