@@ -11,6 +11,8 @@ class Project extends Model
         protected $fillable = [
         'description',
         'status',
+        'department_id',
+        'book_id',
     ];
         public function department()
     {

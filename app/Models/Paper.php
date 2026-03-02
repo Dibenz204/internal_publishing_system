@@ -13,10 +13,8 @@ class Paper extends Model
         'paperSize',
     ];
 
-    public function book()
+    public function books()
     {
         return $this->hasMany(Book::class, 'paper_id');
     }
-
-
 }

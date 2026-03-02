@@ -43,9 +43,8 @@ class Book extends Model
         return $this->hasMany(Project::class, 'book_id');
     }
 
-    public function papers()
+    public function paper()
     {
-        return $this->belongsTo(Paper::class, 'book_id');
+        return $this->belongsTo(Paper::class, 'paper_id');
     }
-    
 }
