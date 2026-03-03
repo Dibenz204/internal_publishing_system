@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Paper extends Model
 {
     use HasFactory;
-        protected $fillable = [
-        'paper_coefficient',
+    protected $fillable = [
         'paperSize',
+        'paper_coefficient',
+        'status',
     ];
 
     public function books()

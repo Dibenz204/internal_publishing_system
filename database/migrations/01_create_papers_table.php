@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('papers', function (Blueprint $table) {
             $table->id(); //NOT NULL
+            $table->string('paperSize');
             $table->double('paper_coefficient'); //NOT NULL
-            $table->string('paperSize')->nullable();
+            $table->boolean('status')->default(1);
             $table->timestamps();
         });
     }
