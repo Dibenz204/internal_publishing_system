@@ -29,6 +29,8 @@ return new class extends Migration
             ->constrained('books')
             ->cascadeOnDelete();
 
+            $table->unique(['department_id', 'book_id']);
+            
             $table->timestamps();
         });
     }
