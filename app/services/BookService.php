@@ -8,9 +8,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use App\Services\BookTransferService;
 
 class BookService
 {
+    protected $bookTransferService;
+
+    public function __construct(BookTransferService $bookTransferService)
+    {
+        $this->bookTransferService = $bookTransferService;
+    }
+
     // Trạng thái sách:
     // 0 - Đã hủy
     // 1 - Đang thực hiện
@@ -145,6 +153,9 @@ class BookService
 
                 $book->categories()->sync($validCategories);
             }
+
+            //Tạo transfer khởi tạo ngay sau khi tạo book
+            //$this->bookTransferService->createInitialTransfer((int) $book->id);
 
             return $book->fresh(['assignedEmployee', 'categories']);
         });

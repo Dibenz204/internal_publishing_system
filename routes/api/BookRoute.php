@@ -28,13 +28,4 @@ Route::prefix('books')->group(function () {
 
     // Hủy sách
     Route::patch('/{id}/cancel', [BookController::class, 'cancel']);
-
-    //Lấy danh sách book transfer theo book ID
-    Route::get('/{id}/transfers', [BookController::class, 'getTransfers']);
-
-    //Tạo book transfer
-    Route::post('/{id}/transfers', [BookController::class, 'createTransfer']);
-
-    //Cập nhật book transfer
-    Route::put('/{id}/transfers/{transferId}', [BookController::class, 'updateTransfer']);
 });
