@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\BookService;
+use App\Services\BookTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class BookController extends Controller
 {
     protected BookService $bookService;
-
     // Khởi tạo BookService
     public function __construct(BookService $bookService)
     {
@@ -43,15 +43,15 @@ class BookController extends Controller
 
     // Tạo mới sách
     public function store(Request $request): JsonResponse
-{
-    $book = $this->bookService->create($request->all());
+    {
+        $book = $this->bookService->create($request->all());
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Book created successfully',
-        'data' => $book
-    ], 201);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Book created successfully',
+            'data' => $book
+        ], 201);
+    }
 
     // Cập nhật thông tin sách
     public function update(Request $request, int $id): JsonResponse
@@ -112,7 +112,7 @@ class BookController extends Controller
     public function search(Request $request)
     {
         $books = $this->bookService->search($request->query());
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Search completed successfully',

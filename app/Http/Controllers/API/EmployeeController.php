@@ -43,6 +43,7 @@ class EmployeeController extends Controller
         ], 200);
     }
 
+
     public function store(Request $request)
     {
         $employee = $this->employeeService->create(
@@ -129,6 +130,9 @@ class EmployeeController extends Controller
             ], 422);
         }
     }
+
+
+
     /**
      * PATCH /api/employees/{id}/deactivate (đổi trạng thái thành 0)
      */

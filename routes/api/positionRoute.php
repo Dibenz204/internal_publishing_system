@@ -10,7 +10,7 @@ Route::prefix('positions')->group(function () {
         ->middleware('position:Admin,Nhân viên');
 
     Route::middleware('position:Admin')->group(function () {
-        // Tạo mới
+
         Route::post('/', [PositionController::class, 'store']);
 
         // Cập nhật theo name

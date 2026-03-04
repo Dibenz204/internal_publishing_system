@@ -63,6 +63,7 @@ class EmployeeService
             ->where('status', 1)
             ->get();
     }
+
     /**
      * Lấy danh sách nhân viên
      */
@@ -85,8 +86,6 @@ class EmployeeService
             ])
             ->get();
     }
-
-
 
     /**
      * Tạo nhân viên mới
@@ -228,6 +227,7 @@ class EmployeeService
             'user'
         ])->findOrFail($id);
     }
+
 
 
     /**
