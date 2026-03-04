@@ -15,9 +15,9 @@ class Employee extends Model
         'phone',
         'birthday',
         'sex',
-        'status',
         'department_id',
         'position_id',
+        'status',
     ];
 
     public function department()
@@ -42,11 +42,11 @@ class Employee extends Model
 
     public function transfersFrom()
     {
-    return $this->hasMany(BookTransfer::class, 'from_employee_id');
-    }   
+        return $this->hasMany(BookTransfer::class, 'from_employee_id');
+    }
 
     public function transfersTo()
     {
-    return $this->hasMany(BookTransfer::class, 'to_employee_id');
+        return $this->hasMany(BookTransfer::class, 'to_employee_id');
     }
 }
