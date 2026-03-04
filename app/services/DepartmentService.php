@@ -4,16 +4,27 @@ namespace App\Services;
 
 use App\Models\Department;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
+
 
 class DepartmentService
 {
     /**
-     * Lấy tất cả phòng ban
+     * Lấy tất cả phòng ban hoặc theo name
      */
-    public function getAll()
+    public function getAll(?string $keyword = null)
     {
-        return Department::orderBy('id', 'desc')->get();
+        return Department::query()
+            ->when(!empty(trim($keyword ?? '')), function ($query) use ($keyword) {
+                $query->whereRaw(
+                    'LOWER(name) LIKE ?',
+                    ['%' . strtolower(trim($keyword)) . '%']
+                );
+            })
+            ->orderByDesc('id')
+            ->get();
     }
+    
 
 
     /**
@@ -28,44 +39,49 @@ class DepartmentService
      * Tạo phòng ban
      */
     public function create(array $data): Department
-    {
-        $this->validate($data);
+{
+    $this->validate($data);
 
-        return Department::create([
-            'name'   => $data['name'],
-            'status' => (int) $data['status'], // bit
-        ]);
-    }
+    return Department::create([
+        'name'   => trim($data['name']),
+        'status' => 1, // luôn active khi tạo
+    ]);
+}
+
 
     /**
      * Cập nhật phòng ban
      */
     public function update(int $id, array $data): Department
-    {
-        $this->validate($data, $id);
+{
+    $this->validate($data, $id);
 
-        $department = Department::findOrFail($id);
+    $department = Department::findOrFail($id);
 
-        $department->update([
-            'name'   => $data['name'],
-            'status' => (int) $data['status'],
-        ]);
+    $department->update([
+        'name' => trim($data['name']),
+    ]);
 
-        return $department;
-    }
+    return $department;
+}
+
 
 
     /**
      * Validate dữ liệu
      */
-    protected function validate(array $data, int $id = null): void
-    {
-        validator($data, [
-            'name' => 'required|string|max:255',
-            // SQL Server bit → 0 | 1
-            'status' => 'required|in:0,1',
-        ])->validate();
-    }
+    protected function validate(array $data, ?int $id = null): void
+{
+    validator($data, [
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('departments', 'name')->ignore($id),
+        ],
+    ])->validate();
+}
+
     /**
      * Lọc theo keyword
      */
@@ -80,4 +96,38 @@ class DepartmentService
             ->orderBy('id', 'desc')
             ->get();
     }
+
+    /**
+ * (status = 1)
+ */
+public function activate(int $id): Department
+{
+    $department = Department::findOrFail($id);
+
+    $department->update([
+        'status' => 1
+    ]);
+
+    return $department;
+}
+
+/**
+ *(status = 0)
+ */
+public function deactivate(int $id): Department
+{
+    $department = Department::with('employees')->findOrFail($id);
+
+    if ($department->employees()->where('status', 1)->exists()) {
+        throw new \Exception('Cannot deactivate this department because it still has active employees.');
+    }
+
+    $department->update([
+        'status' => 0
+    ]);
+
+    return $department;
+}
+
+
 }

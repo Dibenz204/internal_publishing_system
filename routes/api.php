@@ -6,7 +6,6 @@ use App\Http\Controllers\Auth\LoginController;
 
 Route::post('/login', [LoginController::class, 'apiLogin'])->middleware('web');
 
-
 //Protected Api
 Route::middleware('auth', 'web')->group(function () {
 
@@ -31,7 +30,8 @@ Route::middleware('auth', 'web')->group(function () {
 
     // Phân quyền theo position
     Route::middleware('position:Admin')->group(function () {
-        require __DIR__ . '/api/positionRoute.php';
+        // require __DIR__ . '/api/positionRoute.php';
+        require __DIR__ . '/api/ProjectRoute.php';
     });
 
     Route::middleware('position:Admin,Quản lý')->group(function () {
@@ -42,4 +42,13 @@ Route::middleware('auth', 'web')->group(function () {
     Route::middleware('position:Admin,Quản lý,Thủ thư')->group(function () {
         require __DIR__ . '/api/BookCategoryRoute.php';
     });
+
+
+    require __DIR__ . '/api/positionRoute.php';
 });
+
+// require __DIR__ . '/api/employeeRoute.php';
+// require __DIR__ . '/api/departmentRoute.php';
+// require __DIR__ . '/api/BookCategoryRoute.php';
+// require __DIR__ . '/api/BookRoute.php';
+// require __DIR__ . '/api/ProjectRoute.php';

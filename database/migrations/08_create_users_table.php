@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('password', 255);
             $table->boolean('status')->default(1);
             $table->foreignId('employee_id')
-                ->nullable()
+                // ->nullable()
                 ->unique()
                 ->constrained('employees')
                 ->cascadeOnDelete();

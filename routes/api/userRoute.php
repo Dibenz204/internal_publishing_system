@@ -11,10 +11,12 @@ Route::prefix('users')->group(function () {
     Route::get('/search', [UserController::class, 'search']);
 
     // theo email/phone
-    Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
+    Route::post('/forgot-password', [UserController::class, 'forgotPassword'])
+        ->middleware('position:Admin,Quản lý');
 
     // đặt lại pw
-    Route::post('/reset-password', [UserController::class, 'resetPassword']);
+    Route::post('/reset-password', [UserController::class, 'resetPassword'])
+        ->middleware('position:Admin,Quản lý');
 
     // Cập nhật thông tin user
     Route::put('/{id}', [UserController::class, 'update']);

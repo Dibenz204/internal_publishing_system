@@ -13,21 +13,18 @@ class Book extends Model
         'name',
         'bookCode',
         'page',
-        'currentPage',
-        'bookSize',
+        'current_page',
+        'note',
         'status',
         'assigned_by',
-        'booktime_id',
+        'paper_id',
+        'start_time',
+        'end_time',
     ];
 
     public function assignedEmployee()
     {
         return $this->belongsTo(Employee::class, 'assigned_by');
-    }
-
-    public function booktime()
-    {
-        return $this->belongsTo(Booktime::class, 'booktime_id');
     }
 
     public function categories()
@@ -39,5 +36,21 @@ class Book extends Model
             'bookcategory_id'
         )->withPivot('status')
             ->withTimestamps();
+    }
+
+    public function departments()
+    {
+    return $this->belongsToMany(
+        Department::class,
+        'projects',
+        'book_id',
+        'department_id'
+    )->withPivot(['description', 'status'])
+     ->withTimestamps();
+    }
+
+    public function paper()
+    {
+        return $this->belongsTo(Paper::class, 'paper_id');
     }
 }

@@ -18,4 +18,15 @@ class Department extends Model
     {
         return $this->hasMany(Employee::class, 'department_id');
     }
+
+    public function books()
+    {
+    return $this->belongsToMany(
+        Book::class,
+        'projects',
+        'department_id',
+        'book_id'
+    )->withPivot(['description', 'status'])
+     ->withTimestamps();
+    }
 }

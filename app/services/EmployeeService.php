@@ -5,24 +5,87 @@ namespace App\Services;
 use App\Models\Employee;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\Position;
+use App\Models\Department;
+use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Str;
 
 class EmployeeService
 {
+
+    private function validateEmployee(array $data, ?int $id = null): array
+    {
+        $rules = [
+            'name'          => 'sometimes|required|string|max:255',
+            'email'         => 'sometimes|required|email|unique:employees,email' . ($id ? ',' . $id : ''),
+            'phone'         => 'sometimes|nullable|digits:11|unique:employees,phone' . ($id ? ',' . $id : ''),
+            'birthday'      => 'nullable|date',
+            'sex'           => 'nullable|in:0,1',
+            'status'        => 'nullable|in:0,1',
+            'department_id' => 'sometimes|required|exists:departments,id',
+            'position_id'   => 'sometimes|required|exists:positions,id',
+        ];
+
+        $validator = Validator::make($data, $rules);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        return $validator->validated();
+    }
+
+
+
     /**
      * Lấy danh sách nhân viên (chỉ active)
      */
     public function getAll()
     {
-        return Employee::where('status', 1)->get();
+        return Employee::select(
+            'id',
+            'name',
+            'email',
+            'phone',
+            'birthday',
+            'sex',
+            'status',
+            'department_id',
+            'position_id'
+        )
+            ->with([
+                'department:id,name',
+                'position:id,name'
+            ])
+            ->where('status', 1)
+            ->get();
     }
     /**
      * Lấy danh sách nhân viên
      */
     public function getAllEmployees()
     {
-        return Employee::all();
+        return Employee::select(
+            'id',
+            'name',
+            'email',
+            'phone',
+            'birthday',
+            'sex',
+            'status',
+            'department_id',
+            'position_id'
+        )
+            ->with([
+                'department:id,name',
+                'position:id,name'
+            ])
+            ->get();
     }
+
 
 
     /**
@@ -32,27 +95,53 @@ class EmployeeService
     {
         return DB::transaction(function () use ($data) {
 
-            if (Employee::where('email', $data['email'])->exists()) {
+            $data = $this->validateEmployee($data);
+
+            $department = Department::findOrFail($data['department_id']);
+            if ($department->status != 1) {
                 throw ValidationException::withMessages([
-                    'email' => 'Email đã tồn tại'
+                    'department_id' => ['Department is inactive'],
                 ]);
             }
 
-            $employee = Employee::create([
-                'name'         => $data['name'],
-                'email'        => $data['email'],
-                'phone'        => $data['phone'] ?? null,
-                'status'       => $data['status'] ?? 1,
-                'departmentId' => $data['departmentId'],
-                'positionId'   => $data['positionId'],
-            ]);
+            $position = Position::findOrFail($data['position_id']);
+            if ($position->status != 1) {
+                throw ValidationException::withMessages([
+                    'position_id' => ['Position is inactive'],
+                ]);
+            }
 
-            Log::info('Employee created', ['id' => $employee->id]);
+            $data['name'] = trim($data['name']);
+            $data['email'] = strtolower(trim($data['email']));
+            $data['sex'] = isset($data['sex']) ? (int)$data['sex'] : null;
+            $data['status'] = isset($data['status']) ? (int)$data['status'] : 1;
+
+            $employee = Employee::create($data);
+
+            $nameSlug = Str::slug($employee->name, '');
+            $birthday = Carbon::parse($employee->birthday)->format('dmY');
+            $username = $nameSlug . $birthday;
+
+            // Phòng hờ TH nếu username đã tồn tại
+            $originalUsername = $username;
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $originalUsername . $counter;
+                $counter++;
+            }
+
+            $userData = [
+                'username' => $username,
+                'password' => '123456',
+                'status' => 1,
+                'employee_id' => $employee->id
+            ];
+
+            app(UserService::class)->create($userData);
 
             return $employee;
         });
     }
-
     /**
      * Cập nhật nhân viên
      */
@@ -62,68 +151,100 @@ class EmployeeService
 
             $employee = Employee::findOrFail($id);
 
-            if (
-                isset($data['email']) &&
-                $data['email'] !== $employee->email &&
-                Employee::where('email', $data['email'])->exists()
-            ) {
-                throw ValidationException::withMessages([
-                    'email' => 'Email đã tồn tại'
-                ]);
+            $data = $this->validateEmployee($data, $id);
+
+            //check department active nếu có gửi
+            if (isset($data['department_id'])) {
+                $department = Department::findOrFail($data['department_id']);
+
+                if ($department->status != 1) {
+                    throw ValidationException::withMessages([
+                        'department_id' => ['Department is inactive'],
+                    ]);
+                }
+            }
+
+            // check position active nếu có gửi
+            if (isset($data['position_id'])) {
+                $position = Position::findOrFail($data['position_id']);
+
+                if ($position->status != 1) {
+                    throw ValidationException::withMessages([
+                        'position_id' => ['Position is inactive'],
+                    ]);
+                }
+            }
+
+            // normalize
+            if (isset($data['name'])) {
+                $data['name'] = trim($data['name']);
+            }
+
+            if (isset($data['email'])) {
+                $data['email'] = strtolower(trim($data['email']));
+            }
+
+            if (isset($data['sex'])) {
+                $data['sex'] = (int)$data['sex'];
+            }
+
+            if (isset($data['status'])) {
+                $data['status'] = (int)$data['status'];
             }
 
             $employee->update($data);
 
-            Log::info('Employee updated', ['id' => $employee->id]);
-
-            return $employee;
+            return $employee->fresh();
         });
     }
 
-    /**
-     * Xoá nhân viên
-     */
-    public function delete(int $id)
-    {
-        $employee = Employee::findOrFail($id);
-
-        if ($employee->status === 1) {
-            throw new \Exception('Không thể xoá nhân viên đang hoạt động');
-        }
-
-        $employee->delete();
-
-        Log::warning('Employee deleted', ['id' => $id]);
-
-        return true;
-    }
 
     /**
      * Vô hiệu hoá nhân viên( đổi trạng thái thành 0)
      */
     public function deactivate(int $id)
     {
-        $employee = Employee::findOrFail($id);
-        $employee->update(['status' => 0]);
+        return DB::transaction(function () use ($id) {
 
-        return $employee;
+            $employee = Employee::with('user')->findOrFail($id);
+
+            $employee->update(['status' => 0]);
+
+            if ($employee->user) {
+                $employee->user->update(['status' => false]);
+            }
+
+            return $employee->fresh()->load('user');
+        });
     }
     /**
      * Tìm nhân viên theo id
      */
     public function findById(int $id)
     {
-        return Employee::findOrFail($id);
+        return Employee::with([
+            'department:id,name',
+            'position:id,name',
+            'user'
+        ])->findOrFail($id);
     }
+
 
     /**
      * Mở lại nhân viên (đổi trạng thái thành 1)
      */
     public function activate(int $id)
     {
-        $employee = Employee::findOrFail($id);
-        $employee->update(['status' => 1]);
-        return $employee;
+        return DB::transaction(function () use ($id) {
+            $employee = Employee::with('user')->findOrFail($id);
+            $employee->update(['status' => 1]);
+
+            if ($employee->user) {
+                $employee->user->update(['status' => true]);
+            }
+
+            return $employee->fresh()->load('user');
+        });
     }
 
     /**
@@ -131,10 +252,17 @@ class EmployeeService
      */
     public function search(array $filters)
     {
-        $query = Employee::query();
+        $query = Employee::with(['department', 'position']);
 
-        // SEARCH TÊN HOẶC EMAIL (1 Ô)
-        if (!empty($filters['keyword'])) {
+        if (isset($filters['department_id']) && $filters['department_id'] !== '') {
+            $query->where('department_id', (int)$filters['department_id']);
+        }
+
+        if (isset($filters['position_id']) && $filters['position_id'] !== '') {
+            $query->where('position_id', (int)$filters['position_id']);
+        }
+
+        if (isset($filters['keyword']) && $filters['keyword'] !== '') {
             $keyword = trim($filters['keyword']);
 
             $query->where(function ($q) use ($keyword) {
@@ -142,16 +270,7 @@ class EmployeeService
                     ->orWhere('email', 'like', "%{$keyword}%");
             });
         }
-        if (
-            isset($filters['departmentId']) &&
-            $filters['departmentId'] !== '' &&
-            $filters['departmentId'] !== null
-        ) {
-            $query->where('departmentId', (int) $filters['departmentId']);
-        }
 
-        return $query
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        return $query->orderByDesc('id')->paginate(10);
     }
 }

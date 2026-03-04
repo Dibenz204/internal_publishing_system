@@ -7,7 +7,11 @@ use App\Services\EmployeeService;
 use Illuminate\Http\Request;
 use App\Services\UserService;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Employee\StoreEmployeeRequest;
 use Exception;
+use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Str;
 
 class EmployeeController extends Controller
 {
@@ -32,26 +36,24 @@ class EmployeeController extends Controller
 
     public function index()
     {
-        return response()->json(
-            $this->employeeService->getAllEmployees()
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee list retrieved successfully',
+            'data' => $this->employeeService->getAllEmployees()
+        ], 200);
     }
 
-
-    /**
-     * POST /api/employees
-     */
     public function store(Request $request)
     {
-        try {
-            $employee = $this->employeeService->create($request->all());
+        $employee = $this->employeeService->create(
+            $request->all()
+        );
 
-            return response()->json($employee, 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'errors' => $e->errors()
-            ], 422);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee created successfully',
+            'data' => $employee
+        ], 201);
     }
 
     public function createUser(int $id, Request $request)
@@ -59,23 +61,48 @@ class EmployeeController extends Controller
         try {
             $employee = $this->employeeService->findById($id);
 
-            // Kiểm tra employee đã có user chưa
             if ($employee->user) {
                 return response()->json([
+                    'success' => false,
                     'message' => 'Nhân viên này đã có tài khoản'
                 ], 409);
             }
 
-            $user = $this->userService->create([
-                'username'    => $request->input('username'),
-                'password'    => $request->input('password'),
-                'status'      => true,
-                'employee_id' => $id,
-            ]);
+            // Nếu có username từ request thì dùng, không thì tự gen
+            if ($request->has('username') && !empty($request->username)) {
+                $username = $request->username;
+            } else {
+                // Gen username giống bên EmployeeService
+                $nameSlug = Str::slug($employee->name, '');
+                $birthday = Carbon::parse($employee->birthday)->format('dmY');
+                $username = $nameSlug . $birthday;
 
-            return response()->json($user, 201);
+                // Phòng hờ TH username đã tồn tại
+                $originalUsername = $username;
+                $counter = 1;
+                while (User::where('username', $username)->exists()) {
+                    $username = $originalUsername . $counter;
+                    $counter++;
+                }
+            }
+
+            $userData = [
+                'username' => $username,
+                'password' => $request->input('password') ?? '123456',
+                'status' => true,
+                'employee_id' => $id,
+            ];
+
+            $user = $this->userService->create($userData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User created successfully',
+                'data' => $user
+            ], 201);
         } catch (ValidationException $e) {
             return response()->json([
+                'success' => false,
                 'errors' => $e->errors()
             ], 422);
         }
@@ -89,32 +116,19 @@ class EmployeeController extends Controller
         try {
             $employee = $this->employeeService->update($id, $request->all());
 
-            return response()->json($employee);
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee updated successfully',
+                'data' => $employee
+            ], 200);
         } catch (ValidationException $e) {
             return response()->json([
+                'success' => false,
+                'message' => 'Invalid data',
                 'errors' => $e->errors()
             ], 422);
         }
     }
-
-    /**
-     * DELETE /api/employees/{id}
-     */
-    public function destroy(int $id)
-    {
-        try {
-            $this->employeeService->delete($id);
-
-            return response()->json([
-                'message' => 'Employee deleted'
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
     /**
      * PATCH /api/employees/{id}/deactivate (đổi trạng thái thành 0)
      */
@@ -122,14 +136,11 @@ class EmployeeController extends Controller
     {
         $employee = $this->employeeService->deactivate($id);
 
-        return response()->json($employee);
-    }
-
-    public function show($id)
-    {
-        return response()->json(
-            $this->employeeService->findById($id)
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee deactivated successfully',
+            'data' => $employee
+        ], 200);
     }
 
     /**
@@ -137,9 +148,13 @@ class EmployeeController extends Controller
      */
     public function activate(int $id)
     {
-
         $employee = $this->employeeService->activate($id);
-        return response()->json($employee);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee activated successfully',
+            'data' => $employee
+        ], 200);
     }
 
     /**
@@ -149,13 +164,10 @@ class EmployeeController extends Controller
     public function search(Request $request)
     {
         $filters = [
-            //search chung
-            'keyword'      => $request->query('keyword'),
-
-            'departmentId' => $request->query('departmentId'),
-
-            // phân trang
-            'per_page'     => $request->query('per_page', 10),
+            'keyword'       => $request->query('keyword'),
+            'department_id' => $request->query('department_id'),
+            'position_id'   => $request->query('position_id'),
+            'per_page'      => $request->query('per_page', 10),
         ];
 
         $result = $this->employeeService->search($filters);

@@ -30,7 +30,7 @@ class Employee extends Model
         return $this->hasMany(Book::class, 'assigned_by');
     }
 
-    public function users()
+    public function user()
     {
         return $this->hasOne(User::class, 'employee_id');
     }
