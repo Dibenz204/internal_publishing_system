@@ -12,8 +12,7 @@ use Illuminate\Validation\ValidationException;
 class BookTransferService
 {
     const STATUS_CANCELLED = 0;
-    const STATUS_PROCESSING = 1;
-    const STATUS_COMPLETED = 2;
+    const STATUS_PERFORM = 1;
 
     // Validate dữ liệu transfer (to_employee_id không được trùng from_employee_id và khác phòng ban)
     private function validateTransfer(array $data): array
@@ -64,39 +63,25 @@ class BookTransferService
             ->get();
     }
 
-    /**
-     * Tạo transfer khởi tạo ngay sau khi tạo book.
-     * - from_employee_id và to_employee_id để tạm thời null (sẽ cập nhật sau).
-     * - Cập nhật luôn trạng thái book về PROCESSING (1).
-     */
-    public function createInitialTransfer(int $bookId)
-    {
-        return DB::transaction(function () use ($bookId) {
-            $book = Book::findOrFail($bookId);
+    // Tạo transfer khởi tạo ngay sau khi tạo book.
+    // Cập nhật luôn trạng thái book về PERFORM (1).
 
-            // Cập nhật trạng thái sách thành Đang thực hiện
-            if ((int) $book->status === BookService::STATUS_PENDING) {
-                $book->update(['status' => BookService::STATUS_PROCESSING]);
-            }
+    public function createInitialTransfer(Book $book)
+    {
+        return DB::transaction(function () use ($book) {
 
             $transfer = BookTransfer::create([
-                'book_id' => $bookId,
-                'from_employee_id' => null, // Để trống
-                'to_employee_id' => null, // Để trống
+                'book_id' => $book->id,
+                'from_employee_id' => $book->assigned_by,
+                'to_employee_id' => $book->assigned_by,
                 'start_time' => now(),
-                'status' => self::STATUS_PROCESSING,
+                'status' => self::STATUS_PERFORM,
             ]);
 
             return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
         });
     }
 
-    /**
-     * Tạo book transfer.
-     * - Nếu chưa có transfer nào của book → cập nhật status book thành 1 (PROCESSING).
-     * - Cập nhật transfer trước (đang PROCESSING) thành status 2 (COMPLETED).
-     * - Transfer mới có status mặc định 1 (PROCESSING).
-     */
     public function createTransfer(int $bookId, array $data)
     {
         $validated = $this->validateTransfer(array_merge($data, ['book_id' => $bookId]));
@@ -114,16 +99,8 @@ class BookTransferService
             // Chưa có transfer nào → cập nhật status book thành 1 (PROCESSING)
             $hasAnyTransfer = BookTransfer::where('book_id', $bookId)->exists();
             if (!$hasAnyTransfer) {
-                $book->update(['status' => BookService::STATUS_PROCESSING]);
+                $book->update(['status' => BookService::STATUS_PROCESSING]);    
             }
-
-            // Cập nhật transfer trước (đang PROCESSING) thành COMPLETED (2) và end_time
-            BookTransfer::where('book_id', $bookId)
-                ->where('status', self::STATUS_PROCESSING)
-                ->update([
-                    'status' => self::STATUS_COMPLETED,
-                    'end_time' => now(),
-                ]);
 
             // from_employee_id hiện lấy từ request; TODO: sau này lấy từ user id theo token
             $transfer = BookTransfer::create([
@@ -131,16 +108,16 @@ class BookTransferService
                 'from_employee_id' => $validated['from_employee_id'],
                 'to_employee_id' => $validated['to_employee_id'],
                 'start_time' => now(),
-                'status' => self::STATUS_PROCESSING,
+                'status' => self::STATUS_PERFORM,
             ]);
 
             return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
         });
     }
 
-    /**
-     * Cập nhật book transfer – chỉ cho phép cập nhật to_employee_id.
-     */
+    
+    //Cập nhật book transfer – chỉ cho phép cập nhật to_employee_id.
+
     public function updateTransfer(int $bookId, int $transferId, array $data)
     {
         $transfer = BookTransfer::where('book_id', $bookId)->where('id', $transferId)->firstOrFail();

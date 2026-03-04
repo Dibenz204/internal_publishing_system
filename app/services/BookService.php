@@ -155,7 +155,7 @@ class BookService
             }
 
             //Tạo transfer khởi tạo ngay sau khi tạo book
-            //$this->bookTransferService->createInitialTransfer((int) $book->id);
+            $this->bookTransferService->createInitialTransfer($book);
 
             return $book->fresh(['assignedEmployee', 'categories']);
         });
