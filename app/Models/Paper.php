@@ -11,6 +11,7 @@ class Paper extends Model
         protected $fillable = [
         'paper_coefficient',
         'paperSize',
+        'status',
     ];
 
     public function books()
