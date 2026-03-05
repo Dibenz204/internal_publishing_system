@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('bookCode')->nullable()->unique();
             $table->integer('page')->nullable();
             $table->integer('current_page')->nullable()->default(0);
-            $table->string('note')->nullable();
+            $table->text('note')->nullable();
 
             $table->unsignedTinyInteger('status')->default(1) //NOT NULL
             ->comment('0=cancel,1=assigned,2=processing,3=completed'); //có 4 trạng thái, sử dụng kiểu unsingedTinyInteger cho đỡ tốn bộ nhớ

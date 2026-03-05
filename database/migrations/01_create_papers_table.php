@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('papers', function (Blueprint $table) {
             $table->id(); //NOT NULL
             $table->double('paper_coefficient'); //NOT NULL
-            $table->string('paperSize')->nullable();
+            $table->string('paperSize'); //NOT NULL
             $table->timestamps();
         });
     }
