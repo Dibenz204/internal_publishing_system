@@ -133,4 +133,18 @@ class ProjectController extends Controller
             ], 400);
         }
     }
+    public function addDepartmentWhenProcessing(Request $request, $bookId)
+{
+    $projects = $this->projectService->addDepartmentWhenProcessing(
+        $bookId,
+        $request->department_ids ?? [],
+        $request->description ?? null
+    );
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Departments added successfully.',
+        'data'    => $projects
+    ], 201);
+}
 }

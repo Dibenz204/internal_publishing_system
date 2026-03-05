@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use App\Services\BookTransferService;
+use App\Models\Paper;
 
 class BookService
 {
@@ -48,13 +49,14 @@ class BookService
                 'max:100',
                 Rule::unique('books', 'bookCode')->ignore($id)
             ],
-
             'page' => 'nullable|integer|min:1',
 
             //cho current_page lớn hơn page
             'current_page' => 'nullable|integer|min:0',
 
             'bookSize' => 'nullable|string|max:50',
+
+            'note' => 'nullable|string|max:1000',
 
             'status' => 'nullable|integer',
 
@@ -74,10 +76,9 @@ class BookService
             ],
 
             'paper_id' => [
-                'nullable',
+                $id ? 'sometimes' : 'required',
                 'integer',
-                Rule::exists('papers', 'id')
-                    ->where('status', 1),
+                Rule::exists('papers', 'id')->where('status', 1),
             ],
         ];
 
@@ -136,23 +137,31 @@ class BookService
 
             $data = $this->validateBook($data);
 
-            // $data['status'] = self::STATUS_PROCESSING;
             $data['status'] = self::STATUS_PENDING;
             $data['start_time'] = now();
 
             $categories = $data['categories'] ?? [];
             unset($data['categories']);
 
+            if (!empty($data['paper_id'])) {
+
+                $isActivePaper = Paper::where('id', $data['paper_id'])
+                    ->where('status', 1)
+                    ->exists();
+
+                if (!$isActivePaper) {
+                    throw new \Exception('Paper is inactive or does not exist.');
+                }
+            }
+
             $book = Book::create($data);
 
             if (!empty($categories)) {
-
                 // Chỉ lấy category có status = 1
                 $validCategories = Bookcategory::whereIn('id', $categories)
                     ->where('status', 1)
                     ->pluck('id')
                     ->toArray();
-
                 // Nếu số lượng không khớp -> có category không hợp lệ
                 if (count($validCategories) !== count($categories)) {
                     throw new \Exception('One or more categories are inactive or do not exist.');
@@ -164,7 +173,7 @@ class BookService
             //Tạo transfer khởi tạo ngay sau khi tạo book
             $this->bookTransferService->createInitialTransfer($book);
 
-            return $book->fresh(['assignedEmployee', 'categories']);
+            return $book->fresh(['assignedEmployee', 'categories', 'paper']);
         });
     }
 
@@ -185,6 +194,18 @@ class BookService
             $categories = $validated['categories'] ?? null;
             unset($validated['categories']);
 
+            // Nếu có gửi paper_id thì kiểm tra status = 1
+            if (array_key_exists('paper_id', $validated)) {
+
+                $isActivePaper = Paper::where('id', $validated['paper_id'])
+                    ->where('status', 1)
+                    ->exists();
+
+                if (!$isActivePaper) {
+                    throw new \Exception('Paper is inactive or does not exist.');
+                }
+            }
+
             $book->update($validated);
 
             if (!is_null($categories)) {
@@ -203,7 +224,8 @@ class BookService
 
             return $book->fresh([
                 'assignedEmployee',
-                'categories'
+                'categories',
+                'paper'
             ]);
         });
     }
@@ -304,14 +326,23 @@ class BookService
     }
 
 
-    // Tìm kiếm sách theo nhiều điều kiện
-    // Có thể tìm theo tên, thể loại, khổ giấy và khoảng thời gian bắt đầu
+    // Tìm kiếm sách theo nhiều điều kiện: có thể tìm theo tên, thể loại, khổ giấy và khoảng thời gian bắt đầu
     public function search(array $filters)
     {
         $query = Book::with([
             'assignedEmployee',
-            'categories'
+            'categories',
+            'paper'
         ]);
+
+        //  paperSize
+        if (!empty($filters['paperSize'])) {
+            $paperSize = trim($filters['paperSize']);
+
+            $query->whereHas('paper', function ($q) use ($paperSize) {
+                $q->where('paperSize', $paperSize);
+            });
+        }
 
         if (!empty($filters['name'])) {
             $query->where('books.name', 'like', '%' . trim($filters['name']) . '%');
@@ -337,7 +368,6 @@ class BookService
         if (!empty($filters['to_date'])) {
             $query->whereDate('books.start_time', '<=', $filters['to_date']);
         }
-
         //Thêm phân trang
         $perPage = $filters['per_page'] ?? 10;
 
