@@ -26,4 +26,8 @@ Route::get('books-not-assigned', [ProjectController::class, 'booksNotAssigned'])
 
 // 6. Assign book to multiple departments
 Route::post('assign', [ProjectController::class, 'assign']);
+
+Route::post('books/{bookId}/add-departments', 
+    [ProjectController::class, 'addDepartmentWhenProcessing']
+);
 });

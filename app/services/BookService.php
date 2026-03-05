@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use App\Models\Paper;
 
 class BookService
 {
@@ -40,13 +41,17 @@ class BookService
                 'max:100',
                 Rule::unique('books', 'bookCode')->ignore($id)
             ],
-
             'page' => 'nullable|integer|min:1',
 
+            'paper_id' => $id
+            ? 'sometimes|required|exists:papers,id'
+            : 'required|exists:papers,id',
+    
             //cho current_page lớn hơn page
             'current_page' => 'nullable|integer|min:0',
 
             'bookSize' => 'nullable|string|max:50',
+            'note' => 'nullable|string|max:1000',
 
             'status' => 'nullable|integer',
 
@@ -118,35 +123,43 @@ class BookService
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
-
+    
             $data = $this->validateBook($data);
-
-            // $data['status'] = self::STATUS_PROCESSING;
+    
             $data['status'] = self::STATUS_PENDING;
             $data['start_time'] = now();
-
+    
             $categories = $data['categories'] ?? [];
             unset($data['categories']);
-
+    
+            if (!empty($data['paper_id'])) {
+    
+                $isActivePaper = Paper::where('id', $data['paper_id'])
+                    ->where('status', 1)
+                    ->exists();
+    
+                if (!$isActivePaper) {
+                    throw new \Exception('Paper is inactive or does not exist.');
+                }
+            }
+    
             $book = Book::create($data);
-
+    
             if (!empty($categories)) {
-
-                // Chỉ lấy category có status = 1
+    // Chỉ lấy category có status = 1
                 $validCategories = Bookcategory::whereIn('id', $categories)
                     ->where('status', 1)
                     ->pluck('id')
                     ->toArray();
-
-                // Nếu số lượng không khớp -> có category không hợp lệ
+     // Nếu số lượng không khớp -> có category không hợp lệ
                 if (count($validCategories) !== count($categories)) {
                     throw new \Exception('One or more categories are inactive or do not exist.');
                 }
-
+    
                 $book->categories()->sync($validCategories);
             }
-
-            return $book->fresh(['assignedEmployee', 'categories']);
+    
+            return $book->fresh(['assignedEmployee', 'categories', 'paper']);
         });
     }
 
@@ -156,36 +169,49 @@ class BookService
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
-
+    
             $book = Book::findOrFail($id);
-
+    
             $this->ensureNotEnded($book);
-
+    
             $validated = $this->validateBook($data, $id);
             unset($validated['status']);
-
+    
             $categories = $validated['categories'] ?? null;
             unset($validated['categories']);
-
+    
+            // Nếu có gửi paper_id thì kiểm tra status = 1
+            if (array_key_exists('paper_id', $validated)) {
+    
+                $isActivePaper = Paper::where('id', $validated['paper_id'])
+                    ->where('status', 1)
+                    ->exists();
+    
+                if (!$isActivePaper) {
+                    throw new \Exception('Paper is inactive or does not exist.');
+                }
+            }
+    
             $book->update($validated);
-
+    
             if (!is_null($categories)) {
-
+    
                 $validCategories = BookCategory::whereIn('id', $categories)
                     ->where('status', 1)
                     ->pluck('id')
                     ->toArray();
-
+    
                 if (count($validCategories) !== count($categories)) {
                     throw new \Exception('One or more categories are invalid or inactive');
                 }
-
+    
                 $book->categories()->sync($validCategories);
             }
-
+    
             return $book->fresh([
                 'assignedEmployee',
-                'categories'
+                'categories',
+                'paper'
             ]);
         });
     }
@@ -286,52 +312,60 @@ class BookService
     }
 
 
-    // Tìm kiếm sách theo nhiều điều kiện
-    // Có thể tìm theo tên, thể loại, khổ giấy và khoảng thời gian bắt đầu
+    // Tìm kiếm sách theo nhiều điều kiện: có thể tìm theo tên, thể loại, khổ giấy và khoảng thời gian bắt đầu
     public function search(array $filters)
     {
         $query = Book::with([
             'assignedEmployee',
-            'categories'
+            'categories',
+            'paper' 
         ]);
-
+    
+        //  paperSize
+        if (!empty($filters['paperSize'])) {
+            $paperSize = trim($filters['paperSize']);
+        
+            $query->whereHas('paper', function ($q) use ($paperSize) {
+                $q->where('paperSize', $paperSize);
+            });
+        }
+    
         if (!empty($filters['name'])) {
             $query->where('books.name', 'like', '%' . trim($filters['name']) . '%');
         }
-
+    
         if (!empty($filters['category_id'])) {
-
+    
             $categoryIds = (array) $filters['category_id'];
-
+    
             $query->whereHas('categories', function ($q) use ($categoryIds) {
                 $q->whereIn('bookcategories.id', $categoryIds);
             });
         }
-
+    
         if (!empty($filters['bookSize'])) {
             $query->where('books.bookSize', $filters['bookSize']);
         }
-
+    
         if (!empty($filters['from_date'])) {
             $query->whereDate('books.start_time', '>=', $filters['from_date']);
         }
-
+    
         if (!empty($filters['to_date'])) {
             $query->whereDate('books.start_time', '<=', $filters['to_date']);
         }
-
-        //Thêm phân trang
+     //Thêm phân trang
         $perPage = $filters['per_page'] ?? 10;
-
+    
         $books = $query
             ->orderByDesc('books.id')
             ->paginate($perPage);
-
+    
         // Ẩn pivot
         $books->getCollection()->each(function ($book) {
             $book->categories->each->makeHidden('pivot');
         });
-
+    
         return $books;
     }
 
@@ -367,4 +401,5 @@ class BookService
     {
         return self::STATUS_COMPLETED;
     }
+    
 }

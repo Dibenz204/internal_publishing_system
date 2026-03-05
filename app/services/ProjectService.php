@@ -179,4 +179,44 @@ class ProjectService
             return $projects;
         });
     }
+
+    public function addDepartmentWhenProcessing($bookId, array $departmentIds, ?string $description = null)
+    {
+        return DB::transaction(function () use ($bookId, $departmentIds, $description) {
+    
+            $book = Book::findOrFail($bookId);
+    
+            if ((int) $book->status !== $this->bookService->processingStatus()) {
+                throw new \Exception("Only books with status = Processing can add departments.");
+            }
+    
+            $existingDepartmentIds = Project::where('book_id', $bookId)
+                ->pluck('department_id')
+                ->toArray();
+    
+            $projects = [];
+    
+            foreach ($departmentIds as $departmentId) {
+    
+                $department = Department::findOrFail($departmentId);
+    
+                if ((int) $department->status !== 1) {
+                    throw new \Exception("Department ID {$departmentId} is inactive.");
+                }
+    
+                if (in_array($departmentId, $existingDepartmentIds)) {
+                    throw new \Exception("Department ID {$departmentId} is already assigned to this book.");
+                }
+    
+                $projects[] = Project::create([
+                    'book_id'       => $bookId,
+                    'department_id' => $departmentId,
+                    'description'   => $description,
+                    'status'        => self::STATUS_PENDING
+                ]);
+            }
+    
+            return $projects;
+        });
+    }
 }
