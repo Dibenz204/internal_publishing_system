@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\Project;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -21,10 +23,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PositionSeeder::class,
             DepartmentSeeder::class,
-            EmployeeSeeder::class,
             BookcategorySeeder::class,
+            PaperSeeder::class,
             BookSeeder::class,
             BookTransferSeeder::class,
+            ProjectSeeder::class,
         ]);
 
         //php artisan db:seed

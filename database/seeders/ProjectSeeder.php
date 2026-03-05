@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-class BookTransferSeeder extends Seeder
+class ProjectSeeder extends Seeder
 {
     public function run(): void
     {
