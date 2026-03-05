@@ -10,10 +10,10 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'Phòng Biên tập', 'status' => true],
-            ['name' => 'Phòng Xuất bản', 'status' => true],
-            ['name' => 'Phòng Thiết kế', 'status' => true],
-            ['name' => 'Phòng Kinh doanh', 'status' => true],
+            ['name' => 'Phòng Toán', 'status' => 1],
+            ['name' => 'Phòng Tin', 'status' => 1],
+            ['name' => 'Phòng Vật lý', 'status' => 0],
+            ['name' => 'Phòng Tổng hợp', 'status' => 1],
         ];
 
         foreach ($departments as $item) {
