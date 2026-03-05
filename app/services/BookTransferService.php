@@ -96,12 +96,6 @@ class BookTransferService
                 ]);
             }
 
-            // Chưa có transfer nào → cập nhật status book thành 1 (PROCESSING)
-            $hasAnyTransfer = BookTransfer::where('book_id', $bookId)->exists();
-            if (!$hasAnyTransfer) {
-                $book->update(['status' => BookService::STATUS_PROCESSING]);    
-            }
-
             // from_employee_id hiện lấy từ request; TODO: sau này lấy từ user id theo token
             $transfer = BookTransfer::create([
                 'book_id' => $bookId,
@@ -115,7 +109,7 @@ class BookTransferService
         });
     }
 
-    
+
     //Cập nhật book transfer – chỉ cho phép cập nhật to_employee_id.
 
     public function updateTransfer(int $bookId, int $transferId, array $data)

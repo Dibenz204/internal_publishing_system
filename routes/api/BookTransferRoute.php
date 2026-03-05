@@ -5,12 +5,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('books')->group(function () {
 
-    //Lấy danh sách book transfer theo book ID
-    Route::get('/{id}/transfers', [BookTransferController::class, 'getTransfers']);
+    // Lấy danh sách transfer của book
+    Route::get('/{id}/transfers', [BookTransferController::class, 'index']);
 
-    //Tạo book transfer
-    Route::post('/{id}/transfers', [BookTransferController::class, 'createTransfer']);
+    // Tạo transfer mới
+    Route::post('/{id}/transfers', [BookTransferController::class, 'store']);
 
-    //Cập nhật book transfer
-    Route::put('/{id}/transfers/{transferId}', [BookTransferController::class, 'updateTransfer']);
+    // Cập nhật transfer
+    Route::put('/{id}/transfers/{transferId}', [BookTransferController::class, 'update']);
 });

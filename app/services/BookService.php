@@ -72,6 +72,13 @@ class BookService
                 Rule::exists('bookcategories', 'id')
                     ->where('status', 1),
             ],
+
+            'paper_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('papers', 'id')
+                    ->where('status', 1),
+            ],
         ];
 
         $validator = Validator::make($data, $rules);
