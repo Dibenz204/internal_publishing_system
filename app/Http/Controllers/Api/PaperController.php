@@ -20,6 +20,7 @@ class PaperController extends Controller
         $paper = $this->paperService->create($request->all());
 
         return response()->json([
+            'success' => true,
             'message' => 'Paper created successfully',
             'data' => $paper
         ], 201);
@@ -30,6 +31,7 @@ class PaperController extends Controller
         $paper = $this->paperService->update($id, $request->all());
 
         return response()->json([
+            'success' => true,
             'message' => 'Paper updated successfully',
             'data' => $paper
         ]);
@@ -40,6 +42,7 @@ class PaperController extends Controller
         $paper = $this->paperService->activate($id);
 
         return response()->json([
+            'success' => true,
             'message' => 'Paper activated successfully',
             'data' => $paper
         ]);
@@ -50,6 +53,7 @@ class PaperController extends Controller
         $paper = $this->paperService->deactivate($id);
 
         return response()->json([
+            'success' => true,
             'message' => 'Paper deactivated successfully',
             'data' => $paper
         ]);
@@ -60,6 +64,8 @@ class PaperController extends Controller
         $papers = $this->paperService->getActive();
 
         return response()->json([
+            'success' => true,
+            'message' => 'Get paper active successfully',
             'data' => $papers
         ]);
     }

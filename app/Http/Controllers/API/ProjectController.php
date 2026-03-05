@@ -98,24 +98,22 @@ class ProjectController extends Controller
         ]);
     }
 
-    /*
-    
-    6. Assign Book To Departments
-    
-    */
-    public function assign(Request $request)
+
+
+    // 6. Assign Book To Departments
+
+    public function assign(Request $request, $bookId)
     {
         $request->validate([
-            'book_id' => 'required|exists:books,id',
             'department_ids' => 'required|array',
             'department_ids.*' => 'exists:departments,id',
             'description' => 'nullable|string'
         ]);
 
-
         try {
+
             $projects = $this->projectService->assignBookToDepartments(
-                $request->book_id,
+                $bookId,
                 $request->department_ids,
                 $request->description
             );
@@ -133,18 +131,20 @@ class ProjectController extends Controller
             ], 400);
         }
     }
-    public function addDepartmentWhenProcessing(Request $request, $bookId)
-{
-    $projects = $this->projectService->addDepartmentWhenProcessing(
-        $bookId,
-        $request->department_ids ?? [],
-        $request->description ?? null
-    );
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Departments added successfully.',
-        'data'    => $projects
-    ], 201);
-}
+
+    public function addDepartmentWhenProcessing(Request $request, $bookId)
+    {
+        $projects = $this->projectService->addDepartmentWhenProcessing(
+            $bookId,
+            $request->department_ids ?? [],
+            $request->description ?? null
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Departments added successfully.',
+            'data'    => $projects
+        ], 201);
+    }
 }
