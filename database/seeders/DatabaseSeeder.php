@@ -14,12 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
         $this->call([
             PositionSeeder::class,
             DepartmentSeeder::class,
@@ -28,6 +22,7 @@ class DatabaseSeeder extends Seeder
             BookSeeder::class,
             BookTransferSeeder::class,
             ProjectSeeder::class,
+            UserDataSeeder::class
         ]);
 
         //php artisan db:seed

@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id(); //NOT NULL
 
             $table->foreignId('book_id') //NOT NULL
-            ->constrained('books')
-            ->cascadeOnDelete();
+                ->constrained('books')
+                ->cascadeOnDelete();
 
             $table->foreignId('bookcategory_id') //NOT NULL
-            ->constrained('bookcategories')
-            ->cascadeOnDelete();
+                ->constrained('bookcategories')
+                ->cascadeOnDelete();
 
-            $table->string('status')->default('active'); //NOT NULL
+            $table->boolean('status')->default(1); //NOT NULL
             $table->unique(['book_id', 'bookcategory_id']); //NOT NULL
             $table->timestamps();
         });

@@ -19,12 +19,12 @@ return new class extends Migration
             $table->integer('current_page')->nullable()->default(0);
             $table->text('note')->nullable();
 
-            $table->unsignedTinyInteger('status')->default(1) //NOT NULL
-                ->comment('0=CANCELLED,1=PROCESSING,2=PENDING,3=COMPLETED'); //có 4 trạng thái, sử dụng kiểu unsingedTinyInteger cho đỡ tốn bộ nhớ
-
             $table->foreignId('assigned_by')->constrained('employees')->cascadeOnDelete(); //NOT NULL
 
             $table->foreignId('paper_id')->constrained('papers')->cascadeOnDelete(); // NOT NULL
+
+            $table->unsignedTinyInteger('status')->default(1) //NOT NULL
+                ->comment('0=CANCELLED,1=PROCESSING,2=PENDING,3=COMPLETED'); //có 4 trạng thái, sử dụng kiểu unsingedTinyInteger cho đỡ tốn bộ nhớ
 
             $table->dateTime('start_time'); //NOT NULL
             $table->dateTime('end_time')->nullable();

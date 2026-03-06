@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id(); //NOT NULL
 
-            $table->string('description')->nullable();
+            $table->foreignId('book_id') //NOT NULL
+                ->constrained('books')
+                ->cascadeOnDelete();
 
             $table->foreignId('department_id')
                 ->nullable()
                 ->constrained('departments')
                 ->nullOnDelete();
 
-            $table->foreignId('book_id') //NOT NULL
-                ->constrained('books')
-                ->cascadeOnDelete();
+            $table->string('description')->nullable();
 
             $table->unsignedTinyInteger('status') //NOT NULL
                 ->default(1)

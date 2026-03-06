@@ -9,13 +9,16 @@ use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Facades\Hash;
 
+// CẦN THÊM 2 ÔNG TRƯỞNG PHÒNG
+
+
 class UserDataSeeder extends Seeder
 {
     public function run(): void
     {
         $adminPos = Position::where('name', 'Admin')->first();
         $adminEmp = Employee::firstOrCreate(
-            ['email' => 'admin@library.com'],
+            ['email' => 'admin@nxb.com'],
             [
                 'name' => 'Admin User',
                 'phone' => '0123456789',
@@ -23,7 +26,7 @@ class UserDataSeeder extends Seeder
                 'sex' => 1,
                 'status' => 1,
                 'position_id' => $adminPos->id,
-                'department_id' => '1',
+                'department_id' => '4',
             ]
         );
 
@@ -36,13 +39,62 @@ class UserDataSeeder extends Seeder
             ]
         );
 
-        $editorPos = Position::where('name', 'Thư kí biên tập')->first();
+
+        $leaderPos1 = Position::where('name', 'Trưởng phòng')->first();
+        $leaderEmp1 = Employee::firstOrCreate(
+            ['email' => 'truongphongtoan@nxb.com'],
+            [
+                'name' => 'Nguyễn Trưởng Toán',
+                'phone' => '0213456789',
+                'birthday' => '1990-01-01',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $leaderPos1->id,
+                'department_id' => '1',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'truongphongtoan'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $leaderEmp1->id,
+            ]
+        );
+
+
+        $leaderPos2 = Position::where('name', 'Trưởng phòng')->first();
+        $leaderEmp2 = Employee::firstOrCreate(
+            ['email' => 'truongphongtin@nxb.com'],
+            [
+                'name' => 'Nguyễn Trưởng Tin',
+                'phone' => '012345789',
+                'birthday' => '1990-01-01',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $leaderPos2->id,
+                'department_id' => '2',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'truongphongtin'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $leaderEmp2->id,
+            ]
+        );
+
+
+        $editorPos = Position::where('name', 'Thư ký biên tập')->first();
         $editorDep = Department::where('name', 'Phòng tổng hợp')->first();
         $editorEmp = Employee::firstOrCreate(
-            ['email' => 'editor@library.com'],
+            ['email' => 'editor@nxb.com'],
             [
                 'name' => 'Editor User',
-                'phone' => '0987654321',
+                'phone' => '0789654321',
                 'birthday' => '1995-05-15',
                 'sex' => 1,
                 'status' => 1,
