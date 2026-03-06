@@ -21,6 +21,7 @@ class BookTransferService
             'book_id' => 'required|exists:books,id',
             'from_employee_id' => 'required|exists:employees,id', // TODO: sau này lấy từ user id theo token
             'to_employee_id' => ['required', 'exists:employees,id'],
+            'note' => 'nullable|string|max:1000',
         ];
         if (!empty($data['from_employee_id'])) {
             $rules['to_employee_id'][] = 'different:from_employee_id';
@@ -75,6 +76,7 @@ class BookTransferService
                 'from_employee_id' => $book->assigned_by,
                 'to_employee_id' => $book->assigned_by,
                 'start_time' => now(),
+                'note' => 'Khởi tạo sách',
                 'status' => self::STATUS_PERFORM,
             ]);
 
@@ -102,6 +104,7 @@ class BookTransferService
                 'from_employee_id' => $validated['from_employee_id'],
                 'to_employee_id' => $validated['to_employee_id'],
                 'start_time' => now(),
+                'note' => $validated['note'] ?? null,
                 'status' => self::STATUS_PERFORM,
             ]);
 
@@ -126,9 +129,11 @@ class BookTransferService
 
         $validator = Validator::make($data, [
             'to_employee_id' => 'required|exists:employees,id',
+            'note' => 'nullable|string|max:1000',
         ], [
             'to_employee_id.required' => 'Người nhận là bắt buộc.',
             'to_employee_id.exists'   => 'Người nhận không tồn tại.',
+            'note.max'                => 'Ghi chú không được vượt quá 1000 ký tự.',
         ]);
         $validator->after(function ($v) use ($transfer) {
             $toEmployeeId = (int) $v->getValue('to_employee_id');
@@ -151,7 +156,10 @@ class BookTransferService
             throw new ValidationException($validator);
         }
 
-        $transfer->update(['to_employee_id' => $data['to_employee_id']]);
+        $transfer->update([
+            'to_employee_id' => $data['to_employee_id'],
+            'note' => $data['note'] ?? $transfer->note,
+        ]);
 
         return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
     }
