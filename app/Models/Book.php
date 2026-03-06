@@ -15,9 +15,9 @@ class Book extends Model
         'page',
         'current_page',
         'note',
-        'status',
         'assigned_by',
         'paper_id',
+        'status',
         'start_time',
         'end_time',
     ];
@@ -40,13 +40,13 @@ class Book extends Model
 
     public function departments()
     {
-    return $this->belongsToMany(
-        Department::class,
-        'projects',
-        'book_id',
-        'department_id'
-    )->withPivot(['description', 'status'])
-     ->withTimestamps();
+        return $this->belongsToMany(
+            Department::class,
+            'projects',
+            'book_id',
+            'department_id'
+        )->withPivot(['description', 'status'])
+            ->withTimestamps();
     }
 
     public function paper()
@@ -56,6 +56,6 @@ class Book extends Model
 
     public function transfers()
     {
-    return $this->hasMany(BookTransfer::class, 'book_id');
+        return $this->hasMany(BookTransfer::class, 'book_id');
     }
 }

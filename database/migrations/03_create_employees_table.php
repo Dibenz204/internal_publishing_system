@@ -16,11 +16,11 @@ return new class extends Migration
             $table->string('name'); //NOT NULL
             $table->string('email')->unique(); //NOT NULL
             $table->string('phone')->unique(); //NOT NULL
-            $table->date('birthday')->nullable(); 
+            $table->date('birthday')->nullable();
             $table->boolean('sex')->nullable(); // 1=male,0=female
-            $table->boolean('status')->default(1); //NOT NULL
             $table->foreignId('department_id')->constrained('departments'); //NOT NULL
             $table->foreignId('position_id')->constrained('positions'); //NOT NULL
+            $table->boolean('status')->default(1); //NOT NULL
             $table->timestamps();
         });
     }
