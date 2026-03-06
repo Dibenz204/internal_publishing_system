@@ -49,4 +49,9 @@ class Employee extends Model
     {
         return $this->hasMany(BookTransfer::class, 'to_employee_id');
     }
+
+    public function allocations()
+    {
+    return $this->hasMany(Allocation::class, 'employee_id');
+    }
 }
