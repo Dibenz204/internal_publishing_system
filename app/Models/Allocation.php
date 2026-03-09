@@ -29,4 +29,9 @@ class Allocation extends Model
     {
         return $this->belongsTo(JobCategory::class, 'job_category_id');
     }
+
+    public function reports()
+    {
+    return $this->hasMany(Report::class, 'allocation_id');
+    }
 }
