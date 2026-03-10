@@ -24,9 +24,11 @@ return new class extends Migration
                 ->constrained('job_categories')
                 ->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('level')->default(1);
+            $table->unsignedTinyInteger('level')->default(1)
+                ->comment('1: thành viên, 2: trưởng nhóm');
             $table->integer('completed_page')->default(0);
-            $table->boolean('status')->default(1);
+            $table->tinyInteger('status')->default(1)
+                ->comment('1: thực hiện, 2: hoàn thành, 3: chỉnh sửa');
             $table->timestamps();
 
             // tránh trùng phân công

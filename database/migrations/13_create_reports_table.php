@@ -20,13 +20,21 @@ return new class extends Migration
                 ->constrained('projects')
                 ->cascadeOnDelete();
 
-            $table->foreignId('money')
+            $table->foreignId('salary_coefficient_id')
                 ->constrained('salary_coefficients')
                 ->cascadeOnDelete();
 
             $table->integer('conversion_page'); //trang quy đổi
-            $table->double('salary');
-            $table->boolean('status')->default(1);
+            $table->decimal('salary', 12, 2);
+
+            $table->text('note')->nullable();
+
+            $table->year('report_year');
+            $table->tinyInteger('report_month');
+
+            $table->tinyInteger('status')->default(1);
+            $table->index(['report_year', 'report_month']);
+
 
             $table->timestamps();
         });

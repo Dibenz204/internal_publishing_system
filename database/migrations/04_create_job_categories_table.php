@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('job_categories', function (Blueprint $table) {
             $table->id(); // NOT NULL
-            $table->string('name')->unique(); // NOT NULL và duy nhất, k trùng tên
-            $table->double('work_coefficient'); // NOT NULL
-            $table->boolean('status')->default(1); 
-            $table->timestamps();
+            $table->string('name'); // NOT NULL
+            $table->decimal('work_coefficient', 3, 5); // NOT NULL
+            $table->boolean('status')->default(1);
+            $table->timestamp('created_at');
+            $table->timestamp('expired_at');
         });
     }
 

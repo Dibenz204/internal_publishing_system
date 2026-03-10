@@ -9,10 +9,13 @@ class Report extends Model
     protected $fillable = [
         'allocation_id',
         'project_id',
-        'money',
+        'salary_coefficient_id',
         'conversion_page',
         'salary',
-        'status'
+        'note',
+        'report_month',
+        'report_year',
+        'status',
     ];
 
     public function allocation()
@@ -27,6 +30,6 @@ class Report extends Model
 
     public function salaryCoefficient()
     {
-        return $this->belongsTo(SalaryCoefficient::class, 'money');
+        return $this->belongsTo(SalaryCoefficient::class, 'salary_coefficient_id');
     }
 }

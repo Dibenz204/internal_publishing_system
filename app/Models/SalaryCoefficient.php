@@ -13,6 +13,6 @@ class SalaryCoefficient extends Model
 
     public function reports()
     {
-    return $this->hasMany(Report::class, 'money');
+        return $this->hasMany(Report::class, 'salary_coefficient_id');
     }
 }
