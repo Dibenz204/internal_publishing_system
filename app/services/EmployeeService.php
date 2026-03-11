@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\Allocation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -61,6 +62,9 @@ class EmployeeService
                 'position:id,name'
             ])
             ->where('status', 1)
+            ->orderByDesc('status')
+            ->orderByDesc('position')
+            ->orderByDesc('id')
             ->get();
     }
 
@@ -188,7 +192,16 @@ class EmployeeService
             }
 
             if (isset($data['status'])) {
-                $data['status'] = (int)$data['status'];
+                // $data['status'] = (int)$data['status'];
+                $hasActiveAllocation = Allocation::where('employee_id', $id)
+                    ->whereIn('status', [1, 3])
+                    ->exists();
+
+                if ($hasActiveAllocation) {
+                    throw ValidationException::withMessages([
+                        'status' => ['Employee is currently assigned to an active allocation'],
+                    ]);
+                }
             }
 
             $employee->update($data);
@@ -267,10 +280,17 @@ class EmployeeService
 
             $query->where(function ($q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
-                    ->orWhere('email', 'like', "%{$keyword}%");
+                    ->orWhere('phone', 'like', "%{$keyword}%")
+                    ->orWhereHas('position', function ($q2) use ($keyword) {
+                        $q2->where('name', 'like', "%{$keyword}%");
+                    });
             });
         }
 
-        return $query->orderByDesc('id')->paginate(10);
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $query->where('status', (int)$filters['status']);
+        }
+
+        return $query->orderByDesc('status')->orderByDesc('id')->paginate(10);
     }
 }

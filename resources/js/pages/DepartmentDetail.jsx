@@ -34,7 +34,8 @@ const DepartmentDetail = () => {
                     <div>
                         <h2 style={styles.title}>
                             {dept.name}
-                            <span style={styles.empCount}>{employees.length} nhân viên</span>
+                            <span style={styles.empCount}>
+                                {employees.filter(e => e.status === 1).length} nhân viên</span>
                         </h2>
                         <span style={styles.category}>{dept.category || 'Chưa phân loại'}</span>
                     </div>
@@ -101,11 +102,11 @@ const styles = {
         margin: 0, display: 'flex', alignItems: 'center', gap: '10px',
     },
     empCount: {
-        fontSize: '14px', fontWeight: '500', color: '#888',
+        fontSize: '18px', fontWeight: '500', color: '#888',
         backgroundColor: '#f5f5f5', padding: '2px 10px',
         borderRadius: '10px',
     },
-    category: { fontSize: '13px', color: '#888', marginTop: '4px', display: 'block' },
+    category: { fontSize: '15px', color: '#888', marginTop: '4px', display: 'block' },
     badgeActive: {
         padding: '4px 12px', borderRadius: '12px', fontSize: '13px',
         fontWeight: '600', backgroundColor: '#e6f4ea', color: '#2e7d32',

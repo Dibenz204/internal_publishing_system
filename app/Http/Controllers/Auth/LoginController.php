@@ -87,8 +87,15 @@ class LoginController extends Controller
                     'username' => $user->username,
                     'position' => $user->positionName,
                     'employee' => $user->employee ? [
-                        'name' => $user->employee->name,
-                        'position' => $user->employee->position->name ?? null,
+                        'id'         => $user->employee->id,
+                        'name'       => $user->employee->name,
+                        'email'      => $user->employee->email,
+                        'phone'      => $user->employee->phone,
+                        'birthday'   => $user->employee->birthday,
+                        'sex'        => $user->employee->sex ? 'Nam' : 'Nữ',
+                        'status'     => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
+                        'department' => $user->employee->department->name ?? null,
+                        'position'   => $user->employee->position->name ?? null,
                     ] : null
                 ]
             ]);

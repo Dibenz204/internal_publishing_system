@@ -92,6 +92,12 @@ class UserService
             ]);
         }
 
+        if (Hash::check($newPassword, $user->password)) {
+            throw ValidationException::withMessages([
+                'new_password' => ['Mật khẩu mới không được trùng mật khẩu hiện tại']
+            ]);
+        }
+
         $user->update(['password' => $newPassword]);
 
         return true;

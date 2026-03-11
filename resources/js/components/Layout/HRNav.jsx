@@ -2,17 +2,16 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 
-const ADMIN_MENU = [
+const HR_MENU = [
     { path: '/profile', label: 'Cá nhân' },
-    { path: '/books', label: 'Sách' },
     { path: '/users', label: 'Nhân viên' },
     { path: '/departments', label: 'Phòng ban' },
 ];
 
-const AdminNav = () => {
+const HRNav = () => {
     return (
         <nav style={styles.nav}>
-            {ADMIN_MENU.map((item) => (
+            {HR_MENU.map((item) => (
                 <NavLink
                     key={item.path}
                     to={item.path}
@@ -77,4 +76,4 @@ const styles = {
     },
 };
 
-export default AdminNav;
+export default HRNav;

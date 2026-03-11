@@ -6,7 +6,7 @@ import ProtectedRoute from './routes/Protectedroute';
 import Layout from './components/Layout/Layout';
 
 import Login from './pages/Login';
-import Dashboard from './pages/dashboard';
+import Profile from './pages/Profile';
 import Users from './pages/Users';
 import Books from './pages/Books'
 import Departments from './pages/Departments';
@@ -25,17 +25,21 @@ function App() {
 
 
 
-                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/profile" element={<Profile />} />
 
                             <Route path="/books" element={<Books />} />
 
                             {/* <Route path="/profile" element={<Profile />} /> */}
 
-                            {/* Chỉ Admin */}
+
                             {<Route element={<ProtectedRoute allowedPositions={['Admin']} />}>
-                                <Route path="/users" element={<Users />} />
-                                <Route path="/departments" element={<Departments />} />
                                 <Route path="/departments/:id" element={<DepartmentDetail />} />
+                            </Route>}
+
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR']} />}>
+                                <Route path="/departments" element={<Departments />} />
+                                <Route path="/users" element={<Users />} />
                             </Route>}
 
                             <Route path="/" element={<Navigate to="/login" replace />} />

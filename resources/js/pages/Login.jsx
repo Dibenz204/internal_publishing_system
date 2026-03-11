@@ -13,8 +13,7 @@ const Login = () => {
     const { user, login } = useAuth();
     const navigate = useNavigate();
 
-    // Nếu đã login -> vào dashboard
-    if (user) return <Navigate to="/dashboard" replace />;
+    if (user) return <Navigate to="/profile" replace />;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +23,7 @@ const Login = () => {
         try {
             // await AuthService.login(username, password);
             await login(username, password);
-            navigate('/dashboard');
+            navigate('/profile');
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại');
         } finally {

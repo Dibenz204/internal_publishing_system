@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-// ─── Modal dùng chung cho Thêm & Sửa ────────────────────────────────────────
+
 const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
     const isEdit = !!employee;
     const [departments, setDepartments] = useState([]);
@@ -21,18 +21,14 @@ const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
     });
 
     useEffect(() => {
-        Promise.all([
-            api.get('/departments'),
-            api.get('/positions'),
-        ]).then(([deptRes, posRes]) => {
-            if (deptRes.data.success) setDepartments(deptRes.data.data.filter(d => d.status === 1));
-            if (posRes.data.success) setPositions(posRes.data.data.filter(p => p.status === 1));
-        }).catch(() => setError('Không thể tải dữ liệu'));
+        Promise.all([api.get('/departments'), api.get('/positions')])
+            .then(([deptRes, posRes]) => {
+                if (deptRes.data.success) setDepartments(deptRes.data.data.filter(d => d.status === 1));
+                if (posRes.data.success) setPositions(posRes.data.data.filter(p => p.status === 1));
+            }).catch(() => setError('Không thể tải dữ liệu'));
     }, []);
 
-    const handleChange = (e) => {
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
+    const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
     const handleSubmit = async () => {
         if (!form.name.trim()) return setError('Tên không được để trống');
@@ -45,72 +41,52 @@ const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
         setError('');
         try {
             const payload = {
-                name: form.name.trim(),
-                email: form.email.trim(),
-                phone: form.phone.trim() || null,
-                birthday: form.birthday,
-                sex: parseInt(form.sex),
-                status: parseInt(form.status),
+                name: form.name.trim(), email: form.email.trim(),
+                phone: form.phone.trim() || null, birthday: form.birthday,
+                sex: parseInt(form.sex), status: parseInt(form.status),
                 department_id: parseInt(form.department_id),
                 position_id: parseInt(form.position_id),
             };
-
-            if (isEdit) {
-                await api.put(`/employees/${employee.id}`, payload);
-            } else {
-                await api.post('/employees', payload);
-            }
+            if (isEdit) await api.put(`/employees/${employee.id}`, payload);
+            else await api.post('/employees', payload);
             onSuccess();
         } catch (err) {
             const errs = err.response?.data?.errors;
-            setError(errs
-                ? Object.values(errs).flat().join(' | ')
-                : err.response?.data?.message || 'Thao tác thất bại'
-            );
+            setError(errs ? Object.values(errs).flat().join(' | ') : err.response?.data?.message || 'Thao tác thất bại');
         } finally {
             setSubmitting(false);
         }
     };
 
     return (
-        <div style={modal.overlay} onClick={onClose}>
+        <div style={modal.overlay}>
             <div style={modal.box} onClick={e => e.stopPropagation()}>
                 <div style={modal.header}>
-                    <h3 style={modal.title}>
-                        {isEdit ? `Cập nhật: ${employee.name}` : 'Thêm nhân viên'}
-                    </h3>
+                    <h3 style={modal.title}>{isEdit ? `Cập nhật: ${employee.name}` : 'Thêm nhân viên'}</h3>
                     <button style={modal.closeBtn} onClick={onClose}>✕</button>
                 </div>
-
                 {error && <div style={modal.error}>{error}</div>}
-
                 <div style={modal.body}>
                     <div style={modal.row}>
                         <div style={modal.field}>
                             <label style={modal.label}>Họ tên <span style={modal.req}>*</span></label>
-                            <input name="name" value={form.name} onChange={handleChange}
-                                style={modal.input} placeholder="Nguyễn Văn A" />
+                            <input name="name" value={form.name} onChange={handleChange} style={modal.input} placeholder="Nguyễn Văn A" />
                         </div>
                         <div style={modal.field}>
                             <label style={modal.label}>Email <span style={modal.req}>*</span></label>
-                            <input name="email" type="email" value={form.email} onChange={handleChange}
-                                style={modal.input} placeholder="email@example.com" />
+                            <input name="email" type="email" value={form.email} onChange={handleChange} style={modal.input} placeholder="email@example.com" />
                         </div>
                     </div>
-
                     <div style={modal.row}>
                         <div style={modal.field}>
                             <label style={modal.label}>Số điện thoại</label>
-                            <input name="phone" value={form.phone} onChange={handleChange}
-                                style={modal.input} placeholder="0901234567" />
+                            <input name="phone" value={form.phone} onChange={handleChange} style={modal.input} placeholder="0901234567" />
                         </div>
                         <div style={modal.field}>
                             <label style={modal.label}>Ngày sinh <span style={modal.req}>*</span></label>
-                            <input name="birthday" type="date" value={form.birthday} onChange={handleChange}
-                                style={modal.input} />
+                            <input name="birthday" type="date" value={form.birthday} onChange={handleChange} style={modal.input} />
                         </div>
                     </div>
-
                     <div style={modal.row}>
                         <div style={modal.field}>
                             <label style={modal.label}>Giới tính</label>
@@ -119,30 +95,31 @@ const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
                                 <option value="0">Nữ</option>
                             </select>
                         </div>
+                        <div style={modal.field}>
+                            <label style={modal.label}>Trạng thái</label>
+                            <select name="status" value={form.status} onChange={handleChange} style={modal.input}>
+                                <option value="1">Đang làm việc</option>
+                                <option value="0">Nghỉ làm</option>
+                            </select>
+                        </div>
                     </div>
-
                     <div style={modal.row}>
                         <div style={modal.field}>
                             <label style={modal.label}>Phòng ban <span style={modal.req}>*</span></label>
                             <select name="department_id" value={form.department_id} onChange={handleChange} style={modal.input}>
                                 <option value="">-- Chọn phòng ban --</option>
-                                {departments.map(d => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                ))}
+                                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                             </select>
                         </div>
                         <div style={modal.field}>
                             <label style={modal.label}>Chức vụ <span style={modal.req}>*</span></label>
                             <select name="position_id" value={form.position_id} onChange={handleChange} style={modal.input}>
                                 <option value="">-- Chọn chức vụ --</option>
-                                {positions.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
+                                {positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
                     </div>
                 </div>
-
                 <div style={modal.footer}>
                     <button style={modal.cancelBtn} onClick={onClose} disabled={submitting}>Hủy</button>
                     <button style={modal.submitBtn} onClick={handleSubmit} disabled={submitting}>
@@ -154,43 +131,134 @@ const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
     );
 };
 
-// ─── Trang chính Users ───────────────────────────────────────────────────────
+
+const STATUS_OPTIONS = [
+    { value: '1', label: 'Đang làm việc' },
+    { value: '0', label: 'Đã nghỉ' },
+    { value: '', label: 'Tất cả' },
+];
+
 const Users = () => {
     const [employees, setEmployees] = useState([]);
+    const [allEmployees, setAllEmployees] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showAdd, setShowAdd] = useState(false);
     const [editEmployee, setEditEmployee] = useState(null);
+
+
+    const [keyword, setKeyword] = useState('');
+    const [deptFilter, setDeptFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('1');
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState(null);
+
     const navigate = useNavigate();
 
-    const fetchEmployees = () => {
-        setLoading(true);
+    useEffect(() => {
+        api.get('/departments').then(res => {
+            if (res.data.success) setDepartments(res.data.data.filter(d => d.status === 1));
+        });
+
         api.get('/employees').then(res => {
-            if (res.data.success) setEmployees(res.data.data);
-        }).catch(() => {
+            if (res.data.success) setAllEmployees(res.data.data);
+        });
+    }, []);
+
+    const filtersRef = useRef({ keyword, deptFilter, statusFilter });
+    useEffect(() => { filtersRef.current = { keyword, deptFilter, statusFilter }; });
+
+    const fetchEmployees = async (p = 1, overrideStatus = null) => {
+        setLoading(true);
+        setError('');
+        try {
+            const currentStatus = overrideStatus !== null ? overrideStatus : filtersRef.current.statusFilter;
+            const { keyword, deptFilter } = filtersRef.current;
+            const params = new URLSearchParams();
+            if (keyword) params.set('keyword', keyword);
+            if (deptFilter) params.set('department_id', deptFilter);
+            if (currentStatus !== '') params.set('status', currentStatus);
+            params.set('per_page', 10);
+            params.set('page', p);
+
+            const res = await api.get(`/employees/search?${params.toString()}`);
+            if (res.data.success) {
+                setEmployees(res.data.data);
+                setMeta(res.data.meta);
+                setPage(p);
+            }
+        } catch {
             setError('Không thể tải danh sách nhân viên');
-        }).finally(() => setLoading(false));
+        } finally {
+            setLoading(false);
+        }
     };
 
-    useEffect(() => { fetchEmployees(); }, []);
+    useEffect(() => { fetchEmployees(1); }, []);
+
+    useEffect(() => { fetchEmployees(1, statusFilter); }, [statusFilter]);
 
     const handleSuccess = () => {
         setShowAdd(false);
         setEditEmployee(null);
-        fetchEmployees();
+        fetchEmployees(page);
+
+        api.get('/employees').then(res => {
+            if (res.data.success) setAllEmployees(res.data.data);
+        });
     };
 
-    if (loading) return <div style={styles.center}>Đang tải...</div>;
-    if (error) return <div style={styles.errorMsg}>{error}</div>;
+    const activeCount = allEmployees.filter(e => e.status === 1).length;
 
     return (
         <div style={styles.wrapper}>
+
             <div style={styles.pageHeader}>
-                <div style={styles.titleRow}>
-                    <h2 style={styles.title}>Quản lý nhân viên</h2>
-                    <span style={styles.count}>{employees.length} nhân viên</span>
+                <div>
+                    <div style={styles.titleRow}>
+                        <h2 style={styles.title}>Quản lý nhân viên</h2>
+                        <span style={styles.count}>{activeCount} đang làm việc</span>
+                    </div>
+
+                    <div style={styles.statusRow}>
+                        {STATUS_OPTIONS.map(opt => (
+                            <button
+                                key={opt.value}
+                                style={statusFilter === opt.value ? styles.statusBtnActive : styles.statusBtn}
+                                onClick={() => setStatusFilter(opt.value)}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
                 <div style={styles.actions}>
+
+                    <div style={styles.searchGroup}>
+                        <input
+                            style={styles.searchInput}
+                            placeholder="Tìm tên, số điện thoại/ chức vụ"
+                            value={keyword}
+                            onChange={e => setKeyword(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && fetchEmployees(1)}
+                        />
+                        <select
+                            style={styles.selectInput}
+                            value={deptFilter}
+                            onChange={e => setDeptFilter(e.target.value)}
+                        >
+                            <option value="">Tất cả phòng ban</option>
+                            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                        <button style={styles.searchBtn} onClick={() => fetchEmployees(1)}>
+                            Tìm kiếm
+                        </button>
+                    </div>
+
+                    <div style={{ width: '1px', height: '32px', backgroundColor: '#e0e0e0', margin: '0 8px' }} />
+
                     <button style={styles.addBtn} onClick={() => setShowAdd(true)}>
                         Thêm nhân viên
                     </button>
@@ -200,113 +268,110 @@ const Users = () => {
                 </div>
             </div>
 
-            <div style={styles.tableWrapper}>
-                <table style={styles.table}>
-                    <thead>
-                        <tr style={styles.thead}>
-                            <th style={styles.th}>#</th>
-                            <th style={styles.th}>Họ tên</th>
-                            <th style={styles.th}>Email</th>
-                            <th style={styles.th}>Số điện thoại</th>
-                            <th style={styles.th}>Phòng ban</th>
-                            <th style={styles.th}>Chức vụ</th>
-                            <th style={styles.th}>Giới tính</th>
-                            <th style={styles.th}></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {employees.map((emp, index) => (
-                            <tr key={emp.id} style={index % 2 === 0 ? styles.trEven : styles.trOdd}>
-                                <td style={styles.td}>{index + 1}</td>
-                                <td style={{ ...styles.td, fontWeight: '600' }}>{emp.name}</td>
-                                <td style={styles.td}>{emp.email || '—'}</td>
-                                <td style={styles.td}>{emp.phone || '—'}</td>
-                                <td style={styles.td}>{emp.department?.name || '—'}</td>
-                                <td style={styles.td}>{emp.position?.name || '—'}</td>
-                                <td style={styles.td}>{emp.sex ? 'Nam' : 'Nữ'}</td>
-                                {/* <td style={styles.td}>
-                                    <span style={emp.status ? styles.badgeActive : styles.badgeInactive}>
-                                        {emp.status ? 'Đang làm việc' : 'Nghỉ làm'}
-                                    </span>
-                                </td> */}
-                                <td style={styles.td}>
-                                    <button
-                                        style={styles.editBtn}
-                                        onClick={() => setEditEmployee(emp)}
-                                    >
-                                        Cập nhật
-                                    </button>
-                                </td>
+
+            {loading ? (
+                <div style={styles.center}>Đang tải...</div>
+            ) : error ? (
+                <div style={styles.errorMsg}>{error}</div>
+            ) : (
+                <div style={styles.tableWrapper}>
+                    <table style={styles.table}>
+                        <thead>
+                            <tr style={styles.thead}>
+                                <th style={styles.th}>#</th>
+                                <th style={styles.th}>Họ tên</th>
+                                <th style={styles.th}>Email</th>
+                                <th style={styles.th}>Số điện thoại</th>
+                                <th style={styles.th}>Phòng ban</th>
+                                <th style={styles.th}>Chức vụ</th>
+                                <th style={styles.th}>Giới tính</th>
+                                <th style={styles.th}>Trạng thái</th>
+                                <th style={styles.th}></th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {employees.length === 0 ? (
+                                <tr><td colSpan={9} style={styles.empty}>Không có nhân viên nào</td></tr>
+                            ) : employees.map((emp, index) => (
+                                <tr key={emp.id} style={index % 2 === 0 ? styles.trEven : styles.trOdd}>
+                                    <td style={styles.td}>{(page - 1) * 10 + index + 1}</td>
+                                    <td style={{ ...styles.td, fontWeight: '600' }}>{emp.name}</td>
+                                    <td style={styles.td}>{emp.email || '—'}</td>
+                                    <td style={styles.td}>{emp.phone || '—'}</td>
+                                    <td style={styles.td}>{emp.department?.name || '—'}</td>
+                                    <td style={styles.td}>{emp.position?.name || '—'}</td>
+                                    <td style={styles.td}>{emp.sex ? 'Nam' : 'Nữ'}</td>
+                                    <td style={styles.td}>
+                                        <span style={emp.status ? styles.badgeActive : styles.badgeInactive}>
+                                            {emp.status ? 'Đang làm việc' : 'Nghỉ làm'}
+                                        </span>
+                                    </td>
+                                    <td style={styles.td}>
+                                        <button style={styles.editBtn} onClick={() => setEditEmployee(emp)}>
+                                            Cập nhật
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-            {/* Modal thêm */}
-            {showAdd && (
-                <EmployeeModal
-                    onClose={() => setShowAdd(false)}
-                    onSuccess={handleSuccess}
-                />
+
+                    {meta && meta.last_page > 1 && (
+                        <div style={styles.pagination}>
+                            <button style={styles.pageBtn} disabled={page <= 1} onClick={() => fetchEmployees(page - 1)}>←</button>
+                            <span style={styles.pageInfo}>Trang {page} / {meta.last_page}</span>
+                            <button style={styles.pageBtn} disabled={page >= meta.last_page} onClick={() => fetchEmployees(page + 1)}>→</button>
+                        </div>
+                    )}
+                </div>
             )}
 
-            {/* Modal sửa — truyền employee vào */}
-            {editEmployee && (
-                <EmployeeModal
-                    employee={editEmployee}
-                    onClose={() => setEditEmployee(null)}
-                    onSuccess={handleSuccess}
-                />
-            )}
+            {showAdd && <EmployeeModal onClose={() => setShowAdd(false)} onSuccess={handleSuccess} />}
+            {editEmployee && <EmployeeModal employee={editEmployee} onClose={() => setEditEmployee(null)} onSuccess={handleSuccess} />}
         </div>
     );
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+
 const styles = {
     wrapper: { display: 'flex', flexDirection: 'column', gap: '16px' },
-    pageHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+    pageHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' },
     titleRow: { display: 'flex', alignItems: 'center', gap: '10px' },
     title: { fontSize: '22px', fontWeight: '700', color: '#1a1a1a', margin: 0 },
-    count: {
-        fontSize: '13px', color: '#555', backgroundColor: '#f0f0f0',
-        padding: '2px 10px', borderRadius: '10px', fontWeight: '500',
+    count: { fontSize: '18px', color: '#555', backgroundColor: '#f0f0f0', padding: '2px 10px', borderRadius: '10px', fontWeight: '500' },
+    statusRow: { display: 'flex', gap: '6px', marginTop: '10px' },
+    statusBtn: {
+        padding: '5px 14px', backgroundColor: '#fff', color: '#555',
+        border: '1px solid #d0d0d0', borderRadius: '20px', fontSize: '13px',
+        fontWeight: '500', cursor: 'pointer',
     },
-    actions: { display: 'flex', gap: '10px', alignItems: 'center' },
-    addBtn: {
-        padding: '9px 18px', backgroundColor: '#1877f2', color: '#fff',
-        border: 'none', borderRadius: '8px', fontSize: '14px',
-        fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap',
+    statusBtnActive: {
+        padding: '5px 14px', backgroundColor: '#1877f2', color: '#fff',
+        border: '1px solid #1877f2', borderRadius: '20px', fontSize: '13px',
+        fontWeight: '600', cursor: 'pointer',
     },
-    deptBtn: {
-        padding: '9px 18px', backgroundColor: '#fff', color: '#333',
-        border: '1px solid #d0d0d0', borderRadius: '8px', fontSize: '14px',
-        fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap',
-    },
-    editBtn: {
-        padding: '5px 12px', backgroundColor: '#f5f5f5', color: '#333',
-        border: '1px solid #d0d0d0', borderRadius: '6px', fontSize: '13px',
-        fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap',
-    },
-    tableWrapper: {
-        backgroundColor: 'white', borderRadius: '8px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)', overflow: 'auto',
-    },
+    actions: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' },
+    searchGroup: { display: 'flex', gap: '8px', alignItems: 'center' },
+    searchInput: { padding: '9px 14px', border: '1px solid #d0d0d0', borderRadius: '8px', fontSize: '14px', outline: 'none', width: '200px' },
+    selectInput: { padding: '9px 14px', border: '1px solid #d0d0d0', borderRadius: '8px', fontSize: '14px', outline: 'none', backgroundColor: '#fff', cursor: 'pointer' },
+    searchBtn: { padding: '9px 16px', backgroundColor: '#f5f5f5', color: '#333', border: '1px solid #d0d0d0', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+    addBtn: { padding: '9px 18px', backgroundColor: '#1877f2', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' },
+    deptBtn: { padding: '9px 18px', backgroundColor: '#fff', color: '#333', border: '1px solid #d0d0d0', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' },
+    editBtn: { padding: '5px 12px', backgroundColor: '#f5f5f5', color: '#333', border: '1px solid #d0d0d0', borderRadius: '6px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' },
+    tableWrapper: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', overflow: 'auto' },
     table: { width: '100%', borderCollapse: 'collapse', fontSize: '14px' },
     thead: { backgroundColor: '#f5f7fa' },
     th: { padding: '12px 16px', textAlign: 'left', fontWeight: '600', color: '#555', borderBottom: '1px solid #e8e8e8', whiteSpace: 'nowrap' },
     td: { padding: '12px 16px', color: '#333', borderBottom: '1px solid #f0f0f0' },
     trEven: { backgroundColor: '#ffffff' },
     trOdd: { backgroundColor: '#fafafa' },
-    badgeActive: {
-        display: 'inline-block', padding: '3px 10px', borderRadius: '12px',
-        fontSize: '12px', fontWeight: '600', backgroundColor: '#e6f4ea', color: '#2e7d32',
-    },
-    badgeInactive: {
-        display: 'inline-block', padding: '3px 10px', borderRadius: '12px',
-        fontSize: '12px', fontWeight: '600', backgroundColor: '#fce8e6', color: '#c62828',
-    },
+    empty: { textAlign: 'center', padding: '40px', color: '#aaa' },
+    badgeActive: { display: 'inline-block', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', backgroundColor: '#e6f4ea', color: '#2e7d32' },
+    badgeInactive: { display: 'inline-block', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', backgroundColor: '#fce8e6', color: '#c62828' },
+    pagination: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '16px' },
+    pageBtn: { padding: '6px 14px', border: '1px solid #d0d0d0', borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', fontSize: '14px' },
+    pageInfo: { fontSize: '14px', color: '#555' },
     center: { textAlign: 'center', padding: '60px', color: '#888' },
     errorMsg: { textAlign: 'center', padding: '60px', color: '#c62828' },
 };

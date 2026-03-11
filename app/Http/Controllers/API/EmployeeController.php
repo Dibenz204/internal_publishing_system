@@ -182,6 +182,7 @@ class EmployeeController extends Controller
             'department_id' => $request->query('department_id'),
             'position_id'   => $request->query('position_id'),
             'per_page'      => $request->query('per_page', 10),
+            'status'        => $request->query('status'),
         ];
 
         $result = $this->employeeService->search($filters);

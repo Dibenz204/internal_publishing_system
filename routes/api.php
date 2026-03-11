@@ -36,4 +36,5 @@ Route::middleware('auth', 'web')->group(function () {
     require __DIR__ . '/api/ProjectRoute.php';
     require __DIR__ . '/api/BookTransferRoute.php';
     require __DIR__ . '/api/PaperRoute.php';
+    require __DIR__ . '/api/userRoute.php';
 });

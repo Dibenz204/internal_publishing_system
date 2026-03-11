@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Department;
+use App\Models\Employee;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
@@ -14,8 +15,9 @@ class DepartmentService
      */
     public function getAll(?string $keyword = null)
     {
-        return Department::withCount('employees')
-            // ->query()
+        return Department::withCount([
+            'employees as active_employees_count' => fn($q) => $q->where('status', 1)
+        ])
             ->when(!empty(trim($keyword ?? '')), function ($query) use ($keyword) {
                 $query->whereRaw(
                     'LOWER(name) LIKE ?',
@@ -23,6 +25,7 @@ class DepartmentService
                 );
             })
             ->orderByDesc('status')
+            ->orderByDesc('category')
             ->orderByDesc('id')
             ->get();
     }
@@ -34,7 +37,12 @@ class DepartmentService
      */
     public function findById(int $id): Department
     {
-        return Department::with(['employees.position'])->findOrFail($id);
+        return Department::with([
+            'employees' => function ($query) {
+                $query->with('position')
+                    ->orderByDesc('status');
+            }
+        ])->findOrFail($id);
     }
 
     /**
@@ -45,8 +53,9 @@ class DepartmentService
         $this->validate($data);
 
         return Department::create([
-            'name'   => trim($data['name']),
-            'status' => 1, // luôn active khi tạo
+            'name'    => trim($data['name']),
+            'category' => trim($data['category']),
+            'status' => 1,
         ]);
     }
 
@@ -60,8 +69,20 @@ class DepartmentService
 
         $department = Department::findOrFail($id);
 
+        if (isset($data['status']) && (int)$data['status'] === 0) {
+            $hasEmployees = Employee::where('department_id', $id)
+                ->where('status', 1)->exists();
+            if ($hasEmployees) {
+                throw ValidationException::withMessages([
+                    'status' => ['Phòng ban vẫn còn nhân viên đang làm việc']
+                ]);
+            }
+        }
+
         $department->update([
             'name' => trim($data['name']),
+            'category' => trim($data['category']),
+            'status' => trim($data['status']),
         ]);
 
         return $department;

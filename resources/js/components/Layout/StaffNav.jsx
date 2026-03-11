@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const STAFF_MENU = [
-    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/profile', label: 'Cá nhân' },
     { path: '/books', label: 'Sách' }
 ];
 

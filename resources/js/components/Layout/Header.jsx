@@ -2,11 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import AdminNav from './AdminNav';
 import StaffNav from './StaffNav';
+import HRNav from './HRNav';
 
 const renderNav = (position) => {
     switch (position) {
         case 'Admin':
             return <AdminNav />;
+        case 'HR':
+            return <HRNav />;
         default:
             return <StaffNav />;
     }
