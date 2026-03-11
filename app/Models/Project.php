@@ -25,4 +25,15 @@ class Project extends Model
     {
         return $this->belongsTo(Book::class, 'book_id');
     }
+
+    public function allocations()
+    {
+    return $this->hasMany(Allocation::class, 'project_id');
+    }
+
+    public function reports()
+    {
+    return $this->hasMany(Report::class, 'project_id');
+    }
 }
+
