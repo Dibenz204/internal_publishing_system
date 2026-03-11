@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->year('year')->unique();
             $table->double('salary_per_paper');
+            $table->boolean('status')->default(1);
             $table->timestamps();
         });
     }

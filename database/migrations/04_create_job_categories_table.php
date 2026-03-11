@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('name'); // NOT NULL
             $table->decimal('work_coefficient', 3, 5); // NOT NULL
             $table->boolean('status')->default(1);
-            $table->timestamp('created_at');
-            $table->timestamp('expired_at');
+            $table->timestamp('created_at')->useCurrent(); ;
+            $table->timestamp('expired_at')->nullable();;
         });
     }
 

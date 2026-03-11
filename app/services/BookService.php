@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use App\Services\BookTransferService;
 use App\Models\Paper;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class BookService
 {
@@ -118,15 +120,28 @@ class BookService
     {
         $book = Book::with([
             'assignedEmployee',
-            'categories'
+            'categories',
+            'paper',
+            'departments',
+            'departments.employees'
         ])->findOrFail($id);
-
-        // Ẩn bảng trung gian
+    
+        // Ẩn pivot
         $book->categories->each->makeHidden(['pivot']);
-
-        return $book;
+    
+        // Tính tổng số ngày thực hiện
+        $totalDays = null;
+    
+        if ($book->start_time && $book->end_time) {
+            $totalDays = Carbon::parse($book->start_time)
+                ->diffInDays(Carbon::parse($book->end_time));
+        }
+    
+        return [
+            'book' => $book,
+            'total_days' => $totalDays
+        ];
     }
-
 
     // Tạo mới sách
     // Mặc định trạng thái là Đang thực hiện
@@ -139,6 +154,7 @@ class BookService
 
             $data['status'] = self::STATUS_PENDING;
             $data['start_time'] = now();
+            $data['assigned_by'] = Auth::user()->employee_id;
 
             $categories = $data['categories'] ?? [];
             unset($data['categories']);
@@ -190,7 +206,7 @@ class BookService
 
             $validated = $this->validateBook($data, $id);
             unset($validated['status']);
-
+            unset($validated['assigned_by']);
             $categories = $validated['categories'] ?? null;
             unset($validated['categories']);
 

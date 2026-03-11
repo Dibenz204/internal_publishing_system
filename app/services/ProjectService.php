@@ -219,4 +219,12 @@ class ProjectService
             return $projects;
         });
     }
+    public function getProjectsByBookId(int $bookId)
+    {
+     $book = Book::findOrFail($bookId);
+ 
+     return Project::with(['book', 'department'])
+         ->where('book_id', $bookId)
+         ->get();
+     }
 }
