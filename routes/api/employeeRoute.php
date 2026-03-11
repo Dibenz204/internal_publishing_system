@@ -9,6 +9,8 @@ Route::prefix('employees')->group(function () {
 
         Route::get('/', [EmployeeController::class, 'index']);
 
+        Route::get('/{id}', [EmployeeController::class, 'show']);
+
         Route::get('/active', [EmployeeController::class, 'active']);
 
         Route::get('/search', [EmployeeController::class, 'search']);

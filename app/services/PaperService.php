@@ -9,6 +9,20 @@ use App\Models\Book;
 
 class PaperService
 {
+
+    public function getAll(?string $keyword = null)
+    {
+        return Paper::query()
+            ->when(!empty(trim($keyword ?? '')), function ($query) use ($keyword) {
+                $query->whereRaw(
+                    'LOWER(paperSize) LIKE ?',
+                    ['%' . strtolower(trim($keyword)) . '%']
+                );
+            })
+            ->orderByDesc('id')
+            ->get();
+    }
+
     public function create(array $data)
     {
         $data = $this->validatePaper($data);
@@ -39,18 +53,18 @@ class PaperService
     public function deactivate(int $id)
     {
         return DB::transaction(function () use ($id) {
-    
+
             $paper = Paper::findOrFail($id);
-    
+
             // Kiểm tra xem có book nào đang dùng paper này không
             $isUsed = Book::where('paper_id', $id)->exists();
-    
+
             if ($isUsed) {
                 throw new \Exception("Cannot deactivate paper because it is assigned to one or more books.");
             }
-    
+
             $paper->update(['status' => 0]);
-    
+
             return $paper;
         });
     }

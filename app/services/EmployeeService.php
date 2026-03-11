@@ -21,7 +21,7 @@ class EmployeeService
         $rules = [
             'name'          => 'sometimes|required|string|max:255',
             'email'         => 'sometimes|required|email|unique:employees,email' . ($id ? ',' . $id : ''),
-            'phone'         => 'sometimes|nullable|digits:11|unique:employees,phone' . ($id ? ',' . $id : ''),
+            'phone'         => 'sometimes|nullable|digits_between:10,11|unique:employees,phone' . ($id ? ',' . $id : ''),
             'birthday'      => 'nullable|date',
             'sex'           => 'nullable|in:0,1',
             'status'        => 'nullable|in:0,1',

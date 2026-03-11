@@ -98,7 +98,8 @@ class BookService
     {
         $books = Book::with([
             'assignedEmployee:id,name,email,phone,birthday,sex,status,department_id,position_id,created_at,updated_at',
-            'categories:id,name,description,status,created_at,updated_at'
+            'categories:id,name,description,status,created_at,updated_at',
+            'paper:id,paperSize'
         ])
             ->orderByDesc('id')
             ->get();

@@ -11,6 +11,7 @@ class Department extends Model
 
     protected $fillable = [
         'name',
+        'category',
         'status',
     ];
 
@@ -21,12 +22,12 @@ class Department extends Model
 
     public function books()
     {
-    return $this->belongsToMany(
-        Book::class,
-        'projects',
-        'department_id',
-        'book_id'
-    )->withPivot(['description', 'status'])
-     ->withTimestamps();
+        return $this->belongsToMany(
+            Book::class,
+            'projects',
+            'department_id',
+            'book_id'
+        )->withPivot(['description', 'status'])
+            ->withTimestamps();
     }
 }

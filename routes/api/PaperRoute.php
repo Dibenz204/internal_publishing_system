@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('papers')->group(function () {
 
+    Route::get('/', [PaperController::class, 'index']);
+
     Route::post('/', [PaperController::class, 'store']);
 
     Route::put('/{id}', [PaperController::class, 'update']);

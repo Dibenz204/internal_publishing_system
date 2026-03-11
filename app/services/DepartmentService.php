@@ -14,17 +14,19 @@ class DepartmentService
      */
     public function getAll(?string $keyword = null)
     {
-        return Department::query()
+        return Department::withCount('employees')
+            // ->query()
             ->when(!empty(trim($keyword ?? '')), function ($query) use ($keyword) {
                 $query->whereRaw(
                     'LOWER(name) LIKE ?',
                     ['%' . strtolower(trim($keyword)) . '%']
                 );
             })
+            ->orderByDesc('status')
             ->orderByDesc('id')
             ->get();
     }
-    
+
 
 
     /**
@@ -32,38 +34,38 @@ class DepartmentService
      */
     public function findById(int $id): Department
     {
-        return Department::findOrFail($id);
+        return Department::with(['employees.position'])->findOrFail($id);
     }
 
     /**
      * Tạo phòng ban
      */
     public function create(array $data): Department
-{
-    $this->validate($data);
+    {
+        $this->validate($data);
 
-    return Department::create([
-        'name'   => trim($data['name']),
-        'status' => 1, // luôn active khi tạo
-    ]);
-}
+        return Department::create([
+            'name'   => trim($data['name']),
+            'status' => 1, // luôn active khi tạo
+        ]);
+    }
 
 
     /**
      * Cập nhật phòng ban
      */
     public function update(int $id, array $data): Department
-{
-    $this->validate($data, $id);
+    {
+        $this->validate($data, $id);
 
-    $department = Department::findOrFail($id);
+        $department = Department::findOrFail($id);
 
-    $department->update([
-        'name' => trim($data['name']),
-    ]);
+        $department->update([
+            'name' => trim($data['name']),
+        ]);
 
-    return $department;
-}
+        return $department;
+    }
 
 
 
@@ -71,16 +73,16 @@ class DepartmentService
      * Validate dữ liệu
      */
     protected function validate(array $data, ?int $id = null): void
-{
-    validator($data, [
-        'name' => [
-            'required',
-            'string',
-            'max:255',
-            Rule::unique('departments', 'name')->ignore($id),
-        ],
-    ])->validate();
-}
+    {
+        validator($data, [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('departments', 'name')->ignore($id),
+            ],
+        ])->validate();
+    }
 
     /**
      * Lọc theo keyword
@@ -98,36 +100,34 @@ class DepartmentService
     }
 
     /**
- * (status = 1)
- */
-public function activate(int $id): Department
-{
-    $department = Department::findOrFail($id);
+     * (status = 1)
+     */
+    public function activate(int $id): Department
+    {
+        $department = Department::findOrFail($id);
 
-    $department->update([
-        'status' => 1
-    ]);
+        $department->update([
+            'status' => 1
+        ]);
 
-    return $department;
-}
-
-/**
- *(status = 0)
- */
-public function deactivate(int $id): Department
-{
-    $department = Department::with('employees')->findOrFail($id);
-
-    if ($department->employees()->where('status', 1)->exists()) {
-        throw new \Exception('Cannot deactivate this department because it still has active employees.');
+        return $department;
     }
 
-    $department->update([
-        'status' => 0
-    ]);
+    /**
+     *(status = 0)
+     */
+    public function deactivate(int $id): Department
+    {
+        $department = Department::with('employees')->findOrFail($id);
 
-    return $department;
-}
+        if ($department->employees()->where('status', 1)->exists()) {
+            throw new \Exception('Cannot deactivate this department because it still has active employees.');
+        }
 
+        $department->update([
+            'status' => 0
+        ]);
 
+        return $department;
+    }
 }

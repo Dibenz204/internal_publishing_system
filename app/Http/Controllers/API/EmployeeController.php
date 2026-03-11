@@ -43,6 +43,16 @@ class EmployeeController extends Controller
         ], 200);
     }
 
+    public function show($id)
+    {
+        $employee = $this->employeeService->findById($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $employee
+        ]);
+    }
+
 
     public function store(Request $request)
     {
