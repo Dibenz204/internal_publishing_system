@@ -42,5 +42,6 @@ Route::prefix('projects')->group(function () {
             'books/{bookId}/add-departments',
             [ProjectController::class, 'addDepartmentWhenProcessing']
         );
+        Route::get('/books/{bookId}/projects', [ProjectController::class, 'getProjectsByBook']);
     });
 });
