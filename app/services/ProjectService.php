@@ -37,9 +37,9 @@ class ProjectService
         $project = Project::findOrFail($id);
         // sửa lại chỗ này
         if (!in_array((int)$project->status, [
-    self::STATUS_PENDING,
-    self::STATUS_ADJUST
-    ])) {
+            self::STATUS_PENDING,
+            self::STATUS_ADJUST
+        ])) {
             throw new \Exception("Only projects that are pending can be accepted");
         }
 
@@ -87,10 +87,14 @@ class ProjectService
         }
 
         //Cho phép chỉnh sửa chứ không phải ở trạng thái đang làm rồi chuyển sang hoan thành, sửa lại code để cho phép điều chỉnh
-        if (!in_array((int)$project->status, [
-        self::STATUS_IN_PROGRESS,
-        self::STATUS_ADJUST
-        ])) {
+        // if (!in_array((int)$project->status, [
+        //     self::STATUS_IN_PROGRESS,
+        //     self::STATUS_ADJUST
+        // ])) {
+        //     throw new \Exception("You must accept the project before completing it");
+        // }
+
+        if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
             throw new \Exception("You must accept the project before completing it");
         }
 
@@ -106,17 +110,17 @@ class ProjectService
     //Cần chỉnh sửa gì đó               
     public function adjustProject($id)
     {
-    $project = Project::findOrFail($id);
+        $project = Project::findOrFail($id);
 
-    if ((int) $project->status === self::STATUS_CANCELLED) {
-        throw new \Exception("Cancelled projects cannot be adjusted");
-    }
+        if ((int) $project->status === self::STATUS_CANCELLED) {
+            throw new \Exception("Cancelled projects cannot be adjusted");
+        }
 
-    $project->update([
-        'status' => self::STATUS_ADJUST
-    ]);
+        $project->update([
+            'status' => self::STATUS_ADJUST
+        ]);
 
-    return $project;
+        return $project;
     }
 
     /*
@@ -206,31 +210,31 @@ class ProjectService
     public function addDepartmentWhenProcessing($bookId, array $departmentIds, ?string $description = null)
     {
         return DB::transaction(function () use ($bookId, $departmentIds, $description) {
-    
+
             $book = Book::findOrFail($bookId);
-    
+
             if ((int) $book->status !== $this->bookService->processingStatus()) {
                 throw new \Exception("Only books with status = Processing can add departments.");
             }
-    
+
             $existingDepartmentIds = Project::where('book_id', $bookId)
                 ->pluck('department_id')
                 ->toArray();
-    
+
             $projects = [];
-    
+
             foreach ($departmentIds as $departmentId) {
-    
+
                 $department = Department::findOrFail($departmentId);
-    
+
                 if ((int) $department->status !== 1) {
                     throw new \Exception("Department ID {$departmentId} is inactive.");
                 }
-    
+
                 if (in_array($departmentId, $existingDepartmentIds)) {
                     throw new \Exception("Department ID {$departmentId} is already assigned to this book.");
                 }
-    
+
                 $projects[] = Project::create([
                     'book_id'       => $bookId,
                     'department_id' => $departmentId,
@@ -238,7 +242,7 @@ class ProjectService
                     'status'        => self::STATUS_PENDING
                 ]);
             }
-    
+
             return $projects;
         });
     }
