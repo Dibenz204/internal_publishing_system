@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('job_categories', function (Blueprint $table) {
             $table->id(); // NOT NULL
-            $table->string('name'); // NOT NULL
-            $table->decimal('work_coefficient', 3, 5); // NOT NULL
+            $table->string('name')->unique(); // NOT NULL
+            $table->decimal('work_coefficient', 5, 5); // NOT NULL
             $table->boolean('status')->default(1);
-            $table->timestamp('created_at')->useCurrent(); ;
+            $table->timestamp('created_at')->useCurrent();;
             $table->timestamp('expired_at')->nullable();;
         });
     }
