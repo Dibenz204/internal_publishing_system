@@ -9,6 +9,7 @@ class JobCategory extends Model
     protected $fillable = [
         'name',
         'work_coefficient',
+        'category',
         'status'
     ];
 

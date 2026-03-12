@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id(); // NOT NULL
             $table->string('name'); // NOT NULL
             $table->decimal('work_coefficient', 5, 5); // NOT NULL
+            $table->string('category');
             $table->boolean('status')->default(1);
             $table->timestamp('created_at');
             $table->timestamp('expired_at')->nullable();
