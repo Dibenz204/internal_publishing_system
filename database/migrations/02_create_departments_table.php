@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('departments', function (Blueprint $table) {
             $table->id(); //NOT NULL
             $table->string('name'); //NOT NULL
-            $table->string('category');
+            $table->string('category'); //NOT NULL
             $table->boolean('status')->default(1); //NOT NULL
             $table->timestamps(); //NOT NULL
         });

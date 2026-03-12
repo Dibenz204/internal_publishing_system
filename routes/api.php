@@ -37,4 +37,6 @@ Route::middleware('auth', 'web')->group(function () {
     require __DIR__ . '/api/BookTransferRoute.php';
     require __DIR__ . '/api/PaperRoute.php';
     require __DIR__ . '/api/userRoute.php';
+    require __DIR__ . '/api/SalaryCoefficientRoute.php';
+    require __DIR__ . '/api/JobCategoryRoute.php';
 });

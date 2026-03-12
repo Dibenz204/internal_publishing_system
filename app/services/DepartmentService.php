@@ -102,6 +102,11 @@ class DepartmentService
                 'max:255',
                 Rule::unique('departments', 'name')->ignore($id),
             ],
+            'category' => [
+                'required',
+                'string',
+                'max:255'
+            ]
         ])->validate();
     }
 
@@ -118,37 +123,5 @@ class DepartmentService
         })
             ->orderBy('id', 'desc')
             ->get();
-    }
-
-    /**
-     * (status = 1)
-     */
-    public function activate(int $id): Department
-    {
-        $department = Department::findOrFail($id);
-
-        $department->update([
-            'status' => 1
-        ]);
-
-        return $department;
-    }
-
-    /**
-     *(status = 0)
-     */
-    public function deactivate(int $id): Department
-    {
-        $department = Department::with('employees')->findOrFail($id);
-
-        if ($department->employees()->where('status', 1)->exists()) {
-            throw new \Exception('Cannot deactivate this department because it still has active employees.');
-        }
-
-        $department->update([
-            'status' => 0
-        ]);
-
-        return $department;
     }
 }

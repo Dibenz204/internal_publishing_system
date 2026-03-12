@@ -12,7 +12,7 @@ class PositionSeeder extends Seeder
         $positions = [
             ['name' => 'Admin', 'status' => 1],
             ['name' => 'Giám đốc', 'status' => 1],
-            ['name' => 'Thư ký biên tập', 'status' => 1],
+            ['name' => 'Thư kí biên tập', 'status' => 1],
             ['name' => 'HR', 'status' => 1],
             ['name' => 'Trưởng phòng', 'status' => 1],
             ['name' => 'Nhân viên', 'status' => 1],

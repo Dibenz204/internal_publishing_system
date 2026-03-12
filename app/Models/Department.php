@@ -13,6 +13,7 @@ class Department extends Model
         'name',
         'category',
         'status',
+        'category',
     ];
 
     public function employees()

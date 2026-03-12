@@ -147,4 +147,13 @@ class ProjectController extends Controller
             'data'    => $projects
         ], 201);
     }
-}
+    public function getProjectsByBook($bookId)
+    {
+     $projects = $this->projectService->getProjectsByBookId($bookId);
+ 
+     return response()->json([
+         'success' => true,
+         'message' => 'Projects retrieved successfully.',
+         'data'    => $projects
+     ]);}
+ }
