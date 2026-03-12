@@ -8,7 +8,8 @@ class SalaryCoefficient extends Model
 {
     protected $fillable = [
         'year',
-        'salary_per_paper'
+        'salary_per_paper',
+        'status',
     ];
 
     public function reports()

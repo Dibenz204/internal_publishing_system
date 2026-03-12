@@ -51,14 +51,13 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    // Chỉ cập nhật name
     public function updateName(Request $request, $id)
     {
-        $data = $this->jobCategoryService->updateName($id, $request->all());
+        $data = $this->jobCategoryService->update($id, $request->all());
 
         return response()->json([
             'success' => true,
-            'message' => 'Job category name updated successfully',
+            'message' => 'work coefficient updated successfully',
             'data' => $data
         ]);
     }

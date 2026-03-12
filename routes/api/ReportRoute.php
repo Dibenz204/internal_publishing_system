@@ -1,4 +1,7 @@
+<?php
+
 use App\Http\Controllers\Api\ReportController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('reports')->group(function () {
 
@@ -10,5 +13,4 @@ Route::prefix('reports')->group(function () {
 
     //theo cá nhân
     Route::get('/employee/{employeeId}', [ReportController::class, 'byEmployee']);
-
 });

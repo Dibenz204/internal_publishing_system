@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\JobCategory;
+use Illuminate\Support\Facades\DB;
 
 class JobCategoryService
 {
@@ -20,35 +21,50 @@ class JobCategoryService
 
     // Tạo mới
     public function create($data)
-{
-    return JobCategory::create([
-        'name' => $data['name'],
-        'work_coefficient' => $data['work_coefficient'],
-        'status' => 1
-    ]);
-}
-
-    // Chỉ cập nhật name
-    public function updateName($id, $data)
     {
-        $oldJobCategory = JobCategory::findOrFail($id);
-        // tạo bản ghi mới
-        $newJobCategory = JobCategory::create([
+        $exists = JobCategory::where('name', $data['name'])
+            ->exists();
+
+        if ($exists) {
+            throw new \Exception('Job category name already exists.');
+        }
+
+        return JobCategory::create([
             'name' => $data['name'],
-            'work_coefficient' => $oldJobCategory->work_coefficient,
+            'work_coefficient' => $data['work_coefficient'],
             'status' => 1
         ]);
-        return $newJobCategory;
     }
 
-    // Tắt trạng thái
-    public function disable($id){
-    $jobCategory = JobCategory::findOrFail($id);
+    public function update($id, $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
 
-    $jobCategory->status = 0;
-    $jobCategory->expired_at = now(); // set thời gian hiện tại
+            $oldJobCategory = JobCategory::findOrFail($id);
 
-    $jobCategory->save();
+            $oldJobCategory->update([
+                'status' => 0,
+                'expired_at' => now()
+            ]);
 
-    return $jobCategory;}
+            // tạo bản ghi mới
+            $newJobCategory = JobCategory::create([
+                'work_coefficient' => $data['work_coefficient'] ?? $oldJobCategory->work_coefficient,
+                'status' => 1
+            ]);
+            return $newJobCategory;
+        });
+    }
+
+    public function disable($id)
+    {
+        $jobCategory = JobCategory::findOrFail($id);
+
+        $jobCategory->status = 0;
+        $jobCategory->expired_at = now(); // set thời gian hiện tại
+
+        $jobCategory->save();
+
+        return $jobCategory;
+    }
 }
