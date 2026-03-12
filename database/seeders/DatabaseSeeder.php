@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
             BookSeeder::class,
             BookTransferSeeder::class,
             ProjectSeeder::class,
-            UserDataSeeder::class
+            UserDataSeeder::class,
+            ReportSeeder::class
         ]);
 
         //php artisan db:seed

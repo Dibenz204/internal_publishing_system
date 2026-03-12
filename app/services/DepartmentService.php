@@ -44,6 +44,7 @@ class DepartmentService
 
     return Department::create([
         'name'   => trim($data['name']),
+        'category' => $data['category'],
         'status' => 1, // luôn active khi tạo
     ]);
 }
@@ -60,6 +61,7 @@ class DepartmentService
 
     $department->update([
         'name' => trim($data['name']),
+        'category' => $data['category'],
     ]);
 
     return $department;
@@ -79,6 +81,11 @@ class DepartmentService
             'max:255',
             Rule::unique('departments', 'name')->ignore($id),
         ],
+         'category' => [
+            'required',
+            'string',
+            'max:255'
+        ]
     ])->validate();
 }
 

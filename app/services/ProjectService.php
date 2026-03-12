@@ -24,6 +24,7 @@ class ProjectService
     const STATUS_IN_PROGRESS = 1;
     const STATUS_PENDING     = 2;
     const STATUS_COMPLETED   = 3;
+    const STATUS_ADJUST      = 4;
 
 
     /*
@@ -34,8 +35,11 @@ class ProjectService
     public function acceptProject($id)
     {
         $project = Project::findOrFail($id);
-
-        if ((int) $project->status !== self::STATUS_PENDING) {
+        // sửa lại chỗ này
+        if (!in_array((int)$project->status, [
+    self::STATUS_PENDING,
+    self::STATUS_ADJUST
+    ])) {
             throw new \Exception("Only projects that are pending can be accepted");
         }
 
@@ -82,8 +86,11 @@ class ProjectService
             throw new \Exception("The project has already been completed");
         }
 
-        //Nếu chưa được nhận
-        if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
+        //Cho phép chỉnh sửa chứ không phải ở trạng thái đang làm rồi chuyển sang hoan thành, sửa lại code để cho phép điều chỉnh
+        if (!in_array((int)$project->status, [
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_ADJUST
+        ])) {
             throw new \Exception("You must accept the project before completing it");
         }
 
@@ -95,6 +102,22 @@ class ProjectService
         return $project;
     }
 
+
+    //Cần chỉnh sửa gì đó               
+    public function adjustProject($id)
+    {
+    $project = Project::findOrFail($id);
+
+    if ((int) $project->status === self::STATUS_CANCELLED) {
+        throw new \Exception("Cancelled projects cannot be adjusted");
+    }
+
+    $project->update([
+        'status' => self::STATUS_ADJUST
+    ]);
+
+    return $project;
+    }
 
     /*
    
