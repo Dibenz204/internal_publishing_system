@@ -42,6 +42,9 @@ Route::prefix('projects')->group(function () {
             'books/{bookId}/add-departments',
             [ProjectController::class, 'addDepartmentWhenProcessing']
         );
-        Route::get('/books/{bookId}/projects', [ProjectController::class, 'getProjectsByBook']);
     });
 });
+
+//Xem lại tác dụng hàm này
+Route::get('/books/{bookId}/projects', [ProjectController::class, 'getProjectsByBook'])
+    ->middleware('position:Thư kí biên tập');
