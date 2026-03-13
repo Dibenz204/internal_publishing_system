@@ -2,17 +2,15 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 
-const ADMIN_MENU = [
+const Accounting_MENU = [
     { path: '/profile', label: 'Cá nhân' },
-    { path: '/books', label: 'Sách' },
-    { path: '/users', label: 'Nhân viên' },
-    { path: '/departments', label: 'Phòng ban' },
+    { path: '/settings', label: 'Thông số' },
 ];
 
-const AdminNav = () => {
+const AccountingNav = () => {
     return (
         <nav style={styles.nav}>
-            {ADMIN_MENU.map((item) => (
+            {Accounting_MENU.map((item) => (
                 <NavLink
                     key={item.path}
                     to={item.path}
@@ -28,31 +26,6 @@ const AdminNav = () => {
     );
 };
 
-
-//DÙNG ĐỂ TRÊN THANH HEADER
-// const styles = {
-//     nav: {
-//         display: 'flex',
-//         gap: '8px',
-//         alignItems: 'center',
-//     },
-//     link: {
-//         padding: '8px 16px',
-//         borderRadius: '6px',
-//         color: 'rgba(255,255,255,0.85)',
-//         textDecoration: 'none',
-//         fontSize: '14px',
-//         fontWeight: '500',
-//         transition: 'background 0.2s, color 0.2s',
-//         whiteSpace: 'nowrap',
-//     },
-//     activeLink: {
-//         backgroundColor: 'rgba(255,255,255,0.2)',
-//         color: '#ffffff',
-//     },
-// };
-
-//DÙNG TRONG DROPDOWN
 const styles = {
     nav: {
         display: 'flex',
@@ -77,4 +50,4 @@ const styles = {
     },
 };
 
-export default AdminNav;
+export default AccountingNav;

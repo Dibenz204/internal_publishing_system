@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import AdminNav from './AdminNav';
-import StaffNav from './StaffNav';
-import HRNav from './HRNav';
+import AdminNav from './Nav/AdminNav';
+import StaffNav from './Nav/StaffNav';
+import HRNav from './Nav/HRNav';
+import EditorNav from './Nav/editorNav';
+import AccountingNav from './Nav/AccountingNav';
 
 const renderNav = (position) => {
     switch (position) {
@@ -10,6 +12,10 @@ const renderNav = (position) => {
             return <AdminNav />;
         case 'HR':
             return <HRNav />;
+        case 'Thư kí biên tập':
+            return <EditorNav />;
+        case 'Kế toán':
+            return <AccountingNav />;
         default:
             return <StaffNav />;
     }

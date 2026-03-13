@@ -11,6 +11,7 @@ import Users from './pages/Users';
 import Books from './pages/Books'
 import Departments from './pages/Departments';
 import DepartmentDetail from './pages/DepartmentDetail';
+import Settings from './pages/Setting';
 
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
                             {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR']} />}>
                                 <Route path="/departments" element={<Departments />} />
                                 <Route path="/users" element={<Users />} />
+                            </Route>}
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Thư kí biên tập', 'Kế toán']} />}>
+                                <Route path="/settings" element={<Settings />} />
                             </Route>}
 
                             <Route path="/" element={<Navigate to="/login" replace />} />

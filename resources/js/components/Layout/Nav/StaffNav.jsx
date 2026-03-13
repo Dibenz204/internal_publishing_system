@@ -1,17 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-
-const HR_MENU = [
+const STAFF_MENU = [
     { path: '/profile', label: 'Cá nhân' },
-    { path: '/users', label: 'Nhân viên' },
-    { path: '/departments', label: 'Phòng ban' },
+    { path: '/books', label: 'Sách' }
 ];
 
-const HRNav = () => {
+const StaffNav = () => {
     return (
         <nav style={styles.nav}>
-            {HR_MENU.map((item) => (
+            {STAFF_MENU.map((item) => (
                 <NavLink
                     key={item.path}
                     to={item.path}
@@ -27,31 +25,6 @@ const HRNav = () => {
     );
 };
 
-
-//DÙNG ĐỂ TRÊN THANH HEADER
-// const styles = {
-//     nav: {
-//         display: 'flex',
-//         gap: '8px',
-//         alignItems: 'center',
-//     },
-//     link: {
-//         padding: '8px 16px',
-//         borderRadius: '6px',
-//         color: 'rgba(255,255,255,0.85)',
-//         textDecoration: 'none',
-//         fontSize: '14px',
-//         fontWeight: '500',
-//         transition: 'background 0.2s, color 0.2s',
-//         whiteSpace: 'nowrap',
-//     },
-//     activeLink: {
-//         backgroundColor: 'rgba(255,255,255,0.2)',
-//         color: '#ffffff',
-//     },
-// };
-
-//DÙNG TRONG DROPDOWN
 const styles = {
     nav: {
         display: 'flex',
@@ -76,4 +49,4 @@ const styles = {
     },
 };
 
-export default HRNav;
+export default StaffNav;

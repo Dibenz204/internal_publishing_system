@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 class PositionService
 {
     /**
@@ -24,41 +25,41 @@ class PositionService
             ->orderByDesc('id')
             ->get();
     }
-    
 
-    
+
+
     /**
      * Tạo mới position
      */
     public function create(array $data): Position
-{
-    $validated = $this->validate($data);
+    {
+        $validated = $this->validate($data);
 
-    return DB::transaction(function () use ($validated) {
-        return Position::create([
-            'name'   => trim($validated['name']),
-            'status' => 1, // luôn mặc định active
-        ]);
-    });
-}
+        return DB::transaction(function () use ($validated) {
+            return Position::create([
+                'name'   => trim($validated['name']),
+                'status' => 1,
+            ]);
+        });
+    }
 
     /**
      * Cập nhật position theo name
      */
     public function update(int $id, array $data): Position
-{
-    $validated = $this->validate($data, $id);
+    {
+        $validated = $this->validate($data, $id);
 
-    return DB::transaction(function () use ($id, $validated) {
-        $position = Position::findOrFail($id);
+        return DB::transaction(function () use ($id, $validated) {
+            $position = Position::findOrFail($id);
 
-        $position->update([
-            'name' => trim($validated['name']),
-        ]);
+            $position->update([
+                'name' => trim($validated['name']),
+            ]);
 
-        return $position;
-    });
-}
+            return $position;
+        });
+    }
 
 
     /**
@@ -81,34 +82,36 @@ class PositionService
      * Đổi trạng thái
      */
     public function changeStatus(int $id, int $status): Position
-{
-    if (!in_array($status, [0, 1])) {
-        throw ValidationException::withMessages([
-            'status' => ['Status must be either 0 or 1.'],
-        ]);
-    }
-
-    return DB::transaction(function () use ($id, $status) {
-
-        $position = Position::findOrFail($id);
-
-        if ($status === 0 && 
-            $position->employees()->where('status', 1)->exists()) {
-
+    {
+        if (!in_array($status, [0, 1])) {
             throw ValidationException::withMessages([
-                'position' => [
-                    'The position cannot be deactivated while there are active employees assigned to it.'
-                ],
+                'status' => ['Status must be either 0 or 1.'],
             ]);
         }
 
-        $position->update([
-            'status' => $status
-        ]);
+        return DB::transaction(function () use ($id, $status) {
 
-        return $position->fresh(); // không load employees
-    });
-}
+            $position = Position::findOrFail($id);
+
+            if (
+                $status === 0 &&
+                $position->employees()->where('status', 1)->exists()
+            ) {
+
+                throw ValidationException::withMessages([
+                    'position' => [
+                        'The position cannot be deactivated while there are active employees assigned to it.'
+                    ],
+                ]);
+            }
+
+            $position->update([
+                'status' => $status
+            ]);
+
+            return $position->fresh(); // không load employees
+        });
+    }
 
 
 
@@ -117,6 +120,10 @@ class PositionService
      */
     protected function validate(array $data, ?int $id = null): array
     {
+        if (isset($data['name'])) {
+            $data['name'] = trim(preg_replace('/\s+/', ' ', $data['name']));
+        }
+
         return validator($data, [
             'name' => [
                 'required',

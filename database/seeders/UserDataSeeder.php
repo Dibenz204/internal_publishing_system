@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Facades\Hash;
 
-// CẦN THÊM 2 ÔNG TRƯỞNG PHÒNG
-
 
 class UserDataSeeder extends Seeder
 {
@@ -88,7 +86,7 @@ class UserDataSeeder extends Seeder
         );
 
 
-        $editorPos = Position::where('name', 'Thư ký biên tập')->first();
+        $editorPos = Position::where('name', 'Thư kí biên tập')->first();
         $editorDep = Department::where('name', 'Phòng tổng hợp')->first();
         $editorEmp = Employee::firstOrCreate(
             ['email' => 'editor@nxb.com'],

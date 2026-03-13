@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('job-categories')->group(function () {
 
-    Route::middleware('position:Admin,HR')->group(function () {
+    Route::middleware('position:Admin,Kế toán')->group(function () {
 
         // Lấy tất cả
         Route::get('/', [JobCategoryController::class, 'getAll']);
@@ -17,7 +17,7 @@ Route::prefix('job-categories')->group(function () {
         Route::post('/', [JobCategoryController::class, 'create']);
 
         // Cập nhật name
-        Route::patch('/{id}/update-name', [JobCategoryController::class, 'updateName']);
+        Route::patch('/{id}/update', [JobCategoryController::class, 'update']);
 
         // Tắt trạng thái
         Route::patch('/{id}/deactivate', [JobCategoryController::class, 'disable']);

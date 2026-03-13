@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('bookcategories', function (Blueprint $table) {
             $table->id(); //NOT NULL
-            $table->string('name'); //NOT NULL
+            $table->string('name')->unique(); //NOT NULL
             $table->string('description'); //NOT NULL
             $table->boolean('status')->default(1); //NOT NULL
             $table->timestamps();

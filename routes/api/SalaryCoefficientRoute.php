@@ -5,17 +5,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('salary-coefficients')->group(function () {
 
-    // 1. Tạo hệ số lương
-    Route::post('/', [SalaryCoefficientController::class, 'create']);
+    Route::middleware('position:Admin,Kế toán')->group(function () {
 
-    // 2. Tắt trạng thái (1 -> 0)
-    Route::patch('{id}/deactivate', [SalaryCoefficientController::class, 'disable']);
+        // 4. Lấy tất cả
+        Route::get('/', [SalaryCoefficientController::class, 'getAll']);
 
-    // 3. Bật trạng thái (0 -> 1)
-    Route::patch('{id}/activate', [SalaryCoefficientController::class, 'enable']);
+        // 1. Tạo hệ số lương
+        Route::post('/', [SalaryCoefficientController::class, 'create']);
 
-    // 4. Lấy tất cả
-    Route::get('/', [SalaryCoefficientController::class, 'getAll']);
+        // 2. Tắt trạng thái (1 -> 0)
+        Route::patch('{id}/deactivate', [SalaryCoefficientController::class, 'disable']);
 
-
+        // 3. Bật trạng thái (0 -> 1)
+        Route::patch('{id}/activate', [SalaryCoefficientController::class, 'enable']);
+    });
 });

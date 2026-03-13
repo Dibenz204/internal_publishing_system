@@ -51,7 +51,7 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    public function updateName(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $data = $this->jobCategoryService->update($id, $request->all());
 

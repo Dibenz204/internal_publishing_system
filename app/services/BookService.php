@@ -126,18 +126,18 @@ class BookService
             'departments',
             'departments.employees'
         ])->findOrFail($id);
-    
+
         // Ẩn pivot
         $book->categories->each->makeHidden(['pivot']);
-    
+
         // Tính tổng số ngày thực hiện
         $totalDays = null;
-    
+
         if ($book->start_time && $book->end_time) {
             $totalDays = Carbon::parse($book->start_time)
                 ->diffInDays(Carbon::parse($book->end_time));
         }
-    
+
         return [
             'book' => $book,
             'total_days' => $totalDays
@@ -362,7 +362,12 @@ class BookService
         }
 
         if (!empty($filters['name'])) {
-            $query->where('books.name', 'like', '%' . trim($filters['name']) . '%');
+            $keyword = trim($filters['name']);
+
+            $query->where(function ($q) use ($keyword) {
+                $q->where('books.name', 'like', "%$keyword%")
+                    ->orWhere('books.bookCode', 'like', "%$keyword%");
+            });
         }
 
         if (!empty($filters['category_id'])) {
@@ -385,6 +390,11 @@ class BookService
         if (!empty($filters['to_date'])) {
             $query->whereDate('books.start_time', '<=', $filters['to_date']);
         }
+
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $query->where('books.status', (int) $filters['status']);
+        }
+
         //Thêm phân trang
         $perPage = $filters['per_page'] ?? 10;
 
@@ -413,6 +423,7 @@ class BookService
             ]);
         }
     }
+
     public function processingStatus(): int
     {
         return self::STATUS_PROCESSING;

@@ -9,11 +9,13 @@ class JobCategory extends Model
     protected $fillable = [
         'name',
         'work_coefficient',
-        'status'
+        'category',
+        'status',
+        'expired_at'
     ];
 
     public function allocations()
     {
-    return $this->hasMany(Allocation::class, 'job_category_id');
+        return $this->hasMany(Allocation::class, 'job_category_id');
     }
 }

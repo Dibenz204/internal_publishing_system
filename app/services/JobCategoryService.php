@@ -4,13 +4,15 @@ namespace App\Services;
 
 use App\Models\JobCategory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class JobCategoryService
 {
     // Lấy tất cả
     public function getAll()
     {
-        return JobCategory::all();
+        return JobCategory::orderBy('name')
+            ->get();
     }
 
     // Lấy những cái đang hoạt động
@@ -22,17 +24,30 @@ class JobCategoryService
     // Tạo mới
     public function create($data)
     {
-        $exists = JobCategory::where('name', $data['name'])
-            ->exists();
+        $validator = Validator::make($data, [
+            'name' => 'required|string|max:255',
+            'category' => 'required|in:Biên tập,Chế bản,Sửa đính chính',
+            'work_coefficient' => 'required|numeric|min:0'
+        ]);
+
+        if ($validator->fails()) {
+            throw new \Exception($validator->errors()->first());
+        }
+
+        $name = trim(mb_strtolower($data['name']));
+
+        $exists = JobCategory::whereRaw('LOWER(name) = ?', [$name])->exists();
 
         if ($exists) {
-            throw new \Exception('Job category name already exists.');
+            throw new \Exception('Tên công việc đã tồn tại');
         }
 
         return JobCategory::create([
-            'name' => $data['name'],
+            'name' => trim($data['name']),
             'work_coefficient' => $data['work_coefficient'],
-            'status' => 1
+            'category' => $data['category'],
+            'status' => 1,
+            'expired_at' => null
         ]);
     }
 
@@ -40,7 +55,18 @@ class JobCategoryService
     {
         return DB::transaction(function () use ($id, $data) {
 
+            $validator = Validator::make($data, [
+                'work_coefficient' => 'required|numeric|min:0'
+            ]);
+
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
+            }
             $oldJobCategory = JobCategory::findOrFail($id);
+
+            if ((int) $oldJobCategory->status !== 1) {
+                throw new \Exception('Chỉ có thể chỉnh sửa công việc đang hoạt động.');
+            }
 
             $oldJobCategory->update([
                 'status' => 0,
@@ -49,8 +75,11 @@ class JobCategoryService
 
             // tạo bản ghi mới
             $newJobCategory = JobCategory::create([
+                'name' => $oldJobCategory->name,
                 'work_coefficient' => $data['work_coefficient'] ?? $oldJobCategory->work_coefficient,
-                'status' => 1
+                'category' => $oldJobCategory->category,
+                'status' => 1,
+                'expired_at' => null
             ]);
             return $newJobCategory;
         });
