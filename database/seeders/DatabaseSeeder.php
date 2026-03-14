@@ -23,10 +23,10 @@ class DatabaseSeeder extends Seeder
             BookSeeder::class,
             BookTransferSeeder::class,
             ProjectSeeder::class,
-            ReportSeeder::class,
             JobCategorySeeder::class,
             SalaryCoefficientSeeder::class,
             AllocationSeeder::class,
+            ReportSeeder::class,
         ]);
 
         //php artisan db:seed
