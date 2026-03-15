@@ -95,13 +95,6 @@ const EmployeeModal = ({ onClose, onSuccess, employee = null }) => {
                                 <option value="0">Nữ</option>
                             </select>
                         </div>
-                        <div style={modal.field}>
-                            <label style={modal.label}>Trạng thái</label>
-                            <select name="status" value={form.status} onChange={handleChange} style={modal.input}>
-                                <option value="1">Đang làm việc</option>
-                                <option value="0">Nghỉ làm</option>
-                            </select>
-                        </div>
                     </div>
                     <div style={modal.row}>
                         <div style={modal.field}>
@@ -285,8 +278,9 @@ const Users = () => {
                                 <th style={styles.th}>Phòng ban</th>
                                 <th style={styles.th}>Chức vụ</th>
                                 <th style={styles.th}>Giới tính</th>
+                                <th style={styles.th}>Ngày sinh</th>
                                 <th style={styles.th}>Trạng thái</th>
-                                <th style={styles.th}></th>
+                                <th style={styles.th}>Điều chỉnh</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -301,6 +295,7 @@ const Users = () => {
                                     <td style={styles.td}>{emp.department?.name || '—'}</td>
                                     <td style={styles.td}>{emp.position?.name || '—'}</td>
                                     <td style={styles.td}>{emp.sex ? 'Nam' : 'Nữ'}</td>
+                                    <td style={styles.td}>{emp.birthday || '—'}</td>
                                     <td style={styles.td}>
                                         <span style={emp.status ? styles.badgeActive : styles.badgeInactive}>
                                             {emp.status ? 'Đang làm việc' : 'Nghỉ làm'}

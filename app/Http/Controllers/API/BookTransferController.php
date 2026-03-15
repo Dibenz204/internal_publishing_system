@@ -51,4 +51,13 @@ class BookTransferController extends Controller
             'data'    => $transfer
         ]);
     }
+
+    public function sendToAssignedBy(Request $request, int $bookId)
+    {
+        $transfer = $this->bookTransferService->sendToAssignedBy(
+            $bookId,
+            $request->input('note')
+        );
+        return response()->json(['success' => true, 'data' => $transfer]);
+    }
 }

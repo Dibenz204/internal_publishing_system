@@ -7,9 +7,9 @@ Route::prefix('departments')->group(function () {
 
 
     Route::get('/', [DepartmentController::class, 'index'])
-        ->middleware('position:Admin,HR');
+        ->middleware('position:Admin,Thư kí biên tập,HR,Trưởng phòng');
 
-    Route::middleware('position:Admin')->group(function () {
+    Route::middleware('position:Admin,Thư kí biên tập,HR,Trưởng phòng')->group(function () {
 
         Route::get('/{id}', [DepartmentController::class, 'show']);
 

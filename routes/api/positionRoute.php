@@ -7,7 +7,7 @@ Route::prefix('positions')->group(function () {
 
     // Lấy danh sách tất hoặc theo tên
     Route::get('/', [PositionController::class, 'index'])
-        ->middleware('position:Admin,Nhân viên');
+        ->middleware('position:Admin,Nhân viên,HR');
 
     Route::middleware('position:Admin')->group(function () {
 

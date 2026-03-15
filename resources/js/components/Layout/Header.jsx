@@ -5,6 +5,7 @@ import StaffNav from './Nav/StaffNav';
 import HRNav from './Nav/HRNav';
 import EditorNav from './Nav/editorNav';
 import AccountingNav from './Nav/AccountingNav';
+import DepManageNav from './Nav/DepManageNav';
 
 const renderNav = (position) => {
     switch (position) {
@@ -16,6 +17,8 @@ const renderNav = (position) => {
             return <EditorNav />;
         case 'Kế toán':
             return <AccountingNav />;
+        case 'Trưởng phòng':
+            return <DepManageNav />;
         default:
             return <StaffNav />;
     }

@@ -47,4 +47,4 @@ Route::prefix('projects')->group(function () {
 
 //Xem lại tác dụng hàm này
 Route::get('/books/{bookId}/projects', [ProjectController::class, 'getProjectsByBook'])
-    ->middleware('position:Thư kí biên tập');
+    ->middleware('position:Admin,Thư kí biên tập');

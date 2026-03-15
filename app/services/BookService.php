@@ -160,6 +160,8 @@ class BookService
             $categories = $data['categories'] ?? [];
             unset($data['categories']);
 
+            $data['page'] = $data['page'] ?? 1;
+
             if (!empty($data['paper_id'])) {
 
                 $isActivePaper = Paper::where('id', $data['paper_id'])

@@ -154,7 +154,10 @@ const Departments = () => {
                                 {isAdmin && (
                                     <button
                                         style={styles.editBtn}
-                                        onClick={e => { e.stopPropagation(); setEditDept(dept); }}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            setEditDept(dept);
+                                        }}
                                     >
                                         Cập nhật
                                     </button>

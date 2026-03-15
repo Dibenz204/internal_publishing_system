@@ -38,6 +38,16 @@ class Book extends Model
             ->withTimestamps();
     }
 
+    public function paper()
+    {
+        return $this->belongsTo(Paper::class, 'paper_id');
+    }
+
+    public function transfers()
+    {
+        return $this->hasMany(BookTransfer::class, 'book_id');
+    }
+
     public function departments()
     {
         return $this->belongsToMany(
@@ -49,13 +59,12 @@ class Book extends Model
             ->withTimestamps();
     }
 
-    public function paper()
+    public function getTransferCountForDepartment($departmentName)
     {
-        return $this->belongsTo(Paper::class, 'paper_id');
-    }
-
-    public function transfers()
-    {
-        return $this->hasMany(BookTransfer::class, 'book_id');
+        return $this->transfers()
+            ->whereHas('toEmployee.department', function ($q) use ($departmentName) {
+                $q->where('name', $departmentName);
+            })
+            ->count();
     }
 }

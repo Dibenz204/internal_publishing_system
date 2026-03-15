@@ -8,10 +8,13 @@ import Layout from './components/Layout/Layout';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
-import Books from './pages/Books'
+import Books from './pages/Books';
+import BookTransferDetail from './pages/BookTransferDetail';
+
 import Departments from './pages/Departments';
 import DepartmentDetail from './pages/DepartmentDetail';
 import Settings from './pages/Setting';
+import DepartmentBooks from './pages/DepartmentBook';
 
 
 function App() {
@@ -29,16 +32,16 @@ function App() {
                             <Route path="/profile" element={<Profile />} />
 
                             <Route path="/books" element={<Books />} />
+                            <Route path="/books/:id/transfers" element={<BookTransferDetail />} />
 
-                            {/* <Route path="/profile" element={<Profile />} /> */}
-
-
-                            {<Route element={<ProtectedRoute allowedPositions={['Admin']} />}>
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR', 'Trưởng phòng']} />}>
                                 <Route path="/departments/:id" element={<DepartmentDetail />} />
                             </Route>}
 
+                            <Route path="/departmentbook" element={<DepartmentBooks />} />
 
-                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR']} />}>
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR', 'Thư kí biên tập', 'Trưởng phòng']} />}>
                                 <Route path="/departments" element={<Departments />} />
                                 <Route path="/users" element={<Users />} />
                             </Route>}

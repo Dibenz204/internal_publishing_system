@@ -88,6 +88,29 @@ class DepartmentService
         return $department;
     }
 
+    public function activate(int $id): Department
+    {
+        $department = Department::findOrFail($id);
+        $department->update(['status' => 1]);
+        return $department;
+    }
+
+    public function deactivate(int $id): Department
+    {
+        $department = Department::findOrFail($id);
+
+        $hasEmployees = Employee::where('department_id', $id)
+            ->where('status', 1)->exists();
+
+        if ($hasEmployees) {
+            throw ValidationException::withMessages([
+                'status' => ['Phòng ban vẫn còn nhân viên đang làm việc']
+            ]);
+        }
+
+        $department->update(['status' => 0]);
+        return $department;
+    }
 
 
     /**
