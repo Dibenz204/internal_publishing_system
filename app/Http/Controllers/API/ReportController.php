@@ -15,58 +15,53 @@ class ReportController extends Controller
         $this->reportService = $reportService;
     }
 
-    //get tất cả
-    public function index(Request $request)
+    private function dateParams(Request $request): array
     {
-        $data = $this->reportService->getAll(
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
-        );
+        return [
+            $request->input('from_month') ? (int) $request->input('from_month') : null,
+            $request->input('from_year') ? (int) $request->input('from_year') : null,
+            $request->input('to_month') ? (int) $request->input('to_month') : null,
+            $request->input('to_year') ? (int) $request->input('to_year') : null,
+        ];
+    }
+
+    public function departmentSummary(Request $request)
+    {
+        $data = $this->reportService->getDepartmentSummary(...$this->dateParams($request));
 
         return response()->json([
             'success' => true,
-            'message' => 'Reports retrieved successfully',
-            'data' => $data
+            'message' => 'Department summary retrieved successfully',
+            'data' => $data,
         ]);
     }
 
-
-    //theo phòng ban
-    public function byDepartment(Request $request, $departmentId)
+    public function employeeSummary(Request $request, $departmentId)
     {
-        $data = $this->reportService->getByDepartment(
-            $departmentId,
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
+        $data = $this->reportService->getEmployeeSummaryByDepartment(
+            (int) $departmentId,
+            ...$this->dateParams($request)
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Department reports retrieved successfully',
-            'data' => $data
+            'message' => 'Employee summary retrieved successfully',
+            'data' => $data,
         ]);
     }
 
-
-    //theo cá nhân
-    public function byEmployee(Request $request, $employeeId)
+    public function employeeDetail(Request $request, $departmentId, $employeeId)
     {
-        $data = $this->reportService->getByEmployee(
-            $employeeId,
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
+        $data = $this->reportService->getEmployeeDetail(
+            (int) $departmentId,
+            (int) $employeeId,
+            ...$this->dateParams($request)
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Employee reports retrieved successfully',
-            'data' => $data
+            'message' => 'Employee report details retrieved successfully',
+            'data' => $data,
         ]);
     }
 }

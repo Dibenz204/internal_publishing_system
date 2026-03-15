@@ -1,16 +1,13 @@
 <?php
 
-use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ReportController;
 
 Route::prefix('reports')->group(function () {
 
-    //lấy toàn bộ
-    Route::get('/', [ReportController::class, 'index']);
+    Route::get('/departments', [ReportController::class, 'departmentSummary']);
 
-    //theo phòng ban
-    Route::get('/department/{departmentId}', [ReportController::class, 'byDepartment']);
+    Route::get('/departments/{departmentId}/employees', [ReportController::class, 'employeeSummary']);
 
-    //theo cá nhân
-    Route::get('/employee/{employeeId}', [ReportController::class, 'byEmployee']);
+    Route::get('/departments/{departmentId}/employees/{employeeId}/details', [ReportController::class, 'employeeDetail']);
 });

@@ -17,13 +17,16 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PositionSeeder::class,
             DepartmentSeeder::class,
+            UserDataSeeder::class,
             BookcategorySeeder::class,
             PaperSeeder::class,
             BookSeeder::class,
-            BookTransferSeeder::class,
+            // BookTransferSeeder::class,
             ProjectSeeder::class,
-            UserDataSeeder::class,
-            ReportSeeder::class
+            JobCategorySeeder::class,
+            SalaryCoefficientSeeder::class,
+            // AllocationSeeder::class,
+            // ReportSeeder::class,
         ]);
 
         //php artisan db:seed
