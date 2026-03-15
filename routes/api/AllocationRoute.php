@@ -23,10 +23,6 @@ Route::prefix('allocations')->group(function () {
     // Nhân viên sau khi làm xong công việc sẽ complete
     Route::patch('/complete/{allocationId}', [AllocationController::class, 'complete']);
 
-    // Mở lại project đã hoàn thành
-    // Dùng khi cần chỉnh sửa hoặc làm lại project
-    Route::patch('/reopen-project/{projectId}', [AllocationController::class, 'reopenProject']);
-
     // Mở lại allocation đã hoàn thành
     // Cho phép nhân viên tiếp tục làm lại
     Route::patch('/reopen-allocation/{allocationId}', [AllocationController::class, 'reopenAllocation']);
