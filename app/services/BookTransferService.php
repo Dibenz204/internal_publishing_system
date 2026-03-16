@@ -297,4 +297,10 @@ class BookTransferService
 
         return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
     }
+
+
+    public function cancelledStatus(): int
+    {
+        return self::STATUS_CANCELLED;
+    }
 }

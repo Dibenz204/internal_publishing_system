@@ -291,12 +291,21 @@ class BookService
                 ]);
             }
 
+            $book->transfers()->update([
+                'status' => $this->bookTransferService->cancelledStatus(),
+                'end_time' => now()
+            ]);
+
             $book->status = self::STATUS_COMPLETED;
             $book->end_time = now();
             $book->save();
 
+            $book->projects()->update([
+                'status' => ProjectService::STATUS_COMPLETED
+            ]);
+
             //Load relation
-            $book->load(['assignedEmployee', 'categories']);
+            $book->load(['assignedEmployee', 'categories', 'projects']);
 
             // Ẩn pivot
             $book->categories->each(function ($category) {

@@ -79,8 +79,12 @@ class TruongPhongBookController extends Controller
 
             // Xác định status hiển thị
             $displayStatus = $currentProject->status;
-            if ($transferCount >= 2) {
-                $displayStatus = 4; // Điều chỉnh
+            // if ($transferCount >= 2) {
+            //     $displayStatus = 4; // Điều chỉnh
+            // }
+
+            if ($currentProject->status != $this->projectService::STATUS_COMPLETED && $transferCount >= 2) {
+                $displayStatus = $this->projectService::STATUS_ADJUST;
             }
 
             $book->project_status = $displayStatus;

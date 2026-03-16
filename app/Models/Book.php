@@ -48,6 +48,11 @@ class Book extends Model
         return $this->hasMany(BookTransfer::class, 'book_id');
     }
 
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'book_id');
+    }
+
     public function departments()
     {
         return $this->belongsToMany(

@@ -5,9 +5,23 @@ use App\Http\Controllers\Api\ReportController;
 
 Route::prefix('reports')->group(function () {
 
-    Route::get('/departments', [ReportController::class, 'departmentSummary']);
+    // Trưởng phòng xem phòng của mình
+    Route::get('/my-department', [ReportController::class, 'myDepartmentReport']);
 
-    Route::get('/departments/{departmentId}/employees', [ReportController::class, 'employeeSummary']);
+    // Admin xem toàn bộ hoặc lọc
+    Route::get('/overview', [ReportController::class, 'overviewReport']);
 
-    Route::get('/departments/{departmentId}/employees/{employeeId}/details', [ReportController::class, 'employeeDetail']);
+
+
+    // Báo cáo dự án hoàn thành
+    Route::get('/completed-projects', [ReportController::class, 'completedProjects']);  //oke (lấy toàn bộ)
+
+    // Báo cáo theo phòng ban
+    Route::get('department/{departmentId}', [ReportController::class, 'departmentReport']);  //đã oke, cần thêm bộ lọc thời gian
+
+    // Chi tiết một dự án
+    Route::get('/project/{projectId}', [ReportController::class, 'projectDetail']);   //chưa biết
+
+    // Tổng hợp theo tháng
+    Route::get('/monthly-summary', [ReportController::class, 'monthlySummary']);
 });

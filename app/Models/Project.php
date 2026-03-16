@@ -28,12 +28,11 @@ class Project extends Model
 
     public function allocations()
     {
-    return $this->hasMany(Allocation::class, 'project_id');
+        return $this->hasMany(Allocation::class, 'project_id');
     }
 
     public function reports()
     {
-    return $this->hasMany(Report::class, 'project_id');
+        return $this->hasMany(Report::class, 'project_id');
     }
 }
-

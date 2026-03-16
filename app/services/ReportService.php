@@ -2,260 +2,396 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+use App\Models\Project;
+use App\Models\Allocation;
 use App\Models\Report;
-use App\Models\Department;
+use App\Models\SalaryCoefficient;
+use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
-    private function filterByDateRange($query, $fromMonth, $fromYear, $toMonth, $toYear)
+    public function createFromAllocation(int $allocationId)
     {
-        return $query->where(function ($q) use ($fromMonth, $fromYear, $toMonth, $toYear) {
+        return DB::transaction(function () use ($allocationId) {
 
-            $q->where(function ($sub) use ($fromMonth, $fromYear) {
-                $sub->where('report_year', '>', $fromYear)
-                    ->orWhere(function ($s) use ($fromMonth, $fromYear) {
-                        $s->where('report_year', $fromYear)
-                          ->where('report_month', '>=', $fromMonth);
-                    });
-            });
+            $allocation = Allocation::with([
+                'project.book.paper'
+            ])->findOrFail($allocationId);
 
-        })->where(function ($q) use ($toMonth, $toYear) {
+            $exists = Report::where('allocation_id', $allocation->id)->exists();
+            if ($exists) {
+                throw new \Exception('Allocation này đã có report.');
+            }
 
-            $q->where(function ($sub) use ($toMonth, $toYear) {
-                $sub->where('report_year', '<', $toYear)
-                    ->orWhere(function ($s) use ($toMonth, $toYear) {
-                        $s->where('report_year', $toYear)
-                          ->where('report_month', '<=', $toMonth);
-                    });
-            });
+            $project = $allocation->project;
+            $book = $project->book;
+            $paper = $book->paper;
 
+            $completedPage = $allocation->completed_page;
+            $paperCoefficient = $paper->paper_coefficient;
+
+            // trang quy đổi
+            $conversionPage = $completedPage * $paperCoefficient;
+
+            // hệ số lương đang active
+            $salaryCoefficient = SalaryCoefficient::where('status', 1)->firstOrFail();
+
+            return Report::create([
+                'allocation_id' => $allocation->id,
+                'project_id' => $project->id,
+                'salary_coefficient_id' => $salaryCoefficient->id,
+                'conversion_page' => $conversionPage,
+                'salary' => 0,
+                'report_year' => now()->year,
+                'report_month' => now()->month,
+                'status' => 1
+            ]);
         });
     }
 
-    private function applyOptionalDateFilter($query, ?int $fromMonth, ?int $fromYear, ?int $toMonth, ?int $toYear)
+    private function getSalaryPerPaper()
     {
-        if ($fromMonth !== null && $fromYear !== null && $toMonth !== null && $toYear !== null) {
-            return $this->filterByDateRange($query, $fromMonth, $fromYear, $toMonth, $toYear);
-        }
-        return $query;
+        return SalaryCoefficient::where('status', 1)->value('salary_per_paper') ?? 0;
     }
 
-    private function mapReportRow(Report $report, int $index): array
+    // private function buildReportRows($projects, $filters)
+    // {
+    //     $rows = [];
+    //     $index = 1;
+
+    //     foreach ($projects as $project) {
+
+    //         $book = $project->book;
+    //         $paper = $book?->paper;
+
+    //         $paperCoefficient = $paper?->paper_coefficient ?? 1;
+
+    //         $grouped = $project->allocations->groupBy('employee_id');
+
+    //         foreach ($grouped as $employeeId => $allocations) {
+
+    //             $employee = $allocations->first()->employee;
+
+    //             // $completedPages = $allocations->sum('completed_page');
+
+    //             $completedPages = $allocations->first()->completed_page;
+    //             $conversionPage = $completedPages * $paperCoefficient;
+
+    //             $editingCoef = 0.25;
+    //             $proofreadingCoef = 0.02;
+    //             $correctionCoef = 0.03;
+
+    //             $editingPage = 0;
+    //             $proofreadingPage = 0;
+    //             $correctionPage = 0;
+
+    //             foreach ($allocations as $allocation) {
+
+    //                 $job = $allocation->jobCategory;
+    //                 $category = $job?->category;
+    //                 $coef = $job?->work_coefficient;
+
+    //                 if ($category === 'Biên tập') {
+    //                     $editingCoef = $coef ?? $editingCoef;
+    //                     $editingPage = $conversionPage;
+    //                 }
+
+    //                 if ($category === 'Đính chính') {
+    //                     $proofreadingCoef = $coef ?? $proofreadingCoef;
+    //                     $proofreadingPage = $conversionPage;
+    //                 }
+
+    //                 if ($category === 'Sửa bài') {
+    //                     $correctionCoef = $coef ?? $correctionCoef;
+    //                     $correctionPage = $conversionPage;
+    //                 }
+    //             }
+
+    //             $decisionPage =
+    //                 ($editingPage * $editingCoef) +
+    //                 ($proofreadingPage * $proofreadingCoef) +
+    //                 ($correctionPage * $correctionCoef);
+
+    //             $salaryPerPaper = $this->getSalaryPerPaper($filters);
+
+    //             $salary = $decisionPage * $salaryPerPaper;
+
+    //             $rows[] = [
+    //                 'index' => $index++,
+    //                 'book_name' => $book?->name,
+    //                 'completed_page' => $completedPages,
+    //                 'paper_size' => $paper?->paperSize,
+    //                 'type' => '',
+    //                 'publishing' => '',
+    //                 'paper_coefficient' => $paperCoefficient,
+    //                 'conversion_page' => $conversionPage,
+
+    //                 'editing_coefficient' => $editingCoef,
+    //                 'proofreading_coefficient' => $proofreadingCoef,
+    //                 'correction_coefficient' => $correctionCoef,
+
+    //                 'editing_page' => $editingPage,
+    //                 'proofreading_page' => $proofreadingPage,
+    //                 'correction_page' => $correctionPage,
+
+    //                 'decision_page' => $decisionPage,
+
+    //                 'department' => $project->department?->name,
+    //                 'salary_per_page' => $salaryPerPaper,
+    //                 'salary' => $salary,
+
+    //                 'employee_name' => $employee?->name
+    //             ];
+    //         }
+    //     }
+
+    //     return $rows;
+    // }
+
+    private function buildReportRows($projects)
     {
-        $book = $report->project?->book;
-        $paper = $book?->paper;
-        $jobCategory = $report->allocation?->jobCategory;
+        $rows = [];
+        $index = 1;
 
-        return [
-            'index' => $index,
-            'book_name' => $book?->name ?? '',
-            'page_count' => $book?->page !== null ? (string) $book->page : '',
-            'paper_size' => $paper?->paperSize ?? '',
-            'type' => '',
-            'publishing' => '',
-            'paper_coefficient' => $paper?->paper_coefficient !== null ? (string) $paper->paper_coefficient : '',
-            'converted_pages' => $paper?->paper_coefficient !== null && $book?->page !== null ? (string) round($paper->paper_coefficient * $book->page, 2) : '',
-            'editing_coefficient' => 0.25, // HS BT sẽ thống nhất sau khi HS có lúc 0.25, 1, 0.6, ..
-            'proofreading_coefficient' => 0.02,
-            'correction_coefficient' => 0.03,
-            'actual_pages' => $this->getActualPages($report->allocation),
-            'department' => $report->project?->department?->name ?? '',
-            'approved_pages' => $report->conversion_page !== null ? (string) $report->conversion_page : '',
-            'salary' => $report->salary !== null ? number_format((float) $report->salary, 2, '.', '') : '',
-            'employeeName' => $report->allocation?->employee?->name ?? '',
-        ];
-    }
+        foreach ($projects as $project) {
+            $book = $project->book;
+            $paper = $book?->paper;
+            $paperCoefficient = $paper?->paper_coefficient ?? 1;
 
-    /**
-     * Lấy số trang thực hiện từ allocation.completed_page, phân theo loại công việc.
-     */
-    private function getActualPages($allocation): array
-    {
-        $proofreading = '';
-        $correction = '';
-        $editing = '';
+            $grouped = $project->allocations->groupBy('employee_id');
 
-        if ($allocation && $allocation->completed_page !== null) {
-            $name = mb_strtolower($allocation->jobCategory?->name ?? '');
-            $pages = (string) $allocation->completed_page;
+            foreach ($grouped as $employeeId => $allocations) {
+                $employee = $allocations->first()->employee;
 
-            if (str_contains($name, 'biên tập')) {
-                $editing = $pages;
-            } elseif (str_contains($name, 'đọc đính chính')) {
-                $proofreading = $pages;
-            } elseif (str_contains($name, 'sửa bài')) {
-                $correction = $pages;
-            }
-        }
+                $completedPages = $allocations->first()->completed_page;
+                $conversionPage = $completedPages * $paperCoefficient;
 
-        return [
-            'proofreading' => $proofreading,
-            'correction' => $correction,
-            'editing' => $editing,
-        ];
-    }
+                $editingCoef = 0.25;
+                $proofreadingCoef = 0.02;
+                $correctionCoef = 0.03;
 
-    /**
-     * Tính tổng số trang thực hiện + tổng trang quyết định + tổng tiền từ một nhóm reports.
-     */
-    private function sumReportTotals($reports): array
-    {
-        $totalProofreading = 0;
-        $totalCorrection = 0;
-        $totalEditing = 0;
-        $totalApprovedPages = 0;
-        $totalSalary = 0;
+                $editingPage = 0;
+                $proofreadingPage = 0;
+                $correctionPage = 0;
 
-        foreach ($reports as $r) {
-            $totalSalary += (float) $r->salary;
-            $totalApprovedPages += (float) ($r->conversion_page ?? 0);
+                foreach ($allocations as $allocation) {
+                    $job = $allocation->jobCategory;
+                    $category = $job?->category;
+                    $coef = $job?->work_coefficient;
 
-            $allocation = $r->allocation;
-            if ($allocation && $allocation->completed_page !== null) {
-                $name = mb_strtolower($allocation->jobCategory?->name ?? '');
-                $pages = (float) $allocation->completed_page;
+                    if ($category === 'Biên tập') {
+                        $editingCoef = $coef ?? $editingCoef;
+                        $editingPage = $conversionPage;
+                    }
 
-                if (str_contains($name, 'biên tập')) {
-                    $totalEditing += $pages;
-                } elseif (str_contains($name, 'đọc đính chính')) {
-                    $totalProofreading += $pages;
-                } elseif (str_contains($name, 'sửa bài')) {
-                    $totalCorrection += $pages;
+                    if ($category === 'Đính chính') {
+                        $proofreadingCoef = $coef ?? $proofreadingCoef;
+                        $proofreadingPage = $conversionPage;
+                    }
+
+                    if ($category === 'Sửa bài') {
+                        $correctionCoef = $coef ?? $correctionCoef;
+                        $correctionPage = $conversionPage;
+                    }
                 }
+
+                $decisionPage = ($editingPage * $editingCoef) +
+                    ($proofreadingPage * $proofreadingCoef) +
+                    ($correctionPage * $correctionCoef);
+
+                $salaryPerPaper = $this->getSalaryPerPaper();
+                $salary = $decisionPage * $salaryPerPaper;
+
+                $rows[] = [
+                    'index' => $index++,
+                    'book_name' => $book?->name,
+                    'completed_page' => $completedPages,
+                    'paper_size' => $paper?->paperSize,
+                    'type' => '',
+                    'publishing' => '',
+                    'paper_coefficient' => $paperCoefficient,
+                    'conversion_page' => $conversionPage,
+                    'editing_coefficient' => $editingCoef,
+                    'proofreading_coefficient' => $proofreadingCoef,
+                    'correction_coefficient' => $correctionCoef,
+                    'editing_page' => $editingPage,
+                    'proofreading_page' => $proofreadingPage,
+                    'correction_page' => $correctionPage,
+                    'decision_page' => $decisionPage,
+                    'department' => $project->department?->name,
+                    'salary_per_page' => $salaryPerPaper,
+                    'salary' => $salary,
+                    'employee_name' => $employee?->name
+                ];
             }
         }
 
-        return [
-            'total_actual_pages' => [
-                'proofreading' => (string) $totalProofreading,
-                'correction' => (string) $totalCorrection,
-                'editing' => (string) $totalEditing,
-            ],
-            'total_approved_pages' => (string) $totalApprovedPages,
-            'total_salary' => number_format($totalSalary, 2, '.', ''),
-        ];
+        return $rows;
     }
 
-    // API 1: Department summary
-    public function getDepartmentSummary(?int $fromMonth, ?int $fromYear, ?int $toMonth, ?int $toYear): array
+    // public function getOverviewReport(array $filters)
+    // {
+    //     $query = Project::with([
+    //         'department',
+    //         'book.paper',
+    //         'allocations.employee',
+    //         'allocations.jobCategory'
+    //     ]);
+
+    //     if (!empty($filters['department_id'])) {
+    //         $query->where('department_id', $filters['department_id']);
+    //     }
+
+    //     if (!empty($filters['employee_name'])) {
+    //         $query->whereHas('allocations.employee', function ($q) use ($filters) {
+    //             $q->where('name', 'like', '%' . $filters['employee_name'] . '%');
+    //         });
+    //     }
+
+    //     $projects = $query->get();
+
+    //     return $this->buildReportRows($projects, $filters);
+    // }
+
+    public function getOverviewReport(array $filters, $userId = null)
     {
-        $query = Report::with(['project.department', 'allocation.jobCategory'])
-            ->whereHas('project.department');
+        $query = Project::with([
+            'department',
+            'book.paper',
+            'allocations.employee',
+            'allocations.jobCategory'
+        ])->where('status', 3); // CHỈ LẤY PROJECT HOÀN THÀNH
 
-        $query = $this->applyOptionalDateFilter($query, $fromMonth, $fromYear, $toMonth, $toYear);
-
-        $reports = $query->get();
-
-        $byDepartment = $reports->groupBy(fn ($r) => $r->project?->department_id ?? 0);
-        $departments = Department::whereIn('id', $byDepartment->keys()->filter(fn ($id) => $id > 0))
-            ->get()
-            ->keyBy('id');
-
-        $result = [];
-        foreach ($byDepartment as $departmentId => $departmentReports) {
-            if ((int) $departmentId === 0) {
-                continue;
-            }
-            $department = $departments->get($departmentId);
-            $totals = $this->sumReportTotals($departmentReports);
-            $result[] = array_merge([
-                'department_id' => (int) $departmentId,
-                'department_name' => $department ? $department->name : '',
-                'category' => $department && $department->category !== null ? (string) $department->category : '',
-            ], $totals);
+        // Lọc theo phòng ban nếu user là trưởng phòng
+        if (!empty($filters['department_id'])) {
+            // $query->where('department_id', $filters['department_id']);
+            $query->where('department_id', $filters['department_id']);
         }
 
-        return $result;
+        // Lọc theo tên nhân viên
+        if (!empty($filters['employee_name'])) {
+            $query->whereHas('allocations.employee', function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['employee_name'] . '%');
+            });
+        }
+
+        $projects = $query->get();
+        return $this->buildReportRows($projects, $filters);
     }
 
-    // API 2: Employee summary by department
-    public function getEmployeeSummaryByDepartment(
-        int $departmentId,
-        ?int $fromMonth,
-        ?int $fromYear,
-        ?int $toMonth,
-        ?int $toYear
-    ): array {
-        $query = Report::with(['allocation.employee', 'allocation.jobCategory', 'project.department'])
-            ->whereHas('project', fn ($q) => $q->where('department_id', $departmentId));
+    // Lấy báo cáo cho toàn bộ dự án đã hoàn thành
+    public function getCompletedProjectsReport(array $filters = [])
+    {
+        $query = Project::where('status', 3)->with([
+            'department',
+            'book.paper',
+            'allocations.employee',
+            'allocations.jobCategory'
+        ]);
 
-        $query = $this->applyOptionalDateFilter($query, $fromMonth, $fromYear, $toMonth, $toYear);
-
-        $reports = $query->get();
-
-        $department = Department::find($departmentId);
-
-        $byEmployee = $reports->groupBy(fn ($r) => $r->allocation?->employee_id ?? 0);
-
-        $employees = [];
-        foreach ($byEmployee as $employeeId => $empReports) {
-            if ((int) $employeeId === 0) {
-                continue;
-            }
-            $employee = $empReports->first()->allocation?->employee;
-            $totals = $this->sumReportTotals($empReports);
-            $employees[] = array_merge([
-                'employee_id' => (int) $employeeId,
-                'employee_name' => $employee ? $employee->name : '',
-            ], $totals);
+        if (!empty($filters['department_id'])) {
+            $query->where('department_id', $filters['department_id']);
         }
 
+        if (!empty($filters['employee_name'])) {
+            $query->whereHas('allocations.employee', function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['employee_name'] . '%');
+            });
+        }
+
+        // if (!empty($filters['from_date']) && !empty($filters['to_date'])) {
+        //     $query->whereBetween('updated_at', [$filters['from_date'], $filters['to_date']]);
+        // }
+
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('updated_at', '>=', $filters['from_date']);
+        }
+
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('updated_at', '<=', $filters['to_date']);
+        }
+
+        $projects = $query->get();
+
         return [
-            'department' => [
-                'id' => $department ? (int) $department->id : $departmentId,
-                'name' => $department ? $department->name : '',
-                'category' => $department && $department->category !== null ? (string) $department->category : '',
-            ],
-            'employees' => $employees,
+            'projects' => $this->buildReportRows($projects),
+            'total_projects' => $projects->count(),
+            'total_salary' => collect($this->buildReportRows($projects))->sum('salary'),
+            'generated_at' => now()->format('d/m/Y H:i:s')
         ];
     }
 
-    // API 3: Chi tiết nhân viên trong phòng ban
-    public function getEmployeeDetail(
-        int $departmentId,
-        int $employeeId,
-        ?int $fromMonth,
-        ?int $fromYear,
-        ?int $toMonth,
-        ?int $toYear
-    ): array {
-        $query = Report::with([
-            'project.department',
-            'project.book.paper',
-            'allocation.employee',
-            'allocation.jobCategory',
-            'salaryCoefficient'
-        ])
-            ->whereHas('project', fn ($q) => $q->where('department_id', $departmentId))
-            ->whereHas('allocation', fn ($q) => $q->where('employee_id', $employeeId));
+    // Lấy báo cáo theo phòng ban cụ thể
+    public function getDepartmentReport(int $departmentId, array $filters = [])
+    {
+        $filters['department_id'] = $departmentId;
+        return $this->getCompletedProjectsReport($filters);
+    }
 
-        $query = $this->applyOptionalDateFilter($query, $fromMonth, $fromYear, $toMonth, $toYear);
+    // Lấy chi tiết một project đã hoàn thành
+    public function getProjectReportDetail(int $projectId)
+    {
+        $project = Project::where('status', 3)
+            ->with([
+                'department',
+                'book.paper',
+                'allocations.employee',
+                'allocations.jobCategory'
+            ])
+            ->findOrFail($projectId);
 
-        $reports = $query->orderBy('id')->get();
+        Log::info('Project status: ' . $project->status);
 
-        $department = Department::find($departmentId);
-        $employee = $reports->first()?->allocation?->employee;
-        $totals = $this->sumReportTotals($reports);
-
-        $details = [];
-        $index = 0;
-        foreach ($reports as $report) {
-            $index++;
-            $details[] = $this->mapReportRow($report, $index);
+        // Kiểm tra status = 3
+        if ($project->status != 3) {
+            throw new \Exception('Dự án chưa hoàn thành (status = ' . $project->status . ')');
         }
 
-        return array_merge([
-            'department' => [
-                'id' => $department ? (int) $department->id : $departmentId,
-                'name' => $department ? $department->name : '',
-                'category' => $department && $department->category !== null ? (string) $department->category : '',
+        $reportData = $this->buildReportRows(collect([$project]));
+
+        return [
+            'project_info' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'code' => $project->code,
+                'department' => $project->department?->name,
+                'status' => $project->status,
+                'completed_at' => $project->updated_at->format('d/m/Y')
             ],
-            'employee' => [
-                'id' => $employee ? (int) $employee->id : $employeeId,
-                'name' => $employee ? $employee->name : '',
+            'book_info' => [
+                'name' => $project->book?->name,
+                'paper_size' => $project->book?->paper?->paperSize,
+                'paper_coefficient' => $project->book?->paper?->paper_coefficient ?? 1
             ],
-        ], $totals, [
-            'details' => $details,
-        ]);
+            'employees' => $reportData,
+            'total_salary' => collect($reportData)->sum('salary')
+        ];
+    }
+
+    // Thống kê tổng hợp theo tháng
+    public function getMonthlySummary(int $month, int $year, ?int $departmentId = null)
+    {
+        $query = Project::where('status', 3)
+            ->whereYear('updated_at', $year)
+            ->whereMonth('updated_at', $month);
+
+        if ($departmentId) {
+            $query->byDepartment($departmentId);
+        }
+
+        $projects = $query->with(['allocations.employee', 'department'])->get();
+
+        $reportData = $this->buildReportRows($projects);
+
+        return [
+            'month' => $month,
+            'year' => $year,
+            'department_id' => $departmentId,
+            'total_projects' => $projects->count(),
+            'total_employees' => collect($reportData)->unique('employee_name')->count(),
+            'total_salary' => collect($reportData)->sum('salary'),
+            'details' => $reportData
+        ];
     }
 }

@@ -30,9 +30,4 @@ Route::prefix('books')->group(function () {
 
     // Lấy chi tiết 1 sách theo ID
     Route::get('/{id}', [BookController::class, 'show']);
-
-
-
-    // Cập nhật tiến độ đọc
-    // Route::patch('/{id}/progress', [BookController::class, 'updateProgress']);
 });
