@@ -47,7 +47,7 @@ class AllocationService
         'job_category_id' => $jobCategoryId,
         'level' => $level,
         'completed_page' => 0,
-        'status' => 2
+        'status' => 1
     ]);
 }
 
