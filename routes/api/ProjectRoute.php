@@ -43,5 +43,6 @@ Route::prefix('projects')->group(function () {
             [ProjectController::class, 'addDepartmentWhenProcessing']
         );
         Route::get('/books/{bookId}/projects', [ProjectController::class, 'getProjectsByBook']);
+        Route::patch('{id}/reopen', [ProjectController::class, 'reopenProject']);
     });
 });

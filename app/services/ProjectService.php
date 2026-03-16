@@ -255,4 +255,27 @@ class ProjectService
             ->where('book_id', $bookId)
             ->get();
     }
+
+    /*
+   
+7. MỞ LẠI PROJECT (2 -> 1)
+
+*/
+public function reopenProject($id)
+{
+    $project = Project::findOrFail($id);
+
+    // Chỉ cho mở lại khi đang ở trạng thái Pending
+    if ((int) $project->status !== self::STATUS_PENDING) {
+        throw new \Exception("Only pending projects can be reopened");
+    }
+
+    $project->update([
+        'status' => self::STATUS_IN_PROGRESS
+    ]);
+
+    return $project;
+}
+
+
 }

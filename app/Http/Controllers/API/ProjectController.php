@@ -156,4 +156,16 @@ class ProjectController extends Controller
          'message' => 'Projects retrieved successfully.',
          'data'    => $projects
      ]);}
+
+
+      // MỞ LẠI PROJECT (2 -> 1)
+    public function reopenProject($id)
+    {
+        $project = $this->projectService->reopenProject($id);
+
+        return response()->json([
+            'message' => 'Project reopened successfully',
+            'data' => $project
+        ]);
+    }
  }

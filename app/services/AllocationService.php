@@ -6,6 +6,8 @@ use App\Models\Employee;
 use App\Models\Project;
 use App\Models\Allocation;
 use App\Models\BookTransfer;
+use App\Models\Book;
+use Illuminate\Support\Facades\Auth;
 
 class AllocationService
 {
@@ -45,7 +47,7 @@ class AllocationService
         'job_category_id' => $jobCategoryId,
         'level' => $level,
         'completed_page' => 0,
-        'status' => 1
+        'status' => 2
     ]);
 }
 
@@ -206,5 +208,72 @@ public function updateCompletedPage($allocationId, $page)
     // trả về allocation sau khi đã cập nhật
     return $allocation;
 }
+// Gửi trưởng phòng
+public function sendToLeader($bookId, $note = null)
+{
+    // kiểm tra book tồn tại
+    $book = Book::find($bookId);
+
+    if (!$book) {
+        throw new \Exception("Book not found");
+    }
+
+    // nhân viên đang đăng nhập
+    $employee = Employee::findOrFail(Auth::user()->employee_id);
+
+    // kiểm tra nhân viên có làm book này không
+    $employeeAllocation = Allocation::where('employee_id', $employee->id)
+        ->whereHas('project', function ($q) use ($bookId) {
+            $q->where('book_id', $bookId);
+        })
+        ->first();
+
+    if (!$employeeAllocation) {
+        throw new \Exception("This book does not belong to this employee");
+    }
+
+    // lấy allocations của book
+    $allocations = Allocation::with(['employee.position'])
+        ->whereHas('project', function ($q) use ($bookId) {
+            $q->where('book_id', $bookId);
+        })
+        ->get();
+
+    // kiểm tra tất cả level 1 status = 2
+    foreach ($allocations as $allocation) {
+
+        if (
+            $allocation->employee->position->name == 'Nhân viên'
+            && $allocation->status != 2
+        ) {
+            throw new \Exception(
+                "All level 1 members must have status = 2 before sending"
+            );
+        }
+    }
+
+    // tìm trưởng phòng
+    $leader = Employee::where('department_id', $employee->department_id)
+        ->whereHas('position', function ($q) {
+            $q->where('name', 'Trưởng phòng');
+        })
+        ->first();
+
+    if (!$leader) {
+        throw new \Exception("Leader not found in this department");
+    }
+
+    $transfer = BookTransfer::create([
+        'book_id' => $bookId,
+        'from_employee_id' => $employee->id,
+        'to_employee_id' => $leader->id,
+        'start_time' => now(),
+        'note' => $note,
+        'status' => 1
+    ]);
+
+    return $transfer;
+}
+
 
 }

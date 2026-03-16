@@ -32,5 +32,7 @@ Route::prefix('allocations')->group(function () {
 
     // Cập nhật số trang đã hoàn thành
     Route::patch('/update-completed-page/{allocationId}', [AllocationController::class, 'updateCompletedPage']);
+    // Gửi trưởng phòng
+    Route::post('/books/{bookId}/send-to-leader', [AllocationController::class, 'sendToLeader']);
 
 });

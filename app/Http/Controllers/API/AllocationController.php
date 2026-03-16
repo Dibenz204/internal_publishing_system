@@ -145,4 +145,20 @@ class AllocationController extends Controller
         ]);
     }
 
+     /**
+     * Gửi trưởng phòng
+     */
+
+public function sendToLeader(Request $request, $bookId)
+{
+    $note = $request->note;
+
+    $transfer = $this->allocationService->sendToLeader($bookId, $note);
+
+    return response()->json([
+        'message' => 'Send to leader successfully',
+        'data' => $transfer
+    ]);
+}
+
 }
