@@ -39,11 +39,6 @@ class EmployeeService
         return $validator->validated();
     }
 
-
-
-    /**
-     * Lấy danh sách nhân viên (chỉ active)
-     */
     public function getAll()
     {
         return Employee::select(
@@ -68,9 +63,6 @@ class EmployeeService
             ->get();
     }
 
-    /**
-     * Lấy danh sách nhân viên
-     */
     public function getAllEmployees()
     {
         return Employee::select(
@@ -91,9 +83,6 @@ class EmployeeService
             ->get();
     }
 
-    /**
-     * Tạo nhân viên mới
-     */
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -125,7 +114,6 @@ class EmployeeService
             $birthday = Carbon::parse($employee->birthday)->format('dmY');
             $username = $nameSlug . $birthday;
 
-            // Phòng hờ TH nếu username đã tồn tại
             $originalUsername = $username;
             $counter = 1;
             while (User::where('username', $username)->exists()) {
@@ -145,9 +133,7 @@ class EmployeeService
             return $employee;
         });
     }
-    /**
-     * Cập nhật nhân viên
-     */
+
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
@@ -156,7 +142,7 @@ class EmployeeService
 
             $data = $this->validateEmployee($data, $id);
 
-            //check department active nếu có gửi
+
             if (isset($data['department_id'])) {
                 $department = Department::findOrFail($data['department_id']);
 
@@ -167,7 +153,7 @@ class EmployeeService
                 }
             }
 
-            // check position active nếu có gửi
+
             if (isset($data['position_id'])) {
                 $position = Position::findOrFail($data['position_id']);
 
@@ -178,7 +164,7 @@ class EmployeeService
                 }
             }
 
-            // normalize
+
             if (isset($data['name'])) {
                 $data['name'] = trim($data['name']);
             }
@@ -192,7 +178,7 @@ class EmployeeService
             }
 
             if (isset($data['status'])) {
-                // $data['status'] = (int)$data['status'];
+
                 $hasActiveAllocation = Allocation::where('employee_id', $id)
                     ->whereIn('status', [1, 3])
                     ->exists();
@@ -211,9 +197,6 @@ class EmployeeService
     }
 
 
-    /**
-     * Vô hiệu hoá nhân viên( đổi trạng thái thành 0)
-     */
     public function deactivate(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -229,9 +212,7 @@ class EmployeeService
             return $employee->fresh()->load('user');
         });
     }
-    /**
-     * Tìm nhân viên theo id
-     */
+
     public function findById(int $id)
     {
         return Employee::with([
@@ -242,10 +223,6 @@ class EmployeeService
     }
 
 
-
-    /**
-     * Mở lại nhân viên (đổi trạng thái thành 1)
-     */
     public function activate(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -260,9 +237,7 @@ class EmployeeService
         });
     }
 
-    /**
-     * Search / Filter employees
-     */
+
     public function search(array $filters)
     {
         $query = Employee::with(['department', 'position']);

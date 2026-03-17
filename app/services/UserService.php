@@ -68,7 +68,6 @@ class UserService
         return User::with('employee.position')->get();
     }
 
-    // Search theo tên nhân viên (employee.name)
     public function getByEmployeeName(string $name)
     {
         return User::with('employee.position')

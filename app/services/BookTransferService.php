@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Book;
 use App\Models\BookTransfer;
 use App\Models\Employee;
+use App\Models\Allocation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -41,7 +42,6 @@ class BookTransferService
     {
         $rules = [
             'book_id' => 'required|exists:books,id',
-            // 'from_employee_id' => 'required|exists:employees,id',
             'to_employee_id' => ['required', 'exists:employees,id'],
             'note' => 'nullable|string|max:1000',
         ];
@@ -58,7 +58,7 @@ class BookTransferService
             'to_employee_id.different'  => 'Người nhận không được trùng với người chuyển.',
         ]);
 
-        // Validate thêm: không cùng phòng ban
+
         $validator->after(function ($v) use ($data) {
             if (!empty($data['from_employee_id']) && !empty($data['to_employee_id'])) {
                 $fromEmployee = Employee::find($data['from_employee_id']);
@@ -77,7 +77,7 @@ class BookTransferService
         return $validator->validated();
     }
 
-    // Lấy danh sách book transfer theo book ID
+
     public function getTransfersByBookId(int $id)
     {
         return BookTransfer::select(['id', 'book_id', 'status', 'from_employee_id', 'to_employee_id', 'start_time', 'end_time', 'note'])
@@ -123,7 +123,7 @@ class BookTransferService
                 ]);
             }
 
-            // Validate to_employee phải là Trưởng phòng
+
             $toEmployee = Employee::with('position')->findOrFail($validated['to_employee_id']);
 
             if (!$toEmployee->position || $toEmployee->position->name !== 'Trưởng phòng') {
@@ -132,7 +132,7 @@ class BookTransferService
                 ]);
             }
 
-            // Validate phòng ban trong project
+
             $projectDepartmentIds = \App\Models\Project::where('book_id', $bookId)
                 ->pluck('department_id')
                 ->toArray();
@@ -143,7 +143,7 @@ class BookTransferService
                 ]);
             }
 
-            // Lấy transfer hiện tại
+
             $currentTransfer = BookTransfer::where('book_id', $bookId)
                 ->where('status', self::STATUS_PERFORM)
                 ->latest('id')
@@ -153,14 +153,14 @@ class BookTransferService
             $fromEmployeeId = Auth::user()->employee_id;
             $fromEmployee   = Employee::findOrFail($fromEmployeeId);
 
-            // Validate chain transfer
+
             if ($currentTransfer && (int) $fromEmployeeId !== (int) $currentTransfer->to_employee_id) {
                 throw ValidationException::withMessages([
                     'from_employee_id' => ['Người chuyển phải là người đang giữ sách hiện tại.'],
                 ]);
             }
 
-            // Đóng transfer cũ
+
             BookTransfer::where('book_id', $bookId)
                 ->where('status', self::STATUS_PERFORM)
                 ->update([
@@ -196,43 +196,55 @@ class BookTransferService
                 ]);
             }
 
+
+            $hasUnfinishedAllocation = Allocation::join('projects', 'allocations.project_id', '=', 'projects.id')
+                ->where('projects.book_id', $bookId)
+                ->where('allocations.status', '!=', 2)
+                ->exists();
+
+            if ($hasUnfinishedAllocation) {
+                throw ValidationException::withMessages([
+                    'allocation' => ['Vẫn còn công việc chưa hoàn thành trong dự án của sách.'],
+                ]);
+            }
+
             $fromEmployeeId = Auth::user()->employee_id;
             $fromEmployee   = Employee::findOrFail($fromEmployeeId);
 
             $toEmployeeId = (int) $book->assigned_by;
             $toEmployee   = Employee::findOrFail($toEmployeeId);
 
-            // Không cho chuyển cho chính mình
+
             if ($fromEmployeeId === $toEmployeeId) {
                 throw ValidationException::withMessages([
                     'to_employee_id' => ['Không thể chuyển sách cho chính mình.'],
                 ]);
             }
 
-            // Validate khác phòng ban
+
             if ((int) $fromEmployee->department_id === (int) $toEmployee->department_id) {
                 throw ValidationException::withMessages([
                     'to_employee_id' => ['Người nhận phải thuộc phòng ban khác với người chuyển.'],
                 ]);
             }
 
-            // Lấy transfer hiện tại
+
             $currentTransfer = BookTransfer::where('book_id', $bookId)
                 ->where('status', self::STATUS_PERFORM)
                 ->latest('id')
                 ->first();
 
-            // Validate chain transfer
+
             if ($currentTransfer && (int)$fromEmployeeId !== (int)$currentTransfer->to_employee_id) {
                 throw ValidationException::withMessages([
                     'from_employee_id' => ['Người chuyển phải là người đang giữ sách hiện tại.'],
                 ]);
             }
 
-            // Đóng transfer cũ
+
             $this->closeCurrentTransfers($bookId);
 
-            // Tạo transfer mới
+
             $transfer = BookTransfer::create([
                 'book_id'          => $bookId,
                 'from_employee_id' => $fromEmployeeId,
@@ -245,59 +257,6 @@ class BookTransferService
             return $this->loadTransferWithDepartment($transfer);
         });
     }
-
-
-    //Cập nhật book transfer – chỉ cho phép cập nhật to_employee_id.
-
-    public function updateTransfer(int $bookId, int $transferId, array $data)
-    {
-        $transfer = BookTransfer::where('book_id', $bookId)->where('id', $transferId)->firstOrFail();
-
-        // Lấy sách và kiểm tra trạng thái
-        $book = Book::findOrFail($bookId);
-        if (in_array((int) $book->status, [BookService::STATUS_CANCELLED, BookService::STATUS_COMPLETED], true)) {
-            throw ValidationException::withMessages([
-                'status' => ['Sách đã kết thúc và không thể chuyển.'],
-            ]);
-        }
-
-        $validator = Validator::make($data, [
-            'to_employee_id' => 'required|exists:employees,id',
-            'note' => 'nullable|string|max:1000',
-        ], [
-            'to_employee_id.required' => 'Người nhận là bắt buộc.',
-            'to_employee_id.exists'   => 'Người nhận không tồn tại.',
-            'note.max'                => 'Ghi chú không được vượt quá 1000 ký tự.',
-        ]);
-        $validator->after(function ($v) use ($transfer) {
-            $toEmployeeId = (int) $v->getValue('to_employee_id');
-
-            // Không cùng 1 người
-            if ((int) $transfer->from_employee_id === $toEmployeeId) {
-                $v->errors()->add('to_employee_id', 'Người nhận không được trùng với người chuyển.');
-            }
-
-            // Không cùng 1 phòng ban (tồn tại đã được rule exists kiểm tra)
-            $fromEmployee = $transfer->fromEmployee ?? Employee::find($transfer->from_employee_id);
-            $toEmployee = Employee::find($toEmployeeId);
-
-            if ((int) $fromEmployee->department_id === (int) $toEmployee->department_id) {
-                $v->errors()->add('to_employee_id', 'Người nhận phải thuộc phòng ban khác với người chuyển.');
-            }
-        });
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-
-        $transfer->update([
-            'to_employee_id' => $data['to_employee_id'],
-            'note' => $data['note'] ?? $transfer->note,
-        ]);
-
-        return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
-    }
-
 
     public function cancelledStatus(): int
     {

@@ -297,25 +297,20 @@ const DepartmentBooks = () => {
         }
     };
 
-    // SỬA: Click vào card -> vào BookTransferDetail
     const handleCardClick = (book) => {
         navigate(`/books/${book.id}/transfers`);
     };
 
-    // SỬA: Click vào dòng "Đang xử lý ở" -> cũng vào BookTransferDetail
     const handleViewTransferDetail = (bookId, e) => {
         e.stopPropagation();
         navigate(`/books/${bookId}/transfers`);
     };
 
-    // SỬA: Click vào nút "Phân công" -> vào Allocation.jsx (sẽ làm sau)
     const handleAssignClick = (projectId, bookId, e) => {
         e.stopPropagation();
-        // Tạm thời alert, sau này sẽ chuyển sang Allocation
-        alert('Tính năng phân công đang phát triển');
-        // navigate(`/allocation/${projectId}`, {
-        //     state: { bookId: bookId }
-        // });
+        navigate(`/allocation/${projectId}`, {
+            state: { bookId: bookId }
+        });
     };
 
     const handleAdjustClick = (projectId, e) => {
@@ -353,15 +348,17 @@ const DepartmentBooks = () => {
             );
         }
 
-        if (book.project_status === 2) {
+        if (book.project_status === 2 || book.project_status === 1) {
             return (
                 <div style={styles.actionButtons}>
-                    <button
-                        style={styles.cancelBtn}
-                        onClick={(e) => handleCancelProject(book.project_id, e)}
-                    >
-                        Hủy
-                    </button>
+                    {book.project_status === 2 && (
+                        <button
+                            style={styles.cancelBtn}
+                            onClick={(e) => handleCancelProject(book.project_id, e)}
+                        >
+                            Hủy
+                        </button>
+                    )}
                     <button
                         style={styles.assignBtn}
                         onClick={(e) => handleAssignClick(book.project_id, book.id, e)}

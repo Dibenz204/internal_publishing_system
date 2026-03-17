@@ -66,7 +66,7 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->findUserByContact(
-                $request->input('contact') // phone hoặc email
+                $request->input('contact')
             );
 
             return response()->json([

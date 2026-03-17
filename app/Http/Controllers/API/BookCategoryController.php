@@ -15,9 +15,6 @@ class BookCategoryController extends Controller
         $this->bookCategoryService = $bookCategoryService;
     }
 
-    /**
-     * GET /api/book-categories
-     */
     public function index()
     {
         return response()->json([
@@ -26,9 +23,6 @@ class BookCategoryController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/book-categories/active
-     */
     public function active()
     {
         return response()->json([
@@ -37,9 +31,6 @@ class BookCategoryController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/book-categories/{id}
-     */
     public function show($id)
     {
         return response()->json([
@@ -48,9 +39,6 @@ class BookCategoryController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/book-categories
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -66,9 +54,6 @@ class BookCategoryController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/book-categories/{id}
-     */
     public function update(Request $request, $id)
     {
         $data = $request->validate([
@@ -83,9 +68,6 @@ class BookCategoryController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/book-categories/{id}/deactivate
-     */
     public function deactivate($id)
     {
         return response()->json([
@@ -94,9 +76,6 @@ class BookCategoryController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/book-categories/{id}/activate
-     */
     public function activate($id)
     {
         return response()->json([

@@ -10,9 +10,7 @@ use Illuminate\Validation\Rule;
 
 class DepartmentService
 {
-    /**
-     * Lấy tất cả phòng ban hoặc theo name
-     */
+
     public function getAll(?string $keyword = null)
     {
         return Department::withCount([
@@ -32,9 +30,6 @@ class DepartmentService
 
 
 
-    /**
-     * Lấy chi tiết phòng ban
-     */
     public function findById(int $id): Department
     {
         return Department::with([
@@ -45,9 +40,6 @@ class DepartmentService
         ])->findOrFail($id);
     }
 
-    /**
-     * Tạo phòng ban
-     */
     public function create(array $data): Department
     {
         $this->validate($data);
@@ -60,9 +52,6 @@ class DepartmentService
     }
 
 
-    /**
-     * Cập nhật phòng ban
-     */
     public function update(int $id, array $data): Department
     {
         $this->validate($data, $id);
@@ -113,9 +102,7 @@ class DepartmentService
     }
 
 
-    /**
-     * Validate dữ liệu
-     */
+
     protected function validate(array $data, ?int $id = null): void
     {
         validator($data, [
@@ -132,10 +119,6 @@ class DepartmentService
             ]
         ])->validate();
     }
-
-    /**
-     * Lọc theo keyword
-     */
 
     public function search(?string $keyword)
     {

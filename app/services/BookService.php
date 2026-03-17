@@ -33,14 +33,12 @@ class BookService
     const STATUS_COMPLETED  = 3;
 
 
-    // Validate dữ liệu sách
-    // Áp dụng cho cả create và update
-    // Không cho phép truyền status
+
     private function validateBook(array $data, ?int $id = null): array
     {
         $rules = [
 
-            // CREATE bắt buộc name, UPDATE thì sometimes
+
             'name' => $id
                 ? 'sometimes|required|string|max:255'
                 : 'required|string|max:255',
@@ -53,7 +51,7 @@ class BookService
             ],
             'page' => 'nullable|integer|min:1',
 
-            //cho current_page lớn hơn page
+
             'current_page' => 'nullable|integer|min:0',
 
             'bookSize' => 'nullable|string|max:50',
@@ -64,13 +62,13 @@ class BookService
 
             'assigned_by' => 'nullable|exists:employees,id',
 
-            // cho phép null nhưng nếu có thì phải >= thời gian hiện tại
+
             'end_time' => 'nullable|date|after_or_equal:today',
 
-            // many-to-many
+
             'categories' => 'sometimes|array',
 
-            // validate từng id category
+
             'categories.*' => [
                 'integer',
                 Rule::exists('bookcategories', 'id')
@@ -94,8 +92,7 @@ class BookService
     }
 
 
-    // Lấy danh sách tất cả sách có phân trang
-    // Bao gồm nhân viên phụ trách và thể loại
+
     public function getAll()
     {
         $books = Book::with([
@@ -106,7 +103,7 @@ class BookService
             ->orderByDesc('id')
             ->get();
 
-        // Ẩn pivot ở categories
+
         $books->each(function ($book) {
             $book->categories->each->makeHidden(['pivot']);
         });
@@ -115,8 +112,6 @@ class BookService
     }
 
 
-    // Lấy thông tin chi tiết một cuốn sách theo ID
-    // Bao gồm thông tin sách, nhân viên phụ trách và thể loại
     public function findById(int $id)
     {
         $book = Book::with([
@@ -127,10 +122,10 @@ class BookService
             'departments.employees'
         ])->findOrFail($id);
 
-        // Ẩn pivot
+
         $book->categories->each->makeHidden(['pivot']);
 
-        // Tính tổng số ngày thực hiện
+
         $totalDays = null;
 
         if ($book->start_time && $book->end_time) {
@@ -144,9 +139,7 @@ class BookService
         ];
     }
 
-    // Tạo mới sách
-    // Mặc định trạng thái là Đang thực hiện
-    // Tự động ghi nhận thời gian bắt đầu
+
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -176,12 +169,12 @@ class BookService
             $book = Book::create($data);
 
             if (!empty($categories)) {
-                // Chỉ lấy category có status = 1
+
                 $validCategories = Bookcategory::whereIn('id', $categories)
                     ->where('status', 1)
                     ->pluck('id')
                     ->toArray();
-                // Nếu số lượng không khớp -> có category không hợp lệ
+
                 if (count($validCategories) !== count($categories)) {
                     throw new \Exception('One or more categories are inactive or do not exist.');
                 }
@@ -189,16 +182,14 @@ class BookService
                 $book->categories()->sync($validCategories);
             }
 
-            //Tạo transfer khởi tạo ngay sau khi tạo book
+
             $this->bookTransferService->createInitialTransfer($book);
 
             return $book->fresh(['assignedEmployee', 'categories', 'paper']);
         });
     }
 
-    // Cập nhật thông tin sách
-    // Không cho chỉnh sửa nếu sách đã hủy hoặc đã hoàn thành
-    // Không cho phép chỉnh sửa status
+
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
@@ -213,7 +204,7 @@ class BookService
             $categories = $validated['categories'] ?? null;
             unset($validated['categories']);
 
-            // Nếu có gửi paper_id thì kiểm tra status = 1
+
             if (array_key_exists('paper_id', $validated)) {
 
                 $isActivePaper = Paper::where('id', $validated['paper_id'])
@@ -249,30 +240,6 @@ class BookService
         });
     }
 
-
-    // Cập nhật tiến độ đọc sách
-    // Không cho phép giảm tiến độ
-    // Không cho phép vượt quá tổng số trang
-    // Nếu đọc hết trang sẽ tự động chuyển sang trạng thái Hoàn thành
-    public function updateProgress(int $bookId, int $currentPage)
-    {
-        return DB::transaction(function () use ($bookId, $currentPage) {
-
-            $book = Book::findOrFail($bookId);
-            $this->ensureNotEnded($book);
-            //Không được lùi tiến độ
-            if ($currentPage < $book->current_page) {
-                throw ValidationException::withMessages([
-                    'current_page' => ['The progress must not be delayed.']
-                ]);
-            }
-            $book->current_page = $currentPage;
-            $book->save();
-            return $book;
-        });
-    }
-    // Đánh dấu hoàn thành
-    // Không cho phép hoàn thành nếu sách đã hủy hoặc đã hoàn thành trước đó
     public function finish(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -304,10 +271,10 @@ class BookService
                 'status' => ProjectService::STATUS_COMPLETED
             ]);
 
-            //Load relation
+
             $book->load(['assignedEmployee', 'categories', 'projects']);
 
-            // Ẩn pivot
+
             $book->categories->each(function ($category) {
                 $category->makeHidden('pivot');
             });
@@ -316,8 +283,7 @@ class BookService
         });
     }
 
-    // Hủy sách
-    // Không cho phép hủy nếu sách đã hoàn thành
+
     public function cancel(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -342,7 +308,7 @@ class BookService
             $book->end_time = now();
             $book->save();
 
-            // Load relation
+
             $book->load(['assignedEmployee', 'categories']);
 
             $book->categories->each(function ($category) {
@@ -354,7 +320,7 @@ class BookService
     }
 
 
-    // Tìm kiếm sách theo nhiều điều kiện: có thể tìm theo tên, thể loại, khổ giấy và khoảng thời gian bắt đầu
+
     public function search(array $filters)
     {
         $query = Book::with([
@@ -363,7 +329,7 @@ class BookService
             'paper'
         ]);
 
-        //  paperSize
+
         if (!empty($filters['paperSize'])) {
             $paperSize = trim($filters['paperSize']);
 
@@ -406,14 +372,14 @@ class BookService
             $query->where('books.status', (int) $filters['status']);
         }
 
-        //Thêm phân trang
+
         $perPage = $filters['per_page'] ?? 10;
 
         $books = $query
             ->orderByDesc('books.id')
             ->paginate($perPage);
 
-        // Ẩn pivot
+
         $books->getCollection()->each(function ($book) {
             $book->categories->each->makeHidden('pivot');
         });
@@ -421,8 +387,7 @@ class BookService
         return $books;
     }
 
-    // Kiểm tra sách đã kết thúc hay chưa
-    // Nếu đã hủy hoặc đã hoàn thành thì không cho phép thao tác
+
     private function ensureNotEnded(Book $book): void
     {
         if (in_array($book->status, [

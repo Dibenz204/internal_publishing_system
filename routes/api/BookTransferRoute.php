@@ -15,8 +15,5 @@ Route::prefix('books')->group(function () {
 
         // Tạo transfer mới
         Route::post('/{id}/transfers', [BookTransferController::class, 'store']);
-
-        // Cập nhật transfer
-        Route::put('/{id}/transfers/{transferId}', [BookTransferController::class, 'update']);
     });
 });

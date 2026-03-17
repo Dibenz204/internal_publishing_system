@@ -106,7 +106,7 @@ const Profile = () => {
 
     return (
         <div style={styles.wrapper}>
-            {/* Header */}
+
             <div style={styles.pageHeader}>
                 <div>
                     <h2 style={styles.title}>Hồ sơ cá nhân</h2>
@@ -118,7 +118,7 @@ const Profile = () => {
             </div>
 
             <div style={styles.content}>
-                {/* Avatar + tên */}
+
                 <div style={styles.avatarCard}>
                     <div style={styles.avatar}>
                         {(emp?.name || user?.username || '?')[0].toUpperCase()}
@@ -155,7 +155,7 @@ const Profile = () => {
     );
 };
 
-// ─── Helper render từng loại giá trị ─────────────────────────────────────────
+
 const renderValue = (label, value) => {
     if (value === null || value === undefined || value === '') return <span style={{ color: '#aaa' }}>—</span>;
 
@@ -173,7 +173,7 @@ const renderValue = (label, value) => {
     return String(value);
 };
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+
 const styles = {
     wrapper: { display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' },
     pageHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', maxWidth: '640px', width: '100%' },

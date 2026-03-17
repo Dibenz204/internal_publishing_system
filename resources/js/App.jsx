@@ -14,7 +14,10 @@ import BookTransferDetail from './pages/BookTransferDetail';
 import Departments from './pages/Departments';
 import DepartmentDetail from './pages/DepartmentDetail';
 import Settings from './pages/Setting';
+
 import DepartmentBooks from './pages/DepartmentBook';
+import Allocation from './pages/Allocation';
+import MyAllocation from './pages/MyAllocation';
 
 
 function App() {
@@ -26,8 +29,6 @@ function App() {
 
                     <Route element={<ProtectedRoute />}>
                         <Route element={<Layout />}>
-
-
 
                             <Route path="/profile" element={<Profile />} />
 
@@ -49,6 +50,12 @@ function App() {
                             {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Thư kí biên tập', 'Kế toán']} />}>
                                 <Route path="/settings" element={<Settings />} />
                             </Route>}
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Trưởng phòng']} />}>
+                                <Route path="/allocation/:projectId" element={<Allocation />} />
+                            </Route>}
+
+                            <Route path="/my-allocations" element={<MyAllocation />} />
 
                             <Route path="/" element={<Navigate to="/login" replace />} />
 

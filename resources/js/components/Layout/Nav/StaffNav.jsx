@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 
 const STAFF_MENU = [
     { path: '/profile', label: 'Cá nhân' },
-    { path: '/books', label: 'Sách' }
+    { path: '/books', label: 'Sách' },
+    { path: '/my-allocations', label: 'Công việc' },
 ];
 
 const StaffNav = () => {

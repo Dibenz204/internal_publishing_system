@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\AllocationService;
+use App\Models\Allocation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+
 
 class AllocationController extends Controller
 {
@@ -18,10 +21,7 @@ class AllocationController extends Controller
         $this->allocationService = $allocationService;
     }
 
-    /**
-     * Phân công nhân viên vào project
-     *
-     */
+
     public function assignEmployee(Request $request)
     {
 
@@ -39,34 +39,41 @@ class AllocationController extends Controller
         ]);
     }
 
-
-    /**
-     * Lấy chi tiết danh sách phân công theo book
-     */
-    public function allocationDetail(Request $request)
+    public function getProjectAllocations($projectId)
     {
-        $bookId = $request->book_id;
+        try {
+            $result = $this->allocationService->getProjectAllocations($projectId);
 
-        if (!$bookId) {
+            return response()->json([
+                'success' => true,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Book ID is required'
+                'message' => $e->getMessage()
             ], 400);
         }
+    }
 
-        $data = $this->allocationService->getAllocationDetailByBook($bookId);
+    public function getBookAllocations($bookId)
+    {
+        try {
+            $result = $this->allocationService->getBookAllocations($bookId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
 
-    /**
-     * Xóa nhân viên khỏi allocation
-     * Chỉ xóa được nếu nhân viên chưa làm trang nào
-     */
     public function removeEmployee($allocationId)
     {
 
@@ -74,15 +81,11 @@ class AllocationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Employee removed from allocation successfully'
+            'message' => 'Task completed successfully'
         ]);
     }
 
 
-    /**
-     * Nhân viên đánh dấu hoàn thành công việc
-     * Status chuyển sang completed
-     */
     public function complete($id)
     {
 
@@ -95,29 +98,27 @@ class AllocationController extends Controller
         ]);
     }
 
-
-    /**
-     * Mở lại allocation để tiếp tục chỉnh sửa
-     */
-    public function reopenAllocation($allocationId)
+    public function reopen($id)
     {
+        try {
+            $data = $this->allocationService->reopenAllocation($id);
 
-        $allocation = $this->allocationService->reopenAllocation($allocationId);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Allocation reopened successfully',
-            'data' => $allocation
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Mở lại công việc thành công',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
-
-    /**
-     * Lấy danh sách công việc của nhân viên đang đăng nhập
-     */
     public function myAllocations()
     {
-        $employeeId = Auth::id();
+        $employeeId = Auth::user()->employee->id;
 
         $data = $this->allocationService->myAllocations($employeeId);
 
@@ -127,38 +128,46 @@ class AllocationController extends Controller
         ]);
     }
 
-
-    /**
-     * Cập nhật số trang đã hoàn thành
-     */
     public function updateCompletedPage(Request $request, $allocationId)
     {
+        try {
+            $request->validate([
+                'completed_page' => 'required|integer|min:0'
+            ]);
 
-        $page = $request->completed_page;
+            $data = $this->allocationService->updateCompletedPage(
+                $allocationId,
+                $request->completed_page
+            );
 
-        $data = $this->allocationService->updateCompletedPage($allocationId, $page);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Completed pages updated successfully',
-            'data' => $data
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Completed pages updated successfully',
+                'data' => $data
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
-     /**
-     * Gửi trưởng phòng
-     */
+    public function getAvailableEmployees($projectId)
+    {
+        try {
+            $employees = $this->allocationService->getAvailableEmployees($projectId);
 
-public function sendToLeader(Request $request, $bookId)
-{
-    $note = $request->note;
-
-    $transfer = $this->allocationService->sendToLeader($bookId, $note);
-
-    return response()->json([
-        'message' => 'Send to leader successfully',
-        'data' => $transfer
-    ]);
-}
-
+            return response()->json([
+                'success' => true,
+                'data' => $employees
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
 }

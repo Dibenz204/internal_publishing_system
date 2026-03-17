@@ -16,7 +16,7 @@ class DepartmentController extends Controller
         $this->departmentService = $departmentService;
     }
 
-    // GET /api/departments
+
     public function index(Request $request)
     {
         $departments = $this->departmentService->getAll(
@@ -30,11 +30,6 @@ class DepartmentController extends Controller
         ], 200);
     }
 
-
-
-
-
-    // GET /api/departments/{id}
     public function show(int $id)
     {
         $department = $this->departmentService->findById($id);
@@ -47,7 +42,6 @@ class DepartmentController extends Controller
     }
 
 
-    // POST /api/departments
     public function store(Request $request)
     {
         $department = $this->departmentService->create($request->all());
@@ -60,7 +54,6 @@ class DepartmentController extends Controller
     }
 
 
-    // PATCH /api/departments/{id} (CHỈ THAY ĐỔI ĐƯỢC NAME)
     public function update(Request $request, int $id)
     {
         $department = $this->departmentService->update($id, $request->all());
@@ -72,7 +65,7 @@ class DepartmentController extends Controller
         ], 200);
     }
 
-    // PATCH /api/departments/{id}/activate
+
     public function activate($id)
     {
         $department = $this->departmentService->activate($id);
@@ -84,7 +77,7 @@ class DepartmentController extends Controller
         ]);
     }
 
-    // PATCH /api/departments/{id}/deactivate
+
     public function deactivate($id)
     {
         $department = $this->departmentService->deactivate($id);

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-// import AuthService from '../services/auth';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -8,7 +7,6 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    // const navigate = useNavigate();
 
     const { user, login } = useAuth();
     const navigate = useNavigate();
@@ -21,7 +19,6 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // await AuthService.login(username, password);
             await login(username, password);
             navigate('/profile');
         } catch (err) {

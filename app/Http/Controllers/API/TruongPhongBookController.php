@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/Api/TruongPhongBookController.php
+
 
 namespace App\Http\Controllers\Api;
 
@@ -26,10 +26,8 @@ class TruongPhongBookController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        // Giải mã URL encode
         $departmentName = urldecode($departmentName);
 
-        // Tìm department theo tên
         $department = Department::where('name', $departmentName)->first();
 
         if (!$department) {
@@ -39,7 +37,6 @@ class TruongPhongBookController extends Controller
             ], 404);
         }
 
-        // Kiểm tra quyền
         if (!$employee || $employee->department->name != $departmentName) {
             return response()->json([
                 'success' => false,
@@ -47,7 +44,6 @@ class TruongPhongBookController extends Controller
             ], 403);
         }
 
-        // Lấy tất cả project thuộc phòng ban
         $projects = Project::with([
             'book',
             'book.assignedEmployee',
@@ -58,30 +54,23 @@ class TruongPhongBookController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Nhóm theo book
         $books = $projects->groupBy('book_id')->map(function ($projectGroup) use ($departmentName, $department) {
             $book = $projectGroup->first()->book;
             $currentProject = $projectGroup->first();
 
-            // Đếm số lần phòng ban này xử lý book
             $transferCount = $book->transfers()
                 ->whereHas('toEmployee.department', function ($q) use ($departmentName) {
                     $q->where('name', $departmentName);
                 })
                 ->count();
 
-            // Lấy transfer đang active của book này (status = 1)
             $activeTransfer = BookTransfer::with(['toEmployee.department', 'fromEmployee.department'])
                 ->where('book_id', $book->id)
-                ->where('status', 1) // STATUS_PERFORM
+                ->where('status', 1)
                 ->latest('id')
                 ->first();
 
-            // Xác định status hiển thị
             $displayStatus = $currentProject->status;
-            // if ($transferCount >= 2) {
-            //     $displayStatus = 4; // Điều chỉnh
-            // }
 
             if ($currentProject->status != $this->projectService::STATUS_COMPLETED && $transferCount >= 2) {
                 $displayStatus = $this->projectService::STATUS_ADJUST;
@@ -93,7 +82,6 @@ class TruongPhongBookController extends Controller
             $book->project_description = $currentProject->description;
             $book->transfer_count = $transferCount;
 
-            // Thêm thông tin transfer đang active
             if ($activeTransfer) {
                 $book->current_holder_department = $activeTransfer->toEmployee->department->name ?? null;
                 $book->current_holder_name = $activeTransfer->toEmployee->name ?? null;
@@ -109,7 +97,6 @@ class TruongPhongBookController extends Controller
             return $book;
         })->values();
 
-        // Map trạng thái
         $statusMap = [
             $this->projectService::STATUS_CANCELLED => 'Đã hủy',
             $this->projectService::STATUS_IN_PROGRESS => 'Đang thực hiện',

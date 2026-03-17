@@ -10,9 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PositionService
 {
-    /**
-     * Lấy danh sách position và lọc theo keyword
-     */
+
     public function getAll(?string $keyword = null)
     {
         return Position::query()
@@ -27,10 +25,6 @@ class PositionService
     }
 
 
-
-    /**
-     * Tạo mới position
-     */
     public function create(array $data): Position
     {
         $validated = $this->validate($data);
@@ -43,9 +37,7 @@ class PositionService
         });
     }
 
-    /**
-     * Cập nhật position theo name
-     */
+
     public function update(int $id, array $data): Position
     {
         $validated = $this->validate($data, $id);
@@ -62,25 +54,18 @@ class PositionService
     }
 
 
-    /**
-     * Bật position
-     */
     public function activate(int $id): Position
     {
         return $this->changeStatus($id, 1);
     }
 
-    /**
-     * Tắt position
-     */
+
     public function deactivate(int $id): Position
     {
         return $this->changeStatus($id, 0);
     }
 
-    /**
-     * Đổi trạng thái
-     */
+
     public function changeStatus(int $id, int $status): Position
     {
         if (!in_array($status, [0, 1])) {
@@ -109,15 +94,10 @@ class PositionService
                 'status' => $status
             ]);
 
-            return $position->fresh(); // không load employees
+            return $position->fresh();
         });
     }
 
-
-
-    /**
-     * Validate dữ liệu
-     */
     protected function validate(array $data, ?int $id = null): array
     {
         if (isset($data['name'])) {

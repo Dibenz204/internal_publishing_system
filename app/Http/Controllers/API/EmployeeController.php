@@ -24,9 +24,7 @@ class EmployeeController extends Controller
         $this->userService = $userService;
     }
 
-    /**
-     * GET /api/employees
-     */
+
     public function active()
     {
         return response()->json(
@@ -79,16 +77,16 @@ class EmployeeController extends Controller
                 ], 409);
             }
 
-            // Nếu có username từ request thì dùng, không thì tự gen
+
             if ($request->has('username') && !empty($request->username)) {
                 $username = $request->username;
             } else {
-                // Gen username giống bên EmployeeService
+
                 $nameSlug = Str::slug($employee->name, '');
                 $birthday = Carbon::parse($employee->birthday)->format('dmY');
                 $username = $nameSlug . $birthday;
 
-                // Phòng hờ TH username đã tồn tại
+
                 $originalUsername = $username;
                 $counter = 1;
                 while (User::where('username', $username)->exists()) {
@@ -119,9 +117,7 @@ class EmployeeController extends Controller
         }
     }
 
-    /**
-     * PUT /api/employees/{id}
-     */
+
     public function update(Request $request, int $id)
     {
         try {
@@ -143,9 +139,6 @@ class EmployeeController extends Controller
 
 
 
-    /**
-     * PATCH /api/employees/{id}/deactivate (đổi trạng thái thành 0)
-     */
     public function deactivate(int $id)
     {
         $employee = $this->employeeService->deactivate($id);
@@ -157,9 +150,7 @@ class EmployeeController extends Controller
         ], 200);
     }
 
-    /**
-     * PATCH /api/employees/{id}/activate (đổi trạng thái thành 1)
-     */
+
     public function activate(int $id)
     {
         $employee = $this->employeeService->activate($id);
@@ -171,10 +162,7 @@ class EmployeeController extends Controller
         ], 200);
     }
 
-    /**
-     * Search / Filter / Pagination
-     * GET /api/employees/search
-     */
+
     public function search(Request $request)
     {
         $filters = [

@@ -7,6 +7,7 @@ const DEPMANAGE_MENU = [
     { path: '/books', label: 'Sách' },
     { path: '/departmentbook', label: 'Công việc' },
     { path: '/departments', label: 'Phòng ban' },
+    { path: '/my-allocations', label: 'Công việc' },
 
 ];
 

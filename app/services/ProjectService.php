@@ -17,25 +17,15 @@ class ProjectService
         $this->bookService = $bookService;
     }
 
-    /*
-    PROJECT STATUS
-    */
     const STATUS_CANCELLED   = 0;
     const STATUS_IN_PROGRESS = 1;
     const STATUS_PENDING     = 2;
     const STATUS_COMPLETED   = 3;
     const STATUS_ADJUST      = 4;
 
-
-    /*
-   
-    1. NHẬN DỰ ÁN (2 -> 1)
-   
-    */
     public function acceptProject($id)
     {
         $project = Project::findOrFail($id);
-        // sửa lại chỗ này
         if (!in_array((int)$project->status, [
             self::STATUS_PENDING,
             self::STATUS_ADJUST
@@ -50,12 +40,6 @@ class ProjectService
         return $project;
     }
 
-
-    /*
-   
-    2. HỦY DỰ ÁN (2 -> 0)
-   
-    */
     public function cancelProject($id)
     {
         $project = Project::findOrFail($id);
@@ -71,34 +55,18 @@ class ProjectService
         return $project;
     }
 
-
-    /*
-   
-    3. HOÀN THÀNH (1 -> 3)
-    
-    */
     public function completeProject($id)
     {
         $project = Project::findOrFail($id);
 
-        //Nếu đã hoàn thành rồi
         if ((int) $project->status === self::STATUS_COMPLETED) {
             throw new \Exception("The project has already been completed");
         }
-
-        //Cho phép chỉnh sửa chứ không phải ở trạng thái đang làm rồi chuyển sang hoan thành, sửa lại code để cho phép điều chỉnh
-        // if (!in_array((int)$project->status, [
-        //     self::STATUS_IN_PROGRESS,
-        //     self::STATUS_ADJUST
-        // ])) {
-        //     throw new \Exception("You must accept the project before completing it");
-        // }
 
         if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
             throw new \Exception("You must accept the project before completing it");
         }
 
-        //Cập nhật hoàn thành
         $project->update([
             'status' => self::STATUS_COMPLETED
         ]);
@@ -107,7 +75,6 @@ class ProjectService
     }
 
 
-    //Cần chỉnh sửa gì đó               
     public function adjustProject($id)
     {
         $project = Project::findOrFail($id);
@@ -123,11 +90,7 @@ class ProjectService
         return $project;
     }
 
-    /*
-   
-     4. SEARCH PROJECT
-    
-    */
+
     public function searchProject($bookName = null, $departmentName = null)
     {
         return Project::with(['book', 'department'])
@@ -144,23 +107,11 @@ class ProjectService
             ->get();
     }
 
-
-    /*
-    
-    5. SÁCH CHƯA PHÂN CÔNG
-   
-    */
     public function booksNotAssigned()
     {
         return Book::whereDoesntHave('projects')->get();
     }
 
-
-    /*
-   
-    6. PHÂN CÔNG SÁCH
-    
-    */
     public function assignBookToDepartments($bookId, array $departmentIds, ?string $description = null)
     {
         return DB::transaction(function () use ($bookId, $departmentIds, $description) {
@@ -255,27 +206,4 @@ class ProjectService
             ->where('book_id', $bookId)
             ->get();
     }
-
-    /*
-   
-7. MỞ LẠI PROJECT (2 -> 1)
-
-*/
-public function reopenProject($id)
-{
-    $project = Project::findOrFail($id);
-
-    // Chỉ cho mở lại khi đang ở trạng thái Pending
-    if ((int) $project->status !== self::STATUS_PENDING) {
-        throw new \Exception("Only pending projects can be reopened");
-    }
-
-    $project->update([
-        'status' => self::STATUS_IN_PROGRESS
-    ]);
-
-    return $project;
-}
-
-
 }

@@ -8,20 +8,20 @@ use Illuminate\Support\Facades\Validator;
 
 class JobCategoryService
 {
-    // Lấy tất cả
+
     public function getAll()
     {
         return JobCategory::orderBy('name')
             ->get();
     }
 
-    // Lấy những cái đang hoạt động
+
     public function getActive()
     {
         return JobCategory::where('status', 1)->get();
     }
 
-    // Tạo mới
+
     public function create($data)
     {
         $validator = Validator::make($data, [
@@ -73,7 +73,7 @@ class JobCategoryService
                 'expired_at' => now()
             ]);
 
-            // tạo bản ghi mới
+
             $newJobCategory = JobCategory::create([
                 'name' => $oldJobCategory->name,
                 'work_coefficient' => $data['work_coefficient'] ?? $oldJobCategory->work_coefficient,
@@ -90,10 +90,34 @@ class JobCategoryService
         $jobCategory = JobCategory::findOrFail($id);
 
         $jobCategory->status = 0;
-        $jobCategory->expired_at = now(); // set thời gian hiện tại
+        $jobCategory->expired_at = now();
 
         $jobCategory->save();
 
         return $jobCategory;
+    }
+
+
+    public function getByCategory($category)
+    {
+        return JobCategory::where('category', $category)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get(['id', 'name', 'work_coefficient', 'category']);
+    }
+
+
+    public function getAllGroupedByCategory()
+    {
+        $categories = JobCategory::where('status', 1)
+            ->orderBy('name')
+            ->get()
+            ->groupBy('category');
+
+        return [
+            'BienTap' => $categories['Biên tập'] ?? collect(),
+            'DinhChinh' => $categories['Đính chính'] ?? collect(),
+            'SuaBai' => $categories['Sửa bài'] ?? collect(),
+        ];
     }
 }

@@ -7,33 +7,25 @@ use Illuminate\Database\Eloquent\Collection;
 
 class BookCategoryService
 {
-    /**
-     * Lấy tất cả
-     */
+
     public function getAll(): Collection
     {
         return Bookcategory::all();
     }
 
-    /**
-     * Lấy danh sách đang hoạt động
-     */
+
     public function getActive(): Collection
     {
         return Bookcategory::where('status', 1)->get();
     }
 
-    /**
-     * Lấy chi tiết theo ID
-     */
+
     public function getById(int $id): Bookcategory
     {
         return Bookcategory::findOrFail($id);
     }
 
-    /**
-     * Tạo mới loại sách
-     */
+
     public function create(array $data): Bookcategory
     {
         $name = trim(mb_strtolower($data['name']));
@@ -48,9 +40,7 @@ class BookCategoryService
         return Bookcategory::create($data);
     }
 
-    /**
-     * Cập nhật thông tin
-     */
+
     public function update(int $id, array $data): Bookcategory
     {
         $category = Bookcategory::findOrFail($id);
@@ -73,9 +63,7 @@ class BookCategoryService
         return $category;
     }
 
-    /**
-     *tắt trạng thái
-     */
+
     public function deactivate(int $id): Bookcategory
     {
         $category = Bookcategory::findOrFail($id);
@@ -85,9 +73,7 @@ class BookCategoryService
         return $category;
     }
 
-    /**
-     * Bật lại trạng thái
-     */
+
     public function activate(int $id): Bookcategory
     {
         $category = Bookcategory::findOrFail($id);

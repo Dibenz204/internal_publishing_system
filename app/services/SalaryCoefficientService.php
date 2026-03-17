@@ -6,21 +6,15 @@ use App\Models\SalaryCoefficient;
 
 class SalaryCoefficientService
 {
-    /**
-     * Lấy tất cả hệ số lương
-     */
+
     public function getAll()
     {
         return SalaryCoefficient::orderBy('year', 'desc')->get();
     }
 
-
-    /**
-     * Tạo hệ số lương
-     */
     public function create($data)
     {
-        // tắt tất cả hệ số cũ
+
         SalaryCoefficient::query()->update([
             'status' => 0
         ]);
@@ -32,9 +26,7 @@ class SalaryCoefficientService
         ]);
     }
 
-    /**
-     * Tắt trạng thái (Ngưng sử dụng)
-     */
+
     public function disable($id)
     {
         $salary = SalaryCoefficient::findOrFail($id);
@@ -45,12 +37,10 @@ class SalaryCoefficientService
         return $salary;
     }
 
-    /**
-     * Bật trạng thái (Đang sử dụng)
-     */
+
     public function enable($id)
     {
-        // tắt tất cả hệ số khác
+
         SalaryCoefficient::query()->update([
             'status' => 0
         ]);

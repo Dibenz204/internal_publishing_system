@@ -35,8 +35,7 @@ return new class extends Migration
 
             $table->dateTime('end_time')->nullable();
 
-            // note không được null vì tkbt dựa vào đây để chuyển qua phòng tiếp theo
-            $table->text('note');
+            $table->text('note')->nullable();
 
             // 0 = hủy
             // 1 = thực hiện

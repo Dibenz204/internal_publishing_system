@@ -69,7 +69,6 @@ class ReportController extends Controller
         ]);
     }
 
-    // GET /api/reports/completed-projects
     public function completedProjects(Request $request)
     {
         $filters = $request->validate([
@@ -87,7 +86,6 @@ class ReportController extends Controller
         ]);
     }
 
-    // GET /api/reports/department/{departmentId}
     public function departmentReport(Request $request, int $departmentId)
     {
         $filters = $request->validate([
@@ -104,7 +102,6 @@ class ReportController extends Controller
         ]);
     }
 
-    // GET /api/reports/project/{projectId}
     public function projectDetail(int $projectId)
     {
         try {
@@ -122,7 +119,6 @@ class ReportController extends Controller
         }
     }
 
-    // GET /api/reports/monthly-summary
     public function monthlySummary(Request $request)
     {
         $validated = $request->validate([

@@ -21,8 +21,6 @@ const fmtDateTime = (d) => d ? new Date(d).toLocaleString('vi-VN', {
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
 
-// ── Style objects khai báo trước component ──
-
 const s = {
     wrapper: { display: 'flex', flexDirection: 'column', gap: '16px' },
     center: { textAlign: 'center', padding: '80px', color: '#888', fontSize: '15px' },
@@ -106,7 +104,6 @@ const m = {
     submitBtn: { padding: '9px 20px', backgroundColor: '#1877f2', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
 };
 
-// ── Card nhỏ trong flow ngang ──
 const TransferCard = ({ transfer, isActive }) => {
     const ownerDept = (transfer.to_employee ?? transfer.toEmployee)?.department?.name ?? '—';
     const statusInfo = transfer.status === 1
@@ -148,7 +145,6 @@ const TransferCard = ({ transfer, isActive }) => {
     );
 };
 
-// ── Main component ──
 const BookTransferDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -164,7 +160,7 @@ const BookTransferDetail = () => {
     const [error, setError] = useState('');
 
     const [showTransferModal, setShowTransferModal] = useState(false);
-    // truongPhongList: [{ employeeId, deptName, deptId }] — trưởng phòng của các phòng ban trong project
+
     const [truongPhongList, setTruongPhongList] = useState([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
     const [transferNote, setTransferNote] = useState('');
@@ -175,7 +171,7 @@ const BookTransferDetail = () => {
         setLoading(true);
         Promise.all([
             api.get(`/books/${id}`),
-            api.get(`/books/${id}/transfers`),  // API này giữ nguyên
+            api.get(`/books/${id}/transfers`),
         ]).then(([bookRes, transferRes]) => {
             if (bookRes.data.success) {
                 const d = bookRes.data.data;
@@ -194,11 +190,11 @@ const BookTransferDetail = () => {
         setTransferError(''); setSelectedEmployeeId(''); setTransferNote('');
         if (canManage) {
             try {
-                // Lấy danh sách project để biết phòng ban nào đang trong project
+
                 const projRes = await api.get(`/books/${id}/projects`);
                 const projects = projRes.data?.data ?? [];
 
-                // Với mỗi phòng ban, lấy chi tiết để tìm trưởng phòng
+
                 const results = await Promise.all(
                     projects.map(p =>
                         api.get(`/departments/${p.department_id}`)
@@ -207,7 +203,7 @@ const BookTransferDetail = () => {
                     )
                 );
 
-                // Lọc ra trưởng phòng (status=1, position.name = 'Trưởng phòng')
+
                 const list = [];
                 results.forEach(r => {
                     if (!r) return;
@@ -232,7 +228,7 @@ const BookTransferDetail = () => {
     const handleSendToAssigned = async () => {
         setTransferring(true); setTransferError('');
         try {
-            // SỬA: Đúng endpoint theo route
+
             await api.post(`/books/${id}/send-to-assigned`, {
                 note: transferNote.trim() || undefined,
             });
@@ -241,7 +237,7 @@ const BookTransferDetail = () => {
         } catch (err) {
             const errData = err.response?.data;
             if (errData?.errors) {
-                // Xử lý lỗi validation từ Laravel
+
                 const errorMessages = Object.values(errData.errors).flat();
                 setTransferError(errorMessages.join(' | '));
             } else {
@@ -254,7 +250,7 @@ const BookTransferDetail = () => {
         if (!selectedEmployeeId) return setTransferError('Vui lòng chọn phòng ban');
         setTransferring(true); setTransferError('');
         try {
-            // SỬA: Đúng endpoint theo route
+
             await api.post(`/books/${id}/transfers`, {
                 to_employee_id: parseInt(selectedEmployeeId),
                 note: transferNote.trim() || undefined,
@@ -264,7 +260,7 @@ const BookTransferDetail = () => {
         } catch (err) {
             const errData = err.response?.data;
             if (errData?.errors) {
-                // Xử lý lỗi validation từ Laravel
+
                 const errorMessages = Object.values(errData.errors).flat();
                 setTransferError(errorMessages.join(' | '));
             } else {
@@ -299,7 +295,7 @@ const BookTransferDetail = () => {
                 </div>
 
                 <div style={s.layout}>
-                    {/* Cột trái: Thông tin sách */}
+
                     <div style={s.sidebar}>
                         <div style={s.sectionLabel}>Thông tin sách</div>
                         <div style={s.bookName}>{book.name}</div>
@@ -320,7 +316,7 @@ const BookTransferDetail = () => {
                         <div style={s.infoList}>
                             {[
                                 ['Số trang', book.page ?? '—'],
-                                ['Loại giấy', book.paper?.paperSize ?? '—'],
+                                ['Khổ giấy', book.paper?.paperSize ?? '—'],
                                 ['Bắt đầu', fmtDate(book.start_time)],
                                 ['Kết thúc', fmtDate(book.end_time)],
                                 ['Người phụ trách', book.assigned_employee?.name ?? '—'],
@@ -348,10 +344,10 @@ const BookTransferDetail = () => {
                         )}
                     </div>
 
-                    {/* Cột phải: nội dung chính */}
+
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                        {/* Flow ngang */}
+
                         <div style={s.content}>
                             <div style={s.flowHeader}>
                                 <span style={s.sectionLabel}>Lịch sử vận hành</span>
@@ -386,9 +382,9 @@ const BookTransferDetail = () => {
                             )}
                         </div>
 
-                        {/* 2 bảng phía dưới */}
+
                         <div style={s.bottomRow}>
-                            {/* Bảng trái: đếm phòng ban */}
+
                             <div style={s.bottomCard}>
                                 <div style={{ ...s.sectionLabel, marginBottom: '12px' }}>Số lần xử lý theo phòng ban</div>
                                 {deptCounts.length === 0 ? (
@@ -411,7 +407,7 @@ const BookTransferDetail = () => {
                                 )}
                             </div>
 
-                            {/* Bảng phải: active transfer */}
+
                             <div style={s.bottomCard}>
                                 <div style={{ ...s.sectionLabel, marginBottom: '12px' }}>Đang thực hiện</div>
                                 {!activeTransfer ? (
@@ -460,7 +456,7 @@ const BookTransferDetail = () => {
                 </div>
             </div>
 
-            {/* Modal Chuyển giao — nằm trong Fragment, ngoài div chính */}
+
             {showTransferModal && (
                 <div style={m.overlay} onClick={() => setShowTransferModal(false)}>
                     <div style={m.box} onClick={e => e.stopPropagation()}>

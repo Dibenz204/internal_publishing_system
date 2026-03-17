@@ -22,4 +22,8 @@ Route::prefix('job-categories')->group(function () {
         // Tắt trạng thái
         Route::patch('/{id}/deactivate', [JobCategoryController::class, 'disable']);
     });
+
+    Route::get('/by-category/{category}', [JobCategoryController::class, 'getByCategory']);
+
+    Route::get('/grouped', [JobCategoryController::class, 'getGrouped']);
 });

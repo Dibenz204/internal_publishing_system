@@ -31,10 +31,10 @@ class ReportService
             $completedPage = $allocation->completed_page;
             $paperCoefficient = $paper->paper_coefficient;
 
-            // trang quy đổi
+
             $conversionPage = $completedPage * $paperCoefficient;
 
-            // hệ số lương đang active
+
             $salaryCoefficient = SalaryCoefficient::where('status', 1)->firstOrFail();
 
             return Report::create([
@@ -54,100 +54,6 @@ class ReportService
     {
         return SalaryCoefficient::where('status', 1)->value('salary_per_paper') ?? 0;
     }
-
-    // private function buildReportRows($projects, $filters)
-    // {
-    //     $rows = [];
-    //     $index = 1;
-
-    //     foreach ($projects as $project) {
-
-    //         $book = $project->book;
-    //         $paper = $book?->paper;
-
-    //         $paperCoefficient = $paper?->paper_coefficient ?? 1;
-
-    //         $grouped = $project->allocations->groupBy('employee_id');
-
-    //         foreach ($grouped as $employeeId => $allocations) {
-
-    //             $employee = $allocations->first()->employee;
-
-    //             // $completedPages = $allocations->sum('completed_page');
-
-    //             $completedPages = $allocations->first()->completed_page;
-    //             $conversionPage = $completedPages * $paperCoefficient;
-
-    //             $editingCoef = 0.25;
-    //             $proofreadingCoef = 0.02;
-    //             $correctionCoef = 0.03;
-
-    //             $editingPage = 0;
-    //             $proofreadingPage = 0;
-    //             $correctionPage = 0;
-
-    //             foreach ($allocations as $allocation) {
-
-    //                 $job = $allocation->jobCategory;
-    //                 $category = $job?->category;
-    //                 $coef = $job?->work_coefficient;
-
-    //                 if ($category === 'Biên tập') {
-    //                     $editingCoef = $coef ?? $editingCoef;
-    //                     $editingPage = $conversionPage;
-    //                 }
-
-    //                 if ($category === 'Đính chính') {
-    //                     $proofreadingCoef = $coef ?? $proofreadingCoef;
-    //                     $proofreadingPage = $conversionPage;
-    //                 }
-
-    //                 if ($category === 'Sửa bài') {
-    //                     $correctionCoef = $coef ?? $correctionCoef;
-    //                     $correctionPage = $conversionPage;
-    //                 }
-    //             }
-
-    //             $decisionPage =
-    //                 ($editingPage * $editingCoef) +
-    //                 ($proofreadingPage * $proofreadingCoef) +
-    //                 ($correctionPage * $correctionCoef);
-
-    //             $salaryPerPaper = $this->getSalaryPerPaper($filters);
-
-    //             $salary = $decisionPage * $salaryPerPaper;
-
-    //             $rows[] = [
-    //                 'index' => $index++,
-    //                 'book_name' => $book?->name,
-    //                 'completed_page' => $completedPages,
-    //                 'paper_size' => $paper?->paperSize,
-    //                 'type' => '',
-    //                 'publishing' => '',
-    //                 'paper_coefficient' => $paperCoefficient,
-    //                 'conversion_page' => $conversionPage,
-
-    //                 'editing_coefficient' => $editingCoef,
-    //                 'proofreading_coefficient' => $proofreadingCoef,
-    //                 'correction_coefficient' => $correctionCoef,
-
-    //                 'editing_page' => $editingPage,
-    //                 'proofreading_page' => $proofreadingPage,
-    //                 'correction_page' => $correctionPage,
-
-    //                 'decision_page' => $decisionPage,
-
-    //                 'department' => $project->department?->name,
-    //                 'salary_per_page' => $salaryPerPaper,
-    //                 'salary' => $salary,
-
-    //                 'employee_name' => $employee?->name
-    //             ];
-    //         }
-    //     }
-
-    //     return $rows;
-    // }
 
     private function buildReportRows($projects)
     {
@@ -230,29 +136,6 @@ class ReportService
         return $rows;
     }
 
-    // public function getOverviewReport(array $filters)
-    // {
-    //     $query = Project::with([
-    //         'department',
-    //         'book.paper',
-    //         'allocations.employee',
-    //         'allocations.jobCategory'
-    //     ]);
-
-    //     if (!empty($filters['department_id'])) {
-    //         $query->where('department_id', $filters['department_id']);
-    //     }
-
-    //     if (!empty($filters['employee_name'])) {
-    //         $query->whereHas('allocations.employee', function ($q) use ($filters) {
-    //             $q->where('name', 'like', '%' . $filters['employee_name'] . '%');
-    //         });
-    //     }
-
-    //     $projects = $query->get();
-
-    //     return $this->buildReportRows($projects, $filters);
-    // }
 
     public function getOverviewReport(array $filters, $userId = null)
     {
@@ -261,15 +144,14 @@ class ReportService
             'book.paper',
             'allocations.employee',
             'allocations.jobCategory'
-        ])->where('status', 3); // CHỈ LẤY PROJECT HOÀN THÀNH
+        ])->where('status', 3);
 
-        // Lọc theo phòng ban nếu user là trưởng phòng
+
         if (!empty($filters['department_id'])) {
-            // $query->where('department_id', $filters['department_id']);
+
             $query->where('department_id', $filters['department_id']);
         }
 
-        // Lọc theo tên nhân viên
         if (!empty($filters['employee_name'])) {
             $query->whereHas('allocations.employee', function ($q) use ($filters) {
                 $q->where('name', 'like', '%' . $filters['employee_name'] . '%');
@@ -280,7 +162,7 @@ class ReportService
         return $this->buildReportRows($projects, $filters);
     }
 
-    // Lấy báo cáo cho toàn bộ dự án đã hoàn thành
+
     public function getCompletedProjectsReport(array $filters = [])
     {
         $query = Project::where('status', 3)->with([
@@ -300,10 +182,6 @@ class ReportService
             });
         }
 
-        // if (!empty($filters['from_date']) && !empty($filters['to_date'])) {
-        //     $query->whereBetween('updated_at', [$filters['from_date'], $filters['to_date']]);
-        // }
-
         if (!empty($filters['from_date'])) {
             $query->whereDate('updated_at', '>=', $filters['from_date']);
         }
@@ -322,14 +200,12 @@ class ReportService
         ];
     }
 
-    // Lấy báo cáo theo phòng ban cụ thể
     public function getDepartmentReport(int $departmentId, array $filters = [])
     {
         $filters['department_id'] = $departmentId;
         return $this->getCompletedProjectsReport($filters);
     }
 
-    // Lấy chi tiết một project đã hoàn thành
     public function getProjectReportDetail(int $projectId)
     {
         $project = Project::where('status', 3)
@@ -343,7 +219,6 @@ class ReportService
 
         Log::info('Project status: ' . $project->status);
 
-        // Kiểm tra status = 3
         if ($project->status != 3) {
             throw new \Exception('Dự án chưa hoàn thành (status = ' . $project->status . ')');
         }
@@ -369,7 +244,6 @@ class ReportService
         ];
     }
 
-    // Thống kê tổng hợp theo tháng
     public function getMonthlySummary(int $month, int $year, ?int $departmentId = null)
     {
         $query = Project::where('status', 3)

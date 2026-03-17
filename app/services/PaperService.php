@@ -27,7 +27,7 @@ class PaperService
     {
         $data = $this->validatePaper($data);
 
-        // mặc định active khi tạo
+
         $data['status'] = 1;
 
         return Paper::create($data);
@@ -56,7 +56,7 @@ class PaperService
 
             $paper = Paper::findOrFail($id);
 
-            // Kiểm tra xem có book nào đang dùng paper này không
+
             $isUsed = Book::where('paper_id', $id)->exists();
 
             if ($isUsed) {

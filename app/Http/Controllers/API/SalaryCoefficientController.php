@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\SalaryCoefficientService;
@@ -13,9 +14,7 @@ class SalaryCoefficientController extends Controller
     {
         $this->salaryService = $salaryService;
     }
-    /**
-     *Lấy tất cả
-     */
+
     public function getAll()
     {
         $data = $this->salaryService->getAll();
@@ -27,9 +26,6 @@ class SalaryCoefficientController extends Controller
         ]);
     }
 
-    /**
-     * Tạo hệ số lương
-     */
     public function create(Request $request)
     {
         $data = $this->salaryService->create($request->all());
@@ -41,9 +37,7 @@ class SalaryCoefficientController extends Controller
         ]);
     }
 
-    /**
-     * Tắt trạng thái
-     */
+
     public function disable($id)
     {
         $data = $this->salaryService->disable($id);
@@ -55,9 +49,6 @@ class SalaryCoefficientController extends Controller
         ]);
     }
 
-    /**
-     * Bật trạng thái
-     */
     public function enable($id)
     {
         $data = $this->salaryService->enable($id);
