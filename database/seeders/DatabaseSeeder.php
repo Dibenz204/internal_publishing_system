@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             SalaryCoefficientSeeder::class,
             AllocationSeeder::class,
             ReportSeeder::class,
+            EmployeeSeeder::class,
         ]);
 
         //php artisan db:seed

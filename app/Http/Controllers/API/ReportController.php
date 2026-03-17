@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -63,5 +64,13 @@ class ReportController extends Controller
             'message' => 'Employee report details retrieved successfully',
             'data' => $data,
         ]);
+    }
+
+        public function exportTemplate()
+    {
+        $pdf = Pdf::loadView('reports.template')
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('report_template.pdf');
     }
 }

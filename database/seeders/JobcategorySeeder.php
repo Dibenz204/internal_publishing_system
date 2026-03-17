@@ -11,21 +11,21 @@ class JobCategorySeeder extends Seeder
     {
         $categories = [
 
-            ['name' => 'Biên tập', 'category' => 'A', 'work_coefficient' => 0.25, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'B', 'work_coefficient' => 1.00, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'C', 'work_coefficient' => 1.20, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'D', 'work_coefficient' => 2.00, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'E', 'work_coefficient' => 0.40, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'F', 'work_coefficient' => 0.60, 'status' => 1],
-            ['name' => 'Biên tập', 'category' => 'G', 'work_coefficient' => 1.10, 'status' => 1],
+            ['name' => 'A', 'category' => 'Biên tập', 'work_coefficient' => 0.25, 'status' => 1],
+            ['name' => 'B', 'category' => 'Biên tập', 'work_coefficient' => 1.00, 'status' => 1],
+            ['name' => 'C', 'category' => 'Biên tập', 'work_coefficient' => 1.20, 'status' => 1],
+            ['name' => 'D', 'category' => 'Biên tập', 'work_coefficient' => 2.00, 'status' => 1],
+            ['name' => 'E', 'category' => 'Biên tập', 'work_coefficient' => 0.40, 'status' => 1],
+            ['name' => 'F', 'category' => 'Biên tập', 'work_coefficient' => 0.60, 'status' => 1],
+            ['name' => 'G', 'category' => 'Biên tập', 'work_coefficient' => 1.10, 'status' => 1],
 
 
-            ['name' => 'Đọc đính chính', 'category' => 'A', 'work_coefficient' => 0.02, 'status' => 1],
-            ['name' => 'Đọc đính chính', 'category' => 'B', 'work_coefficient' => 0.015, 'status' => 1],
+            ['name' => 'A', 'category' => 'Đọc đính chính', 'work_coefficient' => 0.02, 'status' => 1],
+            ['name' => 'B', 'category' => 'Đọc đính chính', 'work_coefficient' => 0.015, 'status' => 1],
 
                         
-            ['name' => 'Sửa bài', 'category' => 'A', 'work_coefficient' => 0.03, 'status' => 1],
-            ['name' => 'Sửa bài', 'category' => 'B', 'work_coefficient' => 0.025, 'status' => 1],
+            ['name' => 'A', 'category' => 'Sửa bài', 'work_coefficient' => 0.03, 'status' => 1],
+            ['name' => 'B', 'category' => 'Sửa bài', 'work_coefficient' => 0.025, 'status' => 1],
 
 
         ];
