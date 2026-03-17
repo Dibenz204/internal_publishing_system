@@ -17,9 +17,6 @@ Route::prefix('projects')->group(function () {
 
         // 2. Cancel project (1 -> 0)
         Route::patch('{id}/cancel', [ProjectController::class, 'cancel']);
-
-        // 3. Complete project (2 -> 3) ->CHƯA CẦN SỬ DỤNG
-        // Route::patch('{id}/complete', [ProjectController::class, 'complete']);
     });
 
 

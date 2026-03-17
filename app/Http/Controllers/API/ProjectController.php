@@ -15,11 +15,6 @@ class ProjectController extends Controller
         $this->projectService = $projectService;
     }
 
-    /*
-   
-     1. Accept Project (2 -> 1)
-   
-    */
     public function accept($id)
     {
         $project = $this->projectService->acceptProject($id);
@@ -31,11 +26,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    /*
-   
-    2. Cancel Project (2 -> 0)
-   
-    */
     public function cancel($id)
     {
         $project = $this->projectService->cancelProject($id);
@@ -47,27 +37,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    /*
-    
-    3. Complete Project (1 -> 3)
-    
-    */
-    public function complete($id)
-    {
-        $project = $this->projectService->completeProject($id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Project completed successfully.',
-            'data'    => $project
-        ]);
-    }
-
-    /*
-   
-    4. Search Projects
-   
-    */
     public function search(Request $request)
     {
         $bookName = $request->query('bookName');
@@ -82,11 +51,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    /*
-   
-    5. Books Not Assigned
-    
-    */
     public function booksNotAssigned()
     {
         $books = $this->projectService->booksNotAssigned();
@@ -97,10 +61,6 @@ class ProjectController extends Controller
             'data'    => $books
         ]);
     }
-
-
-
-    // 6. Assign Book To Departments
 
     public function assign(Request $request, $bookId)
     {
