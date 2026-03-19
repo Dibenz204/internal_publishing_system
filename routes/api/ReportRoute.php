@@ -23,5 +23,7 @@ Route::prefix('reports')->group(function () {
     Route::get('/project/{projectId}', [ReportController::class, 'projectDetail']);   //chưa biết
 
     // Tổng hợp theo tháng
-    Route::get('/monthly-summary', [ReportController::class, 'monthlySummary']);
+    Route::get('/monthly-summary', [ReportController::class, 'monthlySummary']);  // chưa sử dụng
+
+    Route::get('department/{departmentId}/export', [ReportController::class, 'exportDepartmentReport']);
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Services\ReportService;
 use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -90,6 +91,7 @@ class ReportController extends Controller
     {
         $filters = $request->validate([
             'employee_name' => 'nullable|string|max:255',
+            'employee_id'   => 'nullable|integer|exists:employees,id',
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date'
         ]);
@@ -140,5 +142,36 @@ class ReportController extends Controller
             'success' => true,
             'data' => $report
         ]);
+    }
+
+    public function exportDepartmentReport(Request $request, int $departmentId)
+    {
+        $filters = $request->validate([
+            'employee_name' => 'nullable|string|max:255',
+            'employee_id'   => 'nullable|integer|exists:employees,id',
+            'from_date'     => 'nullable|date',
+            'to_date'       => 'nullable|date|after_or_equal:from_date'
+        ]);
+
+        $data = $this->reportService->getDepartmentReport($departmentId, $filters);
+
+        // Nếu có filter employee thì dùng template employee
+        $template = (!empty($filters['employee_id']) || !empty($filters['employee_name']))
+            ? 'reports.employee_report'
+            : 'reports.department_report';
+
+        $pdf = Pdf::loadView($template, [
+            'rows'            => $data['projects'],
+            'total_salary'    => $data['total_salary'],
+            'generated_at'    => $data['generated_at'],
+            'department_name' => $data['projects'][0]['department'] ?? null,
+            'employee_name'   => $filters['employee_name'] ?? ($data['projects'][0]['employee_name'] ?? null),
+        ])->setPaper('a4', 'landscape');
+
+        $filename = (!empty($filters['employee_id']) || !empty($filters['employee_name']))
+            ? 'employee_report.pdf'
+            : 'department_report.pdf';
+
+        return $pdf->stream($filename);
     }
 }
