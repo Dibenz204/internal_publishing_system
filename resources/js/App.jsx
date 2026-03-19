@@ -19,6 +19,8 @@ import DepartmentBooks from './pages/DepartmentBook';
 import Allocation from './pages/Allocation';
 import MyAllocation from './pages/MyAllocation';
 
+import ReportPage from './pages/Reportpage';
+
 
 function App() {
     return (
@@ -56,6 +58,8 @@ function App() {
                             </Route>}
 
                             <Route path="/my-allocations" element={<MyAllocation />} />
+
+                            <Route path="/reports" element={<ReportPage />} />
 
                             <Route path="/" element={<Navigate to="/login" replace />} />
 

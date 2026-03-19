@@ -55,7 +55,7 @@ class ReportService
         return SalaryCoefficient::where('status', 1)->value('salary_per_paper') ?? 0;
     }
 
-    private function buildReportRows($projects)
+    private function buildReportRows($projects, array $filters = [])
     {
         $rows = [];
         $index = 1;
@@ -69,6 +69,22 @@ class ReportService
 
             foreach ($grouped as $employeeId => $allocations) {
                 $employee = $allocations->first()->employee;
+
+                if (!empty($filters['employee_id']) && $employeeId != $filters['employee_id']) {
+                    continue;
+                }
+
+                if (!empty($filters['employee_name']) && $employee) {
+                    if (stripos($employee->name, $filters['employee_name']) === false) {
+                        continue;
+                    }
+                }
+
+                if (!empty($filters['department_id']) && $employee) {
+                    if ($employee->department_id != $filters['department_id']) {
+                        continue;
+                    }
+                }
 
                 $completedPages = $allocations->first()->completed_page;
                 $conversionPage = $completedPages * $paperCoefficient;
@@ -182,6 +198,12 @@ class ReportService
             });
         }
 
+        if (!empty($filters['employee_id'])) {
+            $query->whereHas('allocations', function ($q) use ($filters) {
+                $q->where('employee_id', $filters['employee_id']);
+            });
+        }
+
         if (!empty($filters['from_date'])) {
             $query->whereDate('updated_at', '>=', $filters['from_date']);
         }
@@ -191,11 +213,13 @@ class ReportService
         }
 
         $projects = $query->get();
+        $rows = $this->buildReportRows($projects, $filters);
 
         return [
-            'projects' => $this->buildReportRows($projects),
+            // 'projects' => $this->buildReportRows($projects),
+            'projects' => $rows,
             'total_projects' => $projects->count(),
-            'total_salary' => collect($this->buildReportRows($projects))->sum('salary'),
+            'total_salary' => collect($rows)->sum('salary'),
             'generated_at' => now()->format('d/m/Y H:i:s')
         ];
     }

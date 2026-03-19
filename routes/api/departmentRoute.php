@@ -13,6 +13,8 @@ Route::prefix('departments')->group(function () {
 
         Route::get('/{id}', [DepartmentController::class, 'show']);
 
+        Route::get('/{id}/employees', [DepartmentController::class, 'getEmployees']);
+
         Route::post('/', [DepartmentController::class, 'store']);
 
         Route::patch('/{id}', [DepartmentController::class, 'update']);

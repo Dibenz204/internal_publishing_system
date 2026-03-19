@@ -8,6 +8,7 @@ const ADMIN_MENU = [
     { path: '/users', label: 'Nhân viên' },
     { path: '/departments', label: 'Phòng ban' },
     { path: '/settings', label: 'Thông số' },
+    { path: '/reports', label: 'Báo cáo' },
 ];
 
 const AdminNav = () => {

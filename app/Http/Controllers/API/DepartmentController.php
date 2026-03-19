@@ -41,6 +41,20 @@ class DepartmentController extends Controller
         ], 200);
     }
 
+    public function getEmployees($id)
+    {
+        $employees = \App\Models\Employee::where('department_id', $id)
+            ->where('status', 1)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $employees
+        ]);
+    }
+
 
     public function store(Request $request)
     {
