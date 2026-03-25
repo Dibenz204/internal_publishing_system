@@ -5,8 +5,8 @@
     "framework": null,
     "routes": [
         {
-            "src": "/",
-            "dest": "/index.html"
+            "src": "/assets/(.*)",
+            "dest": "/assets/$1"
         },
         {
             "src": "/(.*)",
