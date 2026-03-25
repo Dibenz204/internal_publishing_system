@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build:vercel": "vite build --config vite.vercel.config.js"
     },
     "devDependencies": {
         "@babel/core": "^7.29.0",

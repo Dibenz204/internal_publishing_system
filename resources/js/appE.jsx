@@ -4,7 +4,10 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-// debug nếu có lỗi
+
+console.log('Running on:', import.meta.env.MODE);
+console.log('API URL:', import.meta.env.VITE_API_URL);
+
 console.log('React version:', React.version);
 
 const rootElement = document.getElementById('root');
