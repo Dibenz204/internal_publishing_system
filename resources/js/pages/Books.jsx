@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import BookModal from './Modal/BookModal';
-import BookDetailModal from './Modal/BookDetailModal';
+import BookDetailModal from './Modal/BookdetailModal';
 import AssignModal from './Modal/AssignModal';
 import { CAN_MANAGE, CAN_VIEW_ALL, STATUS_OPTIONS, STATUS_MAP, styles } from './Modal/booksConstants';
 
