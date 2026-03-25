@@ -12,19 +12,23 @@ class SalaryCoefficientSeeder extends Seeder
         $coefficients = [
             [
                 'year' => 2023,
-                'salary_per_paper' => 10
+                'salary_per_paper' => 10,
+                'status' => 0
             ],
             [
                 'year' => 2024,
-                'salary_per_paper' => 12
+                'salary_per_paper' => 12,
+                'status' => 0
             ],
             [
                 'year' => 2025,
-                'salary_per_paper' => 14
+                'salary_per_paper' => 14,
+                'status' => 0
             ],
             [
                 'year' => 2026,
-                'salary_per_paper' => 15
+                'salary_per_paper' => 15,
+                'status' => 1
             ]
         ];
 

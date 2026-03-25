@@ -3,12 +3,31 @@
 namespace App\services;
 
 use App\Models\Paper;
+use App\Models\Book;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use App\Models\Book;
+use App\Traits\LogsActivity;
+use Illuminate\Validation\Rule;
 
 class PaperService
 {
+    use LogsActivity;
+
+
+    private function validatePaper(array $data, bool $isUpdate = false): array
+    {
+        $rules = [
+            'paperSize' => $isUpdate
+                ? 'sometimes|required|string|max:50'
+                : 'required|string|max:50',
+
+            'paper_coefficient' => $isUpdate
+                ? 'sometimes|required|numeric|min:0'
+                : 'required|numeric|min:0',
+        ];
+
+        return Validator::make($data, $rules)->validate();
+    }
 
     public function getAll(?string $keyword = null)
     {
@@ -26,11 +45,12 @@ class PaperService
     public function create(array $data)
     {
         $data = $this->validatePaper($data);
-
-
         $data['status'] = 1;
 
-        return Paper::create($data);
+        $paper = Paper::create($data);
+        $this->logCreate('paper', $paper->id, $paper->toArray());
+
+        return $paper;
     }
 
     public function update(int $id, array $data)
@@ -39,15 +59,33 @@ class PaperService
 
         $data = $this->validatePaper($data, true);
 
+        $oldData = $paper->toArray();
+
         $paper->update($data);
+
+        $this->logUpdate('paper', $paper->id, $oldData, $paper->fresh()->toArray());
 
         return $paper;
     }
 
     public function activate(int $id)
     {
-        return tap(Paper::findOrFail($id))
-            ->update(['status' => 1]);
+        $paper = Paper::findOrFail($id);
+
+        if ($paper->status === 1) {
+            return $paper;
+        }
+
+        $paper->update(['status' => 1]);
+
+        $this->logUpdate(
+            '[paper]',
+            $id,
+            ['status' => 'Tạm dừng'],
+            ['status' => 'Hoạt động']
+        );
+
+        return $paper;
     }
 
     public function deactivate(int $id)
@@ -55,15 +93,22 @@ class PaperService
         return DB::transaction(function () use ($id) {
 
             $paper = Paper::findOrFail($id);
+            // $isUsed = Book::where('paper_id', $id)->exists();
 
+            // if ($isUsed) {
+            //     throw new \Exception("Cannot deactivate paper because it is assigned to one or more books.");
+            // }
 
-            $isUsed = Book::where('paper_id', $id)->exists();
-
-            if ($isUsed) {
-                throw new \Exception("Cannot deactivate paper because it is assigned to one or more books.");
-            }
+            $oldData = $paper->toArray();
 
             $paper->update(['status' => 0]);
+
+            $this->logUpdate(
+                '[paper]',
+                $id,
+                ['status' => 'Hoạt động'],
+                ['status' => 'Tạm dừng']
+            );
 
             return $paper;
         });
@@ -74,20 +119,5 @@ class PaperService
         return Paper::where('status', 1)
             ->orderBy('id', 'desc')
             ->get();
-    }
-
-    private function validatePaper(array $data, bool $isUpdate = false): array
-    {
-        $rules = [
-            'paperSize' => $isUpdate
-                ? 'sometimes|required|string|max:50'
-                : 'required|string|max:50',
-
-            'paper_coefficient' => $isUpdate
-                ? 'sometimes|required|numeric|min:0'
-                : 'required|numeric|min:0',
-        ];
-
-        return Validator::make($data, $rules)->validate();
     }
 }

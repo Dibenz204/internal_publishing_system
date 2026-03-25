@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Models\JobCategory;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class JobCategoryService
 {
+    use LogsActivity;
 
     public function getAll()
     {
@@ -42,13 +44,17 @@ class JobCategoryService
             throw new \Exception('Tên công việc đã tồn tại');
         }
 
-        return JobCategory::create([
+        $jobcategory = JobCategory::create([
             'name' => trim($data['name']),
             'work_coefficient' => $data['work_coefficient'],
             'category' => $data['category'],
             'status' => 1,
             'expired_at' => null
         ]);
+
+        $this->logCreate('jobcategory', $jobcategory->id, $jobcategory->toArray());
+
+        return $jobcategory;
     }
 
     public function update($id, $data)
@@ -64,6 +70,15 @@ class JobCategoryService
             }
             $oldJobCategory = JobCategory::findOrFail($id);
 
+            $oldData = [
+                'id' => $oldJobCategory->id,
+                'name' => $oldJobCategory->name,
+                'category' => $oldJobCategory->category,
+                'work_coefficient' => $oldJobCategory->work_coefficient,
+                'status' => $oldJobCategory->status,
+                'expired_at' => now(),
+            ];
+
             if ((int) $oldJobCategory->status !== 1) {
                 throw new \Exception('Chỉ có thể chỉnh sửa công việc đang hoạt động.');
             }
@@ -73,7 +88,6 @@ class JobCategoryService
                 'expired_at' => now()
             ]);
 
-
             $newJobCategory = JobCategory::create([
                 'name' => $oldJobCategory->name,
                 'work_coefficient' => $data['work_coefficient'] ?? $oldJobCategory->work_coefficient,
@@ -81,22 +95,12 @@ class JobCategoryService
                 'status' => 1,
                 'expired_at' => null
             ]);
+
+            $this->logUpdate('jobcategory', $newJobCategory->id, $oldData, $newJobCategory->toArray());
+
             return $newJobCategory;
         });
     }
-
-    public function disable($id)
-    {
-        $jobCategory = JobCategory::findOrFail($id);
-
-        $jobCategory->status = 0;
-        $jobCategory->expired_at = now();
-
-        $jobCategory->save();
-
-        return $jobCategory;
-    }
-
 
     public function getByCategory($category)
     {

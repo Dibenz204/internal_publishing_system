@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+
 const THIS_YEAR = new Date().getFullYear();
 const THIS_MONTH = new Date().getMonth() + 1;
 const YEARS = Array.from({ length: 6 }, (_, i) => THIS_YEAR - i);
@@ -13,7 +13,7 @@ const fmt = (n) =>
 
 const ADMIN_POSITIONS = ['Admin', 'Kế toán'];
 
-// ─── Select component dùng options array, tránh children key warning ─────────
+
 const Select = ({ label, value, onChange, options = [], placeholder, disabled }) => (
     <label style={ui.fieldWrap}>
         <span style={ui.fieldLabel}>{label}</span>
@@ -38,12 +38,10 @@ const Tag = ({ children, color = '#1877f2' }) => (
     <span style={{ ...ui.tag, background: color + '18', color }}>{children}</span>
 );
 
-// ─── main ────────────────────────────────────────────────────────────────────
 export default function ReportPage() {
     const { user } = useAuth();
     const isAdmin = ADMIN_POSITIONS.includes(user?.position);
 
-    // filter state
     const [departments, setDepartments] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [deptId, setDeptId] = useState('');
@@ -51,7 +49,6 @@ export default function ReportPage() {
     const [month, setMonth] = useState(String(THIS_MONTH));
     const [year, setYear] = useState(String(THIS_YEAR));
 
-    // data state
     const [rows, setRows] = useState([]);
     const [totalSalary, setTotalSalary] = useState(0);
     const [generatedAt, setGeneratedAt] = useState('');
@@ -60,7 +57,7 @@ export default function ReportPage() {
     const [fetched, setFetched] = useState(false);
     const [error, setError] = useState('');
 
-    // load departments (admin only)
+
     useEffect(() => {
         if (isAdmin) {
             api.get('/departments').then(r => {
@@ -71,7 +68,6 @@ export default function ReportPage() {
         }
     }, [isAdmin]);
 
-    // load employees when dept changes
     useEffect(() => {
         setEmpId('');
         setEmployees([]);
@@ -140,7 +136,6 @@ export default function ReportPage() {
         }
     };
 
-    // options cho Select
     const deptOptions = departments
         .filter(d => d.status === 1)
         .map(d => ({ value: String(d.id), label: d.name }));
@@ -156,7 +151,7 @@ export default function ReportPage() {
 
     const selectedEmpName = employees.find(e => String(e.id) === String(empId))?.name ?? '';
 
-    // ── render ────────────────────────────────────────────────────────────────
+
     return (
         <div style={pg.root}>
 
@@ -330,7 +325,7 @@ export default function ReportPage() {
     );
 }
 
-// ─── styles ──────────────────────────────────────────────────────────────────
+
 const pg = {
     root: { minHeight: '100vh', background: '#f0f2f7', fontFamily: "'Be Vietnam Pro', 'Segoe UI', sans-serif" },
 

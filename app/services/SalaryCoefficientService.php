@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\SalaryCoefficient;
+use App\Traits\LogsActivity;
 
 class SalaryCoefficientService
 {
+    use LogsActivity;
 
     public function getAll()
     {
@@ -19,37 +21,12 @@ class SalaryCoefficientService
             'status' => 0
         ]);
 
-        return SalaryCoefficient::create([
+        $salary = SalaryCoefficient::create([
             'year' => $data['year'],
             'salary_per_paper' => $data['salary_per_paper'],
             'status' => 1
         ]);
-    }
 
-
-    public function disable($id)
-    {
-        $salary = SalaryCoefficient::findOrFail($id);
-
-        $salary->status = 0;
-        $salary->save();
-
-        return $salary;
-    }
-
-
-    public function enable($id)
-    {
-
-        SalaryCoefficient::query()->update([
-            'status' => 0
-        ]);
-
-        $salary = SalaryCoefficient::findOrFail($id);
-
-        $salary->status = 1;
-        $salary->save();
-
-        return $salary;
+        $this->logCreate('salary', $salary->id, $salary->toArray());
     }
 }

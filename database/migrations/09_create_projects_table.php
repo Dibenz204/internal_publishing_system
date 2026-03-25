@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
-            $table->id(); //NOT NULL
+            $table->id();
 
-            $table->foreignId('book_id') //NOT NULL
+            $table->foreignId('book_id')
                 ->constrained('books')
                 ->cascadeOnDelete();
 
@@ -25,9 +25,9 @@ return new class extends Migration
 
             $table->string('description')->nullable();
 
-            $table->unsignedTinyInteger('status') //NOT NULL
+            $table->unsignedTinyInteger('status')
                 ->default(1)
-                ->comment('0=CANCELLED,1=PROCESSING,2=ACCEPTED,3=COMPLETED,4=ADJUST'); //có 5 trạng thái, sử dụng kiểu unsignedTinyInteger cho đỡ tốn bộ nhớ
+                ->comment('0=CANCELLED,1=PROCESSING,2=ACCEPTED,3=COMPLETED');
 
             $table->unique(['department_id', 'book_id']);
 

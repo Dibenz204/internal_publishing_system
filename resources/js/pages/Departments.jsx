@@ -13,24 +13,66 @@ const DepartmentModal = ({ onClose, onSuccess, department = null }) => {
         category: department?.category ?? '',
         status: String(department?.status ?? '1'),
     });
+    const [isOtherCategory, setIsOtherCategory] = useState(false);
+    const [customCategory, setCustomCategory] = useState('');
+
+    const categoryOptions = ['Biên tập', 'Đính chính', 'Sửa bài', 'Khác'];
+
+    useEffect(() => {
+        if (department?.category) {
+
+            if (categoryOptions.includes(department.category)) {
+                setIsOtherCategory(false);
+                setCustomCategory('');
+            } else {
+                setIsOtherCategory(true);
+                setCustomCategory(department.category);
+                setForm(prev => ({ ...prev, category: 'Khác' }));
+            }
+        }
+    }, [department]);
 
     const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+    const handleCategoryChange = (e) => {
+        const value = e.target.value;
+        setForm(prev => ({ ...prev, category: value }));
+
+        if (value === 'Khác') {
+            setIsOtherCategory(true);
+        } else {
+            setIsOtherCategory(false);
+            setCustomCategory('');
+        }
+    };
+
+    const handleCustomCategoryChange = (e) => {
+        setCustomCategory(e.target.value);
+    };
+
     const handleSubmit = async () => {
         if (!form.name.trim()) return setError('Tên phòng ban không được để trống');
+
+        let finalCategory = form.category;
+        if (isOtherCategory && customCategory.trim()) {
+            finalCategory = customCategory.trim();
+        } else if (isOtherCategory && !customCategory.trim()) {
+            return setError('Vui lòng nhập tên phân loại khi chọn "Khác"');
+        }
+
         setSubmitting(true);
         setError('');
         try {
             if (isEdit) {
                 await api.patch(`/departments/${department.id}`, {
                     name: form.name.trim(),
-                    category: form.category.trim(),
+                    category: finalCategory,
                     status: parseInt(form.status),
                 });
             } else {
                 await api.post('/departments', {
                     name: form.name.trim(),
-                    category: form.category.trim(),
+                    category: finalCategory,
                     status: parseInt(form.status),
                 });
             }
@@ -66,8 +108,26 @@ const DepartmentModal = ({ onClose, onSuccess, department = null }) => {
                     </div>
                     <div style={modal.field}>
                         <label style={modal.label}>Phân loại</label>
-                        <input name="category" value={form.category} onChange={handleChange}
-                            style={modal.input} placeholder="VD: Biên tập, Điều phối..." />
+                        <select
+                            name="category"
+                            value={form.category}
+                            onChange={handleCategoryChange}
+                            style={modal.input}
+                        >
+                            <option value="">-- Chọn phân loại --</option>
+                            {categoryOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
+                        {isOtherCategory && (
+                            <input
+                                type="text"
+                                value={customCategory}
+                                onChange={handleCustomCategoryChange}
+                                style={{ ...modal.input, marginTop: '8px' }}
+                                placeholder="Nhập tên phân loại khác..."
+                            />
+                        )}
                     </div>
                     {isEdit && (
                         <div style={modal.field}>

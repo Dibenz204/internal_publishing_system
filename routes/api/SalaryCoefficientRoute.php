@@ -12,11 +12,5 @@ Route::prefix('salary-coefficients')->group(function () {
 
         // 1. Tạo hệ số lương
         Route::post('/', [SalaryCoefficientController::class, 'create']);
-
-        // 2. Tắt trạng thái (1 -> 0)
-        Route::patch('{id}/deactivate', [SalaryCoefficientController::class, 'disable']);
-
-        // 3. Bật trạng thái (0 -> 1)
-        Route::patch('{id}/activate', [SalaryCoefficientController::class, 'enable']);
     });
 });

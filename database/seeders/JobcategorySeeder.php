@@ -11,11 +11,8 @@ class JobCategorySeeder extends Seeder
     {
         $categories = [
 
-            ['name' => 'Biên tập 100%', 'category' => 'Biên tập', 'work_coefficient' => 0.25, 'status' => 1],
-            ['name' => 'Biên tập 70%', 'category' => 'Biên tập', 'work_coefficient' => 1.00, 'status' => 1],
-            ['name' => 'Biên tập 50%', 'category' => 'Biên tập', 'work_coefficient' => 1.20, 'status' => 1],
-            ['name' => 'Biên tập 40%', 'category' => 'Biên tập', 'work_coefficient' => 2.00, 'status' => 1],
-
+            ['name' => 'Biên tập chính', 'category' => 'Biên tập', 'work_coefficient' => 1.00, 'status' => 1],
+            ['name' => 'Biên tập phụ', 'category' => 'Biên tập', 'work_coefficient' => 0.25, 'status' => 1],
 
             ['name' => 'Đọc logic', 'category' => 'Đọc đính chính', 'work_coefficient' => 0.02, 'status' => 1],
 

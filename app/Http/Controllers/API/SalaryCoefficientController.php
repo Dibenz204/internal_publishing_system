@@ -36,27 +36,4 @@ class SalaryCoefficientController extends Controller
             'data' => $data
         ]);
     }
-
-
-    public function disable($id)
-    {
-        $data = $this->salaryService->disable($id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Salary coefficient disabled successfully',
-            'data' => $data
-        ]);
-    }
-
-    public function enable($id)
-    {
-        $data = $this->salaryService->enable($id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Salary coefficient enabled successfully',
-            'data' => $data
-        ]);
-    }
 }

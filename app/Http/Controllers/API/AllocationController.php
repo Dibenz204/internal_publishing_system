@@ -170,4 +170,22 @@ class AllocationController extends Controller
             ], 400);
         }
     }
+
+    public function updateJob(Request $request, $allocationId)
+    {
+        $request->validate([
+            'job_category_id' => 'required|integer|exists:job_categories,id'
+        ]);
+
+        $allocation = $this->allocationService->updateJob(
+            $allocationId,
+            $request->job_category_id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật công việc thành công',
+            'data' => $allocation
+        ]);
+    }
 }

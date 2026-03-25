@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\Bookcategory;
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Collection;
 
 class BookCategoryService
 {
+    use LogsActivity;
 
     public function getAll(): Collection
     {
@@ -37,13 +39,23 @@ class BookCategoryService
         }
 
         $data['status'] = 1;
-        return Bookcategory::create($data);
+
+        $category = Bookcategory::create($data);
+
+        $this->logCreate('bookcategory', $category->id, [
+            'name' => $category->name,
+            'description' => $category->description
+        ]);
+
+        return $category;
     }
 
 
     public function update(int $id, array $data): Bookcategory
     {
         $category = Bookcategory::findOrFail($id);
+
+        $oldData = $category->toArray();
 
         if (isset($data['name'])) {
 
@@ -60,6 +72,8 @@ class BookCategoryService
 
         $category->update($data);
 
+        $this->logUpdate('bookcategory', $category->id, $oldData, $category->fresh()->toArray());
+
         return $category;
     }
 
@@ -70,6 +84,13 @@ class BookCategoryService
         $category->status = 0;
         $category->save();
 
+        $this->logUpdate(
+            'bookcategory',
+            $id,
+            ['status' => 'Hoạt động'],
+            ['status' => 'Đã dừng']
+        );
+
         return $category;
     }
 
@@ -79,6 +100,13 @@ class BookCategoryService
         $category = Bookcategory::findOrFail($id);
         $category->status = 1;
         $category->save();
+
+        $this->logUpdate(
+            'bookcategory',
+            $id,
+            ['status' => 'Đã dừng'],
+            ['status' => 'Hoạt động']
+        );
 
         return $category;
     }

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use Illuminate\Validation\ValidationException;
+use App\Traits\LogsActivity;
+use App\Models\AuditLog;
 
 class LoginController extends Controller
 {
+
+    use LogsActivity;
+
     public function apiLogin(Request $request)
     {
         $credentials = $request->validate([
@@ -18,6 +21,22 @@ class LoginController extends Controller
         ]);
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+
+            AuditLog::create([
+                'user_id'      => null,
+                'user_name'    => null,
+                'user_position' => null,
+                'action'       => 'login_failed',
+                'module'       => 'auth',
+                'record_id'    => null,
+                'old_data'     => null,
+                'new_data'     => ['username' => $request->username],
+                'ip_address'   => $request->ip(),
+                'user_agent'   => $request->userAgent(),
+                'method'       => $request->method(),
+                'url'          => $request->fullUrl(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Tên đăng nhập hoặc mật khẩu không đúng.'
@@ -29,6 +48,21 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if ($user->status == 0) {
+            AuditLog::create([
+                'user_id'      => $user->id,
+                'user_name'    => $user->username,
+                'user_position' => $user->positionName,
+                'action'       => 'login_blocked',
+                'module'       => 'auth',
+                'record_id'    => $user->id,
+                'old_data'     => null,
+                'new_data'     => ['reason' => 'Tài khoản bị khóa'],
+                'ip_address'   => $request->ip(),
+                'user_agent'   => $request->userAgent(),
+                'method'       => $request->method(),
+                'url'          => $request->fullUrl(),
+            ]);
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -38,6 +72,14 @@ class LoginController extends Controller
                 'message' => 'Tài khoản đã bị khóa.'
             ], 403);
         }
+
+
+        $this->logActivity(
+            action: 'login',
+            module: 'auth',
+            recordId: $user->id,
+            newData: ['username' => $user->username]
+        );
 
         return response()->json([
             'success' => true,
@@ -64,6 +106,13 @@ class LoginController extends Controller
 
     public function apiLogout(Request $request)
     {
+
+        $this->logActivity(
+            action: 'logout',
+            module: 'auth',
+            recordId: Auth::id(),
+        );
+
         Auth::logout();
 
         $request->session()->invalidate();

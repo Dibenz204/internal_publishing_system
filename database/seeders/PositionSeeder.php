@@ -10,11 +10,11 @@ class PositionSeeder extends Seeder
     public function run(): void
     {
         $positions = [
-            ['name' => 'Admin', 'status' => 1],
+            ['name' => 'Admin', 'status' => 1], //
             ['name' => 'Giám đốc', 'status' => 1],
-            ['name' => 'Thư kí biên tập', 'status' => 1],
+            ['name' => 'Thư kí biên tập', 'status' => 1], //
             ['name' => 'HR', 'status' => 1],
-            ['name' => 'Trưởng phòng', 'status' => 1],
+            ['name' => 'Trưởng phòng', 'status' => 1], //
             ['name' => 'Nhân viên', 'status' => 1],
         ];
 

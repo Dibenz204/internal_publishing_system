@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 const DEPMANAGE_MENU = [
     { path: '/profile', label: 'Cá nhân' },
     { path: '/books', label: 'Sách' },
-    { path: '/departmentbook', label: 'Công việc' },
+    { path: '/departmentbook', label: 'Phân việc' },
     { path: '/departments', label: 'Phòng ban' },
     { path: '/my-allocations', label: 'Công việc' },
 

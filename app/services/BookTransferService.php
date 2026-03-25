@@ -6,6 +6,8 @@ use App\Models\Book;
 use App\Models\BookTransfer;
 use App\Models\Employee;
 use App\Models\Allocation;
+use App\Models\Project;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +18,7 @@ class BookTransferService
     const STATUS_CANCELLED = 0;
     const STATUS_PERFORM = 1;
 
+    use LogsActivity;
 
     private function loadTransferWithDepartment(BookTransfer $transfer): BookTransfer
     {
@@ -105,6 +108,32 @@ class BookTransferService
                 'status' => self::STATUS_PERFORM,
             ]);
 
+            $transfer->load(['book', 'fromEmployee', 'toEmployee']);
+
+            $this->logCreate('book_transfer', $transfer->id, [
+                'id' => $transfer->id,
+                'book' => [
+                    'id' => $book->id,
+                    'name' => $book->name,
+                    'bookCode' => $book->bookCode,
+                ],
+                'from_employee' => [
+                    'id' => $transfer->fromEmployee->id,
+                    'name' => $transfer->fromEmployee->name,
+                    'department' => $transfer->fromEmployee->department->name ?? null,
+                ],
+                'to_employee' => [
+                    'id' => $transfer->toEmployee->id,
+                    'name' => $transfer->toEmployee->name,
+                    'department' => $transfer->toEmployee->department->name ?? null,
+                ],
+                'note' => 'Khởi tạo sách',
+                'status' => 'Hoạt động',
+                'start_time' => now()->toDateTimeString(),
+                'created_by' => auth()->user()?->name ?? 'System',
+            ]);
+
+
             return $transfer->fresh(['book', 'fromEmployee', 'toEmployee']);
         });
     }
@@ -123,7 +152,6 @@ class BookTransferService
                 ]);
             }
 
-
             $toEmployee = Employee::with('position')->findOrFail($validated['to_employee_id']);
 
             if (!$toEmployee->position || $toEmployee->position->name !== 'Trưởng phòng') {
@@ -132,8 +160,7 @@ class BookTransferService
                 ]);
             }
 
-
-            $projectDepartmentIds = \App\Models\Project::where('book_id', $bookId)
+            $projectDepartmentIds = Project::where('book_id', $bookId)
                 ->pluck('department_id')
                 ->toArray();
 
@@ -143,7 +170,6 @@ class BookTransferService
                 ]);
             }
 
-
             $currentTransfer = BookTransfer::where('book_id', $bookId)
                 ->where('status', self::STATUS_PERFORM)
                 ->latest('id')
@@ -151,8 +177,7 @@ class BookTransferService
 
 
             $fromEmployeeId = Auth::user()->employee_id;
-            $fromEmployee   = Employee::findOrFail($fromEmployeeId);
-
+            $fromEmployee = Employee::with('department')->findOrFail($fromEmployeeId);
 
             if ($currentTransfer && (int) $fromEmployeeId !== (int) $currentTransfer->to_employee_id) {
                 throw ValidationException::withMessages([
@@ -160,6 +185,7 @@ class BookTransferService
                 ]);
             }
 
+            $oldTransfer = $currentTransfer ? $this->loadTransferWithDepartment(clone $currentTransfer) : null;
 
             BookTransfer::where('book_id', $bookId)
                 ->where('status', self::STATUS_PERFORM)
@@ -167,9 +193,6 @@ class BookTransferService
                     'status'   => self::STATUS_CANCELLED,
                     'end_time' => now(),
                 ]);
-
-            $fromEmployeeId = Auth::user()->employee_id;
-            $fromEmployee   = Employee::findOrFail($fromEmployeeId);
 
             $transfer = BookTransfer::create([
                 'book_id'          => $bookId,
@@ -180,9 +203,38 @@ class BookTransferService
                 'status'           => self::STATUS_PERFORM,
             ]);
 
-            return $this->loadTransferWithDepartment($transfer);
+            $transfer = $this->loadTransferWithDepartment($transfer);
+
+            $this->logCreate('book_transfer', $transfer->id, [
+                'id' => $transfer->id,
+                'book' => [
+                    'id' => $book->id,
+                    'name' => $book->name,
+                    'bookCode' => $book->bookCode,
+                ],
+                'from_employee' => [
+                    'id' => $transfer->fromEmployee->id,
+                    'name' => $transfer->fromEmployee->name,
+                    'department' => $transfer->fromEmployee->department->name ?? null,
+                ],
+                'to_employee' => [
+                    'id' => $transfer->toEmployee->id,
+                    'name' => $transfer->toEmployee->name,
+                    'department' => $transfer->toEmployee->department->name ?? null,
+                ],
+                'previous_transfer' => $oldTransfer ? [
+                    'id' => $oldTransfer->id,
+                    'from_employee' => $oldTransfer->fromEmployee->name ?? null,
+                    'to_employee' => $oldTransfer->toEmployee->name ?? null,
+                ] : null,
+                'note' => $transfer->note,
+                'status' => 'Đang thực hiện',
+                'start_time' => $transfer->start_time->toDateTimeString(),
+                'created_by' => auth()->user()?->name ?? 'System',
+            ]);
         });
     }
+
 
     public function sendToAssignedBy(int $bookId, ?string $note = null): BookTransfer
     {
@@ -209,10 +261,12 @@ class BookTransferService
             }
 
             $fromEmployeeId = Auth::user()->employee_id;
-            $fromEmployee   = Employee::findOrFail($fromEmployeeId);
+            // $fromEmployee   = Employee::findOrFail($fromEmployeeId);
+            $fromEmployee = Employee::with('department')->findOrFail($fromEmployeeId);
 
             $toEmployeeId = (int) $book->assigned_by;
-            $toEmployee   = Employee::findOrFail($toEmployeeId);
+            // $toEmployee   = Employee::findOrFail($toEmployeeId);
+            $toEmployee = Employee::with('department', 'position')->findOrFail($toEmployeeId);
 
 
             if ($fromEmployeeId === $toEmployeeId) {
@@ -241,9 +295,9 @@ class BookTransferService
                 ]);
             }
 
+            $oldTransfer = $currentTransfer ? $this->loadTransferWithDepartment(clone $currentTransfer) : null;
 
             $this->closeCurrentTransfers($bookId);
-
 
             $transfer = BookTransfer::create([
                 'book_id'          => $bookId,
@@ -254,7 +308,39 @@ class BookTransferService
                 'status'           => self::STATUS_PERFORM,
             ]);
 
-            return $this->loadTransferWithDepartment($transfer);
+            $transfer = $this->loadTransferWithDepartment($transfer);
+
+            $this->logCreate('book_transfer', $transfer->id, [
+                'id' => $transfer->id,
+                'book' => [
+                    'id' => $book->id,
+                    'name' => $book->name,
+                    'bookCode' => $book->bookCode,
+                ],
+                'from_employee' => [
+                    'id' => $transfer->fromEmployee->id,
+                    'name' => $transfer->fromEmployee->name,
+                    'department' => $transfer->fromEmployee->department->name ?? null,
+                ],
+                'to_employee' => [
+                    'id' => $transfer->toEmployee->id,
+                    'name' => $transfer->toEmployee->name,
+                    'position' => $toEmployee->position->name ?? null,
+                    'department' => $transfer->toEmployee->department->name ?? null,
+                ],
+                'previous_transfer' => $oldTransfer ? [
+                    'id' => $oldTransfer->id,
+                    'from_employee' => $oldTransfer->fromEmployee->name ?? null,
+                    'to_employee' => $oldTransfer->toEmployee->name ?? null,
+                ] : null,
+                'note' => $transfer->note,
+                'status' => 'Đã gửi về thư ký',
+                'start_time' => $transfer->start_time->toDateTimeString(),
+                'transfer_type' => 'return_to_assigned_by',
+                'created_by' => auth()->user()?->name ?? 'System',
+            ]);
+
+            return $transfer;
         });
     }
 

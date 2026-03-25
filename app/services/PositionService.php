@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Position;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PositionService
 {
+    use LogsActivity;
 
     public function getAll(?string $keyword = null)
     {
@@ -27,13 +29,18 @@ class PositionService
 
     public function create(array $data): Position
     {
-        $validated = $this->validate($data);
+        return DB::transaction(function () use ($data) {
 
-        return DB::transaction(function () use ($validated) {
-            return Position::create([
-                'name'   => trim($validated['name']),
-                'status' => 1,
+            $validated = $this->validate($data);
+
+            $position = Position::create([
+                'name' => $validated['name'],
+                'status' => $validated['status'] ?? 1,
             ]);
+
+            $this->logCreate('position', $position->id, $position->toArray());
+
+            return $position;
         });
     }
 
@@ -45,8 +52,16 @@ class PositionService
         return DB::transaction(function () use ($id, $validated) {
             $position = Position::findOrFail($id);
 
+            $oldData = [
+                'name' => $position->name
+            ];
+
             $position->update([
                 'name' => trim($validated['name']),
+            ]);
+
+            $this->logUpdate('position', $position->id, $oldData, [
+                $position->name
             ]);
 
             return $position;
@@ -56,13 +71,31 @@ class PositionService
 
     public function activate(int $id): Position
     {
-        return $this->changeStatus($id, 1);
+        $position = $this->changeStatus($id, 1);
+
+        $this->logUpdate(
+            'position',
+            $id,
+            ['status' => 'Tạm dừng'],
+            ['status' => 'Hoạt động']
+        );
+
+        return $position;
     }
 
 
     public function deactivate(int $id): Position
     {
-        return $this->changeStatus($id, 0);
+        $position = $this->changeStatus($id, 0);
+
+        $this->logUpdate(
+            'position',
+            $id,
+            ['status' => 'Hoạt động'],
+            ['status' => 'Tạm dừng']
+        );
+
+        return $position;
     }
 
 
@@ -70,7 +103,7 @@ class PositionService
     {
         if (!in_array($status, [0, 1])) {
             throw ValidationException::withMessages([
-                'status' => ['Status must be either 0 or 1.'],
+                'status' => ['Trạng thái chỉ tồn tại 0 (Tạm dừng) hoặc 1 (Hoạt động)'],
             ]);
         }
 
@@ -85,7 +118,7 @@ class PositionService
 
                 throw ValidationException::withMessages([
                     'position' => [
-                        'The position cannot be deactivated while there are active employees assigned to it.'
+                        'Chức vụ này không thể "Tạm dừng" do vẫn còn nhân viên đang hoạt động tại vị trí này'
                     ],
                 ]);
             }

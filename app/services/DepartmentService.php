@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Traits\LogsActivity;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
 
 class DepartmentService
 {
+    use LogsActivity;
 
     public function getAll(?string $keyword = null)
     {
@@ -44,11 +46,18 @@ class DepartmentService
     {
         $this->validate($data);
 
-        return Department::create([
-            'name'    => trim($data['name']),
+        $department = Department::create([
+            'name'     => trim($data['name']),
             'category' => trim($data['category']),
-            'status' => 1,
+            'status'   => $data['status'] ?? 1,
         ]);
+
+        $this->logCreate('department', $department->id, [
+            'name' => $department->name,
+            'category' => $department->category
+        ]);
+
+        return $department;
     }
 
 
@@ -68,11 +77,17 @@ class DepartmentService
             }
         }
 
+        $oldDepartment = $department->toArray();
+
         $department->update([
             'name' => trim($data['name']),
             'category' => trim($data['category']),
             'status' => trim($data['status']),
         ]);
+
+        $newData = $department->fresh()->toArray();
+
+        $this->logUpdate('department', $department->id, $oldDepartment, $newData);
 
         return $department;
     }
@@ -80,7 +95,16 @@ class DepartmentService
     public function activate(int $id): Department
     {
         $department = Department::findOrFail($id);
+
         $department->update(['status' => 1]);
+
+        $this->logUpdate(
+            'book',
+            $id,
+            ['status' => 'Ngừng'],
+            ['status' => 'Hoạt động']
+        );
+
         return $department;
     }
 
@@ -98,6 +122,14 @@ class DepartmentService
         }
 
         $department->update(['status' => 0]);
+
+        $this->logUpdate(
+            'book',
+            $id,
+            ['status' => 'Hoạt động'],
+            ['status' => 'Ngừng']
+        );
+
         return $department;
     }
 

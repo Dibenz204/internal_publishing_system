@@ -8,7 +8,7 @@ Route::prefix('allocations')->group(function () {
     Route::post('/assign', [AllocationController::class, 'assignEmployee'])
         ->middleware("position:Trưởng phòng"); //
 
-    Route::delete('/allocations/{allocationId}', [AllocationController::class, 'removeEmployee']); //
+    Route::delete('/{allocationId}', [AllocationController::class, 'removeEmployee']); //
 
     // Đánh dấu allocation hoàn thành
     Route::patch('/complete/{allocationId}', [AllocationController::class, 'complete']); //
@@ -21,6 +21,7 @@ Route::prefix('allocations')->group(function () {
     // Update completed_page và current_book
     Route::patch('/{allocationId}/completed-page', [AllocationController::class, 'updateCompletedPage']); //
 
+    Route::patch('/{allocationId}/job', [AllocationController::class, 'updateJob']);
 });
 
 //Hàm xem allocation theo project nào đó

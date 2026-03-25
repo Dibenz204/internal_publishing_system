@@ -10,11 +10,13 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use App\Services\BookTransferService;
 use App\Models\Paper;
+use App\Traits\LogsActivity;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class BookService
 {
+    use LogsActivity;
     protected $bookTransferService;
 
     public function __construct(BookTransferService $bookTransferService)
@@ -185,6 +187,13 @@ class BookService
 
             $this->bookTransferService->createInitialTransfer($book);
 
+            $this->logCreate('book', $book->id, [
+                'name'      => $book->name,
+                'bookCode'  => $book->bookCode,
+                'paper_id'  => $book->paper_id,
+                'assigned_by' => Auth::user()->employee_id,
+            ]);
+
             return $book->fresh(['assignedEmployee', 'categories', 'paper']);
         });
     }
@@ -212,11 +221,14 @@ class BookService
                     ->exists();
 
                 if (!$isActivePaper) {
-                    throw new \Exception('Paper is inactive or does not exist.');
+                    throw new \Exception('Khổ giấy này đang ko sử dụng hoặc có thể ko tồn tại');
                 }
             }
+            $oldData = $book->toArray();
 
             $book->update($validated);
+
+            $this->logUpdate('book', $id, $oldData, $validated);
 
             if (!is_null($categories)) {
 
@@ -267,6 +279,16 @@ class BookService
             $book->end_time = now();
             $book->save();
 
+            $this->logUpdate(
+                'book',
+                $id,
+                ['status' => 'đang thực hiện'],
+                [
+                    'status' => 'hoàn thành',
+                    'end_time' => now()
+                ]
+            );
+
             $book->projects()->update([
                 'status' => ProjectService::STATUS_COMPLETED
             ]);
@@ -308,6 +330,12 @@ class BookService
             $book->end_time = now();
             $book->save();
 
+            $this->logUpdate(
+                'book',
+                $id,
+                ['status' => 'đang thực hiện'],
+                ['status' => 'đã hủy', 'end_time' => now()]
+            );
 
             $book->load(['assignedEmployee', 'categories']);
 

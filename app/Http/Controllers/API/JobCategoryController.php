@@ -60,20 +60,6 @@ class JobCategoryController extends Controller
         ]);
     }
 
-
-    public function disable($id)
-    {
-        $data = $this->jobCategoryService->disable($id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Job category disabled successfully',
-            'data' => $data
-        ]);
-    }
-
-
-
     public function getByCategory($category)
     {
         try {

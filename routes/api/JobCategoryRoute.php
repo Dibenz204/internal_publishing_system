@@ -18,9 +18,6 @@ Route::prefix('job-categories')->group(function () {
 
         // Cập nhật name
         Route::patch('/{id}/update', [JobCategoryController::class, 'update']);
-
-        // Tắt trạng thái
-        Route::patch('/{id}/deactivate', [JobCategoryController::class, 'disable']);
     });
 
     Route::get('/by-category/{category}', [JobCategoryController::class, 'getByCategory']);

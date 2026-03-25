@@ -10,10 +10,12 @@ use App\Models\JobCategory;
 use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsActivity;
+use App\Models\AuditLog;
 
 class AllocationService
 {
-
+    use LogsActivity;
 
     public function assignEmployee($projectId, $employeeId, $jobCategoryId, $level = 1)
     {
@@ -64,6 +66,13 @@ class AllocationService
                     'status' => 1
                 ]);
             }
+
+            $this->logCreate('allocation', $allocation->id, [
+                'project_id'   => $projectId,
+                'employee'     => $employee->name,
+                'job_category' => $jobCategory->name,
+                'level'        => $level,
+            ]);
 
             return $allocation->load([
                 'employee.department',
@@ -183,12 +192,21 @@ class AllocationService
     public function removeEmployeeFromAllocation($allocationId)
     {
         return DB::transaction(function () use ($allocationId) {
-            $allocation = Allocation::findOrFail($allocationId);
+            $allocation = Allocation::with('employee', 'jobCategory')
+                ->findOrFail($allocationId);
+
+            $oldData = [
+                'project_id'   => $allocation->project_id,
+                'employee'     => $allocation->employee->name,
+                'job_category' => $allocation->jobCategory->name,
+            ];
 
             if ($allocation->completed_page > 0 || $allocation->status == 2) {
                 throw new \Exception("Không thể xóa vì nhân viên đã có tiến độ");
             }
             $allocation->delete();
+
+            $this->logDelete('allocation', $allocationId, $oldData);
 
             return true;
         });
@@ -211,6 +229,13 @@ class AllocationService
             'status' => 2
         ]);
 
+        $this->logUpdate(
+            'allocation',
+            $allocationId,
+            ['status' => 'Đang thực hiện'],
+            ['status' => 'Hoàn thành']
+        );
+
         return $allocation;
     }
 
@@ -231,6 +256,13 @@ class AllocationService
         $allocation->update([
             'status' => 1
         ]);
+
+        $this->logUpdate(
+            'allocation',
+            $allocationId,
+            ['status' => 'Hoàn thành'],
+            ['status' => 'Đang thực hiện']
+        );
 
         return $allocation;
     }
@@ -276,6 +308,8 @@ class AllocationService
                 'jobCategory'
             )->findOrFail($allocationId);
 
+            $oldPage = $allocation->completed_page;
+
             $book = $allocation->project->book;
 
             if (in_array($book->status, [3, 0])) {
@@ -304,6 +338,13 @@ class AllocationService
             $allocation->update([
                 'completed_page' => $page
             ]);
+
+            $this->logUpdate(
+                'allocation',
+                $allocationId,
+                ['completed_page' => $oldPage],
+                ['completed_page' => $page]
+            );
 
             if (
                 $allocation->employee->department->category === "Biên tập"
@@ -338,14 +379,50 @@ class AllocationService
             ->where('status', 1)
             ->get(['id', 'name', 'email']);
 
-        $assignedEmployeeIds = Allocation::where('project_id', $projectId)
-            ->pluck('employee_id')
-            ->toArray();
+        $allocations = Allocation::where('project_id', $projectId)
+            ->with('jobCategory:id,category')
+            ->get()
+            ->groupBy('employee_id');
 
-        $availableEmployees = $employees->reject(function ($employee) use ($assignedEmployeeIds) {
-            return in_array($employee->id, $assignedEmployeeIds);
+        return $employees->map(function ($employee) use ($allocations) {
+            $empAllocations = $allocations->get($employee->id, collect());
+            $assignedCategories = $empAllocations->pluck('jobCategory.category')->unique()->values()->toArray();
+
+            return [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'email' => $employee->email,
+                'assigned_categories' => $assignedCategories,
+            ];
         })->values();
+    }
 
-        return $availableEmployees;
+    public function updateJob($allocationId, $newJobCategoryId)
+    {
+        return DB::transaction(function () use ($allocationId, $newJobCategoryId) {
+            $allocation = Allocation::with('jobCategory')->findOrFail($allocationId);
+
+            $newJob = JobCategory::where('id', $newJobCategoryId)
+                ->where('status', 1)
+                ->first();
+
+            if (!$newJob) {
+                throw new \Exception("Công việc không tồn tại hoặc không hoạt động");
+            }
+
+            if ($newJob->category !== $allocation->jobCategory->category) {
+                throw new \Exception("Chỉ được cập nhật công việc trong cùng thể loại '{$allocation->jobCategory->category}'");
+            }
+
+            $oldData = ['job_category' => $allocation->jobCategory->name];
+
+            $allocation->update(['job_category_id' => $newJobCategoryId]);
+
+            $this->logUpdate('allocation', $allocationId, $oldData, [
+                'job_category' => $newJob->name,
+            ]);
+
+            return $allocation->fresh(['employee', 'jobCategory']);
+        });
     }
 }

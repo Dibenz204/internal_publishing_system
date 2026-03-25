@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('job_categories', function (Blueprint $table) {
-            $table->id(); // NOT NULL
-            $table->string('name'); // NOT NULL
-            $table->decimal('work_coefficient', 8, 5); // NOT NULL
+            $table->id();
+            $table->string('name');
+            $table->decimal('work_coefficient', 8, 5);
             $table->string('category');
             $table->boolean('status')->default(1);
             $table->timestamps();
