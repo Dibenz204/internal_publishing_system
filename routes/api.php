@@ -3,8 +3,18 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\DB;
 
 Route::post('/login', [LoginController::class, 'apiLogin'])->middleware('web');
+
+Route::get('/ping', function () {
+    try {
+        DB::connection()->getPdo();
+        return response()->json(['status' => 'ok', 'db' => 'connected']);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'error', 'db' => $e->getMessage()]);
+    }
+});
 
 //Protected Api
 Route::middleware('auth', 'web')->group(function () {
