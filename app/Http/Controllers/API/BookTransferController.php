@@ -16,7 +16,7 @@ class BookTransferController extends Controller
         $this->bookTransferService = $bookTransferService;
     }
 
-    //Lấy danh sách book transfer theo book ID
+
     public function index(int $id): JsonResponse
     {
         $transfers = $this->bookTransferService->getTransfersByBookId($id);
@@ -28,7 +28,7 @@ class BookTransferController extends Controller
         ]);
     }
 
-    //Tạo book transfer
+
     public function store(Request $request, int $id): JsonResponse
     {
         $transfer = $this->bookTransferService->createTransfer($id, $request->all());
@@ -40,15 +40,12 @@ class BookTransferController extends Controller
         ]);
     }
 
-    //Cập nhật book transfer
-    public function update(Request $request, int $id, int $transferId): JsonResponse
+    public function sendToAssignedBy(Request $request, int $bookId)
     {
-        $transfer = $this->bookTransferService->updateTransfer($id, $transferId, $request->all());
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Transfer updated successfully',
-            'data'    => $transfer
-        ]);
+        $transfer = $this->bookTransferService->sendToAssignedBy(
+            $bookId,
+            $request->input('note')
+        );
+        return response()->json(['success' => true, 'data' => $transfer]);
     }
 }

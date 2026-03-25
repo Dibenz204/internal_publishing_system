@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\BookTransferController;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/books/{bookId}/send-to-assigned', [BookTransferController::class, 'sendToAssignedBy'])
+    ->middleware('position:Trưởng phòng');
+
 Route::prefix('books')->group(function () {
 
     Route::middleware('position:Admin,Trưởng phòng,Thư kí biên tập')->group(function () {
@@ -12,8 +15,5 @@ Route::prefix('books')->group(function () {
 
         // Tạo transfer mới
         Route::post('/{id}/transfers', [BookTransferController::class, 'store']);
-
-        // Cập nhật transfer
-        Route::put('/{id}/transfers/{transferId}', [BookTransferController::class, 'update']);
     });
 });

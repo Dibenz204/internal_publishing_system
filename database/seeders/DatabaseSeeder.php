@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
 use App\Models\Project;
 use Illuminate\Database\Seeder;
 
@@ -17,13 +15,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PositionSeeder::class,
             DepartmentSeeder::class,
+            UserDataSeeder::class,
             BookcategorySeeder::class,
             PaperSeeder::class,
-            BookSeeder::class,
-            BookTransferSeeder::class,
-            ProjectSeeder::class,
-            UserDataSeeder::class,
-            ReportSeeder::class
+            JobCategorySeeder::class,
+            SalaryCoefficientSeeder::class,
         ]);
 
         //php artisan db:seed

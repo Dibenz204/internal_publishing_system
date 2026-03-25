@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('departments', function (Blueprint $table) {
-            $table->id(); //NOT NULL
-            $table->string('name'); //NOT NULL
-            $table->string('category'); //NOT NULL
-            $table->boolean('status')->default(1); //NOT NULL
-            $table->timestamps(); //NOT NULL
+            $table->id();
+            $table->string('name');
+            $table->string('category');
+            $table->boolean('status')->default(1);
+            $table->timestamps();
         });
     }
 

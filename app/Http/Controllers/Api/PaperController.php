@@ -15,6 +15,20 @@ class PaperController extends Controller
         $this->paperService = $paperService;
     }
 
+
+    public function index(Request $request)
+    {
+        $departments = $this->paperService->getAll(
+            $request->query('keyword')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Paper list retrieved successfully',
+            'data'    => $departments
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $paper = $this->paperService->create($request->all());

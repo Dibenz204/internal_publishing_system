@@ -6,10 +6,13 @@ use App\Models\Project;
 use App\Models\Book;
 use App\Models\Department;
 use App\Services\BookService;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\DB;
 
 class ProjectService
 {
+    use LogsActivity;
+
     protected $bookService;
 
     public function __construct(BookService $bookService)
@@ -17,97 +20,85 @@ class ProjectService
         $this->bookService = $bookService;
     }
 
-    /*
-    PROJECT STATUS
-    */
     const STATUS_CANCELLED   = 0;
     const STATUS_IN_PROGRESS = 1;
     const STATUS_PENDING     = 2;
     const STATUS_COMPLETED   = 3;
-    const STATUS_ADJUST      = 4;
+    const STATUS_ADJUST      = 4; //đang chưa sử dụng
 
-
-    /*
-   
-    1. NHẬN DỰ ÁN (2 -> 1)
-   
-    */
     public function acceptProject($id)
     {
         $project = Project::findOrFail($id);
-        // sửa lại chỗ này
         if (!in_array((int)$project->status, [
             self::STATUS_PENDING,
             self::STATUS_ADJUST
         ])) {
-            throw new \Exception("Only projects that are pending can be accepted");
+            throw new \Exception("Chỉ những dự án đang đợi mới được chấp thuận");
         }
 
         $project->update([
             'status' => self::STATUS_IN_PROGRESS
         ]);
 
+        $this->logUpdate(
+            'project',
+            $project->id,
+            ['status' => 'Đang đợi'],
+            ['status' => 'Thực hiện']
+        );
+
         return $project;
     }
 
-
-    /*
-   
-    2. HỦY DỰ ÁN (2 -> 0)
-   
-    */
     public function cancelProject($id)
     {
         $project = Project::findOrFail($id);
 
         if ((int) $project->status !== self::STATUS_PENDING) {
-            throw new \Exception("Only projects that are pending can be canceled");
+            throw new \Exception("Chỉ những dự án đang đợi mới được hủy");
         }
 
         $project->update([
             'status' => self::STATUS_CANCELLED
         ]);
 
+        $this->logUpdate(
+            'project',
+            $project->id,
+            ['status' => 'Đang đợi'],
+            ['status' => 'Hủy']
+        );
+
         return $project;
     }
 
-
-    /*
-   
-    3. HOÀN THÀNH (1 -> 3)
-    
-    */
     public function completeProject($id)
     {
         $project = Project::findOrFail($id);
 
-        //Nếu đã hoàn thành rồi
         if ((int) $project->status === self::STATUS_COMPLETED) {
-            throw new \Exception("The project has already been completed");
+            throw new \Exception("Dự án công việc này đã được đánh dấu hoàn thành trước đó");
         }
-
-        //Cho phép chỉnh sửa chứ không phải ở trạng thái đang làm rồi chuyển sang hoan thành, sửa lại code để cho phép điều chỉnh
-        // if (!in_array((int)$project->status, [
-        //     self::STATUS_IN_PROGRESS,
-        //     self::STATUS_ADJUST
-        // ])) {
-        //     throw new \Exception("You must accept the project before completing it");
-        // }
 
         if ((int) $project->status !== self::STATUS_IN_PROGRESS) {
-            throw new \Exception("You must accept the project before completing it");
+            throw new \Exception("Chỉ có thể hoàn thành nếu dự án đang được thực hiện tại phòng ban");
         }
 
-        //Cập nhật hoàn thành
         $project->update([
             'status' => self::STATUS_COMPLETED
         ]);
 
+        $this->logUpdate(
+            'project',
+            $project->id,
+            ['status' => 'Thực hiện'],
+            ['status' => 'Hoàn thành']
+        );
+
         return $project;
     }
 
-
-    //Cần chỉnh sửa gì đó               
+    //Hiện giờ chưa sử dụng
     public function adjustProject($id)
     {
         $project = Project::findOrFail($id);
@@ -123,11 +114,7 @@ class ProjectService
         return $project;
     }
 
-    /*
-   
-     4. SEARCH PROJECT
-    
-    */
+
     public function searchProject($bookName = null, $departmentName = null)
     {
         return Project::with(['book', 'department'])
@@ -144,23 +131,11 @@ class ProjectService
             ->get();
     }
 
-
-    /*
-    
-    5. SÁCH CHƯA PHÂN CÔNG
-   
-    */
     public function booksNotAssigned()
     {
         return Book::whereDoesntHave('projects')->get();
     }
 
-
-    /*
-   
-    6. PHÂN CÔNG SÁCH
-    
-    */
     public function assignBookToDepartments($bookId, array $departmentIds, ?string $description = null)
     {
         return DB::transaction(function () use ($bookId, $departmentIds, $description) {
@@ -168,10 +143,11 @@ class ProjectService
             $book = Book::findOrFail($bookId);
 
             if ((int) $book->status !== $this->bookService->pendingStatus()) {
-                throw new \Exception("Only books with status = Pending can be assigned.");
+                throw new \Exception("Chỉ phân công khi sách đang ở trạng thái chờ thực hiện");
             }
 
             $projects = [];
+            $createdProjects = [];
 
             foreach ($departmentIds as $departmentId) {
 
@@ -189,17 +165,39 @@ class ProjectService
                     continue;
                 }
 
-                $projects[] = Project::create([
+                $project = Project::create([
                     'book_id'       => $bookId,
                     'department_id' => $departmentId,
                     'description'   => $description,
                     'status'        => self::STATUS_PENDING
                 ]);
+
+                $projects[] = $project;
+                $createdProjects[] = $project->load(['book', 'department']);
             }
+
+
 
             if (!empty($projects)) {
                 $book->update([
                     'status' => $this->bookService->processingStatus()
+                ]);
+            }
+
+            foreach ($createdProjects as $project) {
+                $this->logCreate('project', $project->id, [
+                    'id' => $project->id,
+                    'book' => [
+                        'id' => $book->id,
+                        'name' => $book->name,
+                        'bookCode' => $book->bookCode,
+                    ],
+                    'department' => [
+                        'id' => $project->department->id,
+                        'name' => $project->department->name,
+                    ],
+                    'description' => $project->description,
+                    'status' => $project->status
                 ]);
             }
 
@@ -235,12 +233,33 @@ class ProjectService
                     throw new \Exception("Department ID {$departmentId} is already assigned to this book.");
                 }
 
-                $projects[] = Project::create([
+                $project = Project::create([
                     'book_id'       => $bookId,
                     'department_id' => $departmentId,
                     'description'   => $description,
                     'status'        => self::STATUS_PENDING
                 ]);
+
+                $projects[] = $project;
+                $createdProjects[] = $project->load(['book', 'department']);
+
+                foreach ($createdProjects as $project) {
+                    $this->logCreate('project', $project->id, [
+                        'id' => $project->id,
+                        'book' => [
+                            'id' => $book->id,
+                            'name' => $book->name,
+                            'bookCode' => $book->bookCode,
+                        ],
+                        'department' => [
+                            'id' => $project->department->id,
+                            'name' => $project->department->name,
+                        ],
+                        'description' => $project->description,
+                        'status' => $project->status,
+                        'action' => 'add department when processing'
+                    ]);
+                }
             }
 
             return $projects;

@@ -18,6 +18,7 @@ return new class extends Migration
                 ->unique()
                 ->constrained('employees')
                 ->cascadeOnDelete();
+
             $table->rememberToken();
             $table->timestamps();
         });

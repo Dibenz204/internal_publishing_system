@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const { user, login } = useAuth();
     const navigate = useNavigate();
+
+    if (user) return <Navigate to="/profile" replace />;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -15,8 +19,8 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await AuthService.login(username, password);
-            navigate('/dashboard');
+            await login(username, password);
+            navigate('/profile');
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại');
         } finally {

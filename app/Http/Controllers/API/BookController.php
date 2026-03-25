@@ -11,13 +11,13 @@ use Illuminate\Http\JsonResponse;
 class BookController extends Controller
 {
     protected BookService $bookService;
-    // Khởi tạo BookService
+
     public function __construct(BookService $bookService)
     {
         $this->bookService = $bookService;
     }
 
-    // Lấy danh sách tất cả sách
+
     public function index(): JsonResponse
     {
         $data = $this->bookService->getAll();
@@ -29,7 +29,7 @@ class BookController extends Controller
         ]);
     }
 
-    // Lấy chi tiết một cuốn sách theo ID
+
     public function show(int $id): JsonResponse
     {
         $book = $this->bookService->findById($id);
@@ -41,7 +41,7 @@ class BookController extends Controller
         ]);
     }
 
-    // Tạo mới sách
+
     public function store(Request $request): JsonResponse
     {
         $book = $this->bookService->create($request->all());
@@ -53,7 +53,7 @@ class BookController extends Controller
         ], 201);
     }
 
-    // Cập nhật thông tin sách
+
     public function update(Request $request, int $id): JsonResponse
     {
         $book = $this->bookService->update($id, $request->all());
@@ -65,26 +65,6 @@ class BookController extends Controller
         ]);
     }
 
-    // Cập nhật tiến độ đọc
-    public function updateProgress(Request $request, int $id): JsonResponse
-    {
-        $request->validate([
-            'current_page' => 'required|integer|min:0'
-        ]);
-
-        $book = $this->bookService->updateProgress(
-            $id,
-            $request->current_page
-        );
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Progress updated successfully',
-            'data'    => $book
-        ]);
-    }
-
-    // Đánh dấu hoàn thành thủ công
     public function finish(int $id): JsonResponse
     {
         $book = $this->bookService->finish($id);
@@ -96,7 +76,7 @@ class BookController extends Controller
         ]);
     }
 
-    // Hủy sách
+
     public function cancel(int $id): JsonResponse
     {
         $book = $this->bookService->cancel($id);
@@ -108,7 +88,7 @@ class BookController extends Controller
         ]);
     }
 
-    // Tìm kiếm sách
+
     public function search(Request $request)
     {
         $books = $this->bookService->search($request->query());

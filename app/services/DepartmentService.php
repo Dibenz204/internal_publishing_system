@@ -3,95 +3,154 @@
 namespace App\Services;
 
 use App\Models\Department;
+use App\Models\Employee;
+use App\Traits\LogsActivity;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
 
 class DepartmentService
 {
-    /**
-     * Lấy tất cả phòng ban hoặc theo name
-     */
+    use LogsActivity;
+
     public function getAll(?string $keyword = null)
     {
-        return Department::query()
+        return Department::withCount([
+            'employees as active_employees_count' => fn($q) => $q->where('status', 1)
+        ])
             ->when(!empty(trim($keyword ?? '')), function ($query) use ($keyword) {
                 $query->whereRaw(
                     'LOWER(name) LIKE ?',
                     ['%' . strtolower(trim($keyword)) . '%']
                 );
             })
+            ->orderByDesc('status')
+            ->orderByDesc('category')
             ->orderByDesc('id')
             ->get();
     }
-    
 
 
-    /**
-     * Lấy chi tiết phòng ban
-     */
+
     public function findById(int $id): Department
     {
-        return Department::findOrFail($id);
+        return Department::with([
+            'employees' => function ($query) {
+                $query->with('position')
+                    ->orderByDesc('status');
+            }
+        ])->findOrFail($id);
     }
 
-    /**
-     * Tạo phòng ban
-     */
     public function create(array $data): Department
-{
-    $this->validate($data);
+    {
+        $this->validate($data);
 
-    return Department::create([
-        'name'   => trim($data['name']),
-        'category' => $data['category'],
-        'status' => 1, // luôn active khi tạo
-    ]);
-}
+        $department = Department::create([
+            'name'     => trim($data['name']),
+            'category' => trim($data['category']),
+            'status'   => $data['status'] ?? 1,
+        ]);
+
+        $this->logCreate('department', $department->id, [
+            'name' => $department->name,
+            'category' => $department->category
+        ]);
+
+        return $department;
+    }
 
 
-    /**
-     * Cập nhật phòng ban
-     */
     public function update(int $id, array $data): Department
-{
-    $this->validate($data, $id);
+    {
+        $this->validate($data, $id);
 
-    $department = Department::findOrFail($id);
+        $department = Department::findOrFail($id);
 
-    $department->update([
-        'name' => trim($data['name']),
-        'category' => $data['category'],
-    ]);
+        if (isset($data['status']) && (int)$data['status'] === 0) {
+            $hasEmployees = Employee::where('department_id', $id)
+                ->where('status', 1)->exists();
+            if ($hasEmployees) {
+                throw ValidationException::withMessages([
+                    'status' => ['Phòng ban vẫn còn nhân viên đang làm việc']
+                ]);
+            }
+        }
 
-    return $department;
-}
+        $oldDepartment = $department->toArray();
+
+        $department->update([
+            'name' => trim($data['name']),
+            'category' => trim($data['category']),
+            'status' => trim($data['status']),
+        ]);
+
+        $newData = $department->fresh()->toArray();
+
+        $this->logUpdate('department', $department->id, $oldDepartment, $newData);
+
+        return $department;
+    }
+
+    public function activate(int $id): Department
+    {
+        $department = Department::findOrFail($id);
+
+        $department->update(['status' => 1]);
+
+        $this->logUpdate(
+            'book',
+            $id,
+            ['status' => 'Ngừng'],
+            ['status' => 'Hoạt động']
+        );
+
+        return $department;
+    }
+
+    public function deactivate(int $id): Department
+    {
+        $department = Department::findOrFail($id);
+
+        $hasEmployees = Employee::where('department_id', $id)
+            ->where('status', 1)->exists();
+
+        if ($hasEmployees) {
+            throw ValidationException::withMessages([
+                'status' => ['Phòng ban vẫn còn nhân viên đang làm việc']
+            ]);
+        }
+
+        $department->update(['status' => 0]);
+
+        $this->logUpdate(
+            'book',
+            $id,
+            ['status' => 'Hoạt động'],
+            ['status' => 'Ngừng']
+        );
+
+        return $department;
+    }
 
 
 
-    /**
-     * Validate dữ liệu
-     */
     protected function validate(array $data, ?int $id = null): void
-{
-    validator($data, [
-        'name' => [
-            'required',
-            'string',
-            'max:255',
-            Rule::unique('departments', 'name')->ignore($id),
-        ],
-         'category' => [
-            'required',
-            'string',
-            'max:255'
-        ]
-    ])->validate();
-}
-
-    /**
-     * Lọc theo keyword
-     */
+    {
+        validator($data, [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('departments', 'name')->ignore($id),
+            ],
+            'category' => [
+                'required',
+                'string',
+                'max:255'
+            ]
+        ])->validate();
+    }
 
     public function search(?string $keyword)
     {
@@ -103,38 +162,4 @@ class DepartmentService
             ->orderBy('id', 'desc')
             ->get();
     }
-
-    /**
- * (status = 1)
- */
-public function activate(int $id): Department
-{
-    $department = Department::findOrFail($id);
-
-    $department->update([
-        'status' => 1
-    ]);
-
-    return $department;
-}
-
-/**
- *(status = 0)
- */
-public function deactivate(int $id): Department
-{
-    $department = Department::with('employees')->findOrFail($id);
-
-    if ($department->employees()->where('status', 1)->exists()) {
-        throw new \Exception('Cannot deactivate this department because it still has active employees.');
-    }
-
-    $department->update([
-        'status' => 0
-    ]);
-
-    return $department;
-}
-
-
 }

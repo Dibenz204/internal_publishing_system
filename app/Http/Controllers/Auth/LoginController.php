@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use Illuminate\Validation\ValidationException;
+use App\Traits\LogsActivity;
+use App\Models\AuditLog;
 
 class LoginController extends Controller
 {
+
+    use LogsActivity;
+
     public function apiLogin(Request $request)
     {
         $credentials = $request->validate([
@@ -18,6 +21,22 @@ class LoginController extends Controller
         ]);
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+
+            AuditLog::create([
+                'user_id'      => null,
+                'user_name'    => null,
+                'user_position' => null,
+                'action'       => 'login_failed',
+                'module'       => 'auth',
+                'record_id'    => null,
+                'old_data'     => null,
+                'new_data'     => ['username' => $request->username],
+                'ip_address'   => $request->ip(),
+                'user_agent'   => $request->userAgent(),
+                'method'       => $request->method(),
+                'url'          => $request->fullUrl(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Tên đăng nhập hoặc mật khẩu không đúng.'
@@ -29,6 +48,21 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if ($user->status == 0) {
+            AuditLog::create([
+                'user_id'      => $user->id,
+                'user_name'    => $user->username,
+                'user_position' => $user->positionName,
+                'action'       => 'login_blocked',
+                'module'       => 'auth',
+                'record_id'    => $user->id,
+                'old_data'     => null,
+                'new_data'     => ['reason' => 'Tài khoản bị khóa'],
+                'ip_address'   => $request->ip(),
+                'user_agent'   => $request->userAgent(),
+                'method'       => $request->method(),
+                'url'          => $request->fullUrl(),
+            ]);
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -38,6 +72,14 @@ class LoginController extends Controller
                 'message' => 'Tài khoản đã bị khóa.'
             ], 403);
         }
+
+
+        $this->logActivity(
+            action: 'login',
+            module: 'auth',
+            recordId: $user->id,
+            newData: ['username' => $user->username]
+        );
 
         return response()->json([
             'success' => true,
@@ -64,6 +106,13 @@ class LoginController extends Controller
 
     public function apiLogout(Request $request)
     {
+
+        $this->logActivity(
+            action: 'logout',
+            module: 'auth',
+            recordId: Auth::id(),
+        );
+
         Auth::logout();
 
         $request->session()->invalidate();
@@ -87,8 +136,15 @@ class LoginController extends Controller
                     'username' => $user->username,
                     'position' => $user->positionName,
                     'employee' => $user->employee ? [
-                        'name' => $user->employee->name,
-                        'position' => $user->employee->position->name ?? null,
+                        'id'         => $user->employee->id,
+                        'name'       => $user->employee->name,
+                        'email'      => $user->employee->email,
+                        'phone'      => $user->employee->phone,
+                        'birthday'   => $user->employee->birthday,
+                        'sex'        => $user->employee->sex ? 'Nam' : 'Nữ',
+                        'status'     => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
+                        'department' => $user->employee->department->name ?? null,
+                        'position'   => $user->employee->position->name ?? null,
                     ] : null
                 ]
             ]);
@@ -98,173 +154,4 @@ class LoginController extends Controller
             'authenticated' => false
         ], 401);
     }
-
-
-
-    //SỬ DỤNG TOKEN
-    // public function apiLogin(Request $request)
-    // {
-    //     $credentials = $request->validate([
-    //         'username' => 'required|string',
-    //         'password' => 'required|string',
-    //     ]);
-
-    //     if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Tên đăng nhập hoặc mật khẩu không đúng.'
-    //         ], 401);
-    //     }
-
-    //     $request->session()->regenerate(); // chống session fixation
-
-    //     $user = Auth::user();
-
-    //     if ($user->status == 0) {
-    //         Auth::logout();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Tài khoản đã bị khóa.'
-    //         ], 403);
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Đăng nhập thành công',
-    //         'user' => [
-    //             'id' => $user->id,
-    //             'username' => $user->username,
-    //             'status' => $user->status,
-    //             'position' => $user->positionName,
-    //             'employee' => [
-    //                 'id' => $user->employee->id,
-    //                 'name' => $user->employee->name,
-    //                 'email' => $user->employee->email,
-    //                 'phone' => $user->employee->phone,
-    //                 'birthday' => $user->employee->birthday,
-    //                 'sex' => $user->employee->sex ? 'Nam' : 'Nữ',
-    //                 'status' => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
-    //                 'department' => $user->employee->department->name,
-    //                 'position' => $user->employee->position->name,
-    //             ]
-    //         ]
-    //     ]);
-    // }
-    // public function apiLogin(Request $request)
-    // {
-    //     $credentials = $request->validate([
-    //         'username' => 'required|string',
-    //         'password' => 'required|string',
-    //     ]);
-
-    //     if (Auth::attempt($credentials, $request->boolean('remember'))) {
-    //         $user = Auth::user();
-
-    //         if ($user->status == 0) {
-    //             Auth::logout();
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Tài khoản đã bị khóa.'
-    //             ], 401);
-    //         }
-
-
-    //         // Xóa token cũ trong database (dạng thay thế token cũ)
-    //         // Nhưng hiện tại dựa vào token, sẽ truy xuất được lượt đăng nhập, nên về sau sẽ tính tới trường hợp xóa token cũ
-    //         // $user->tokens()->delete();
-
-
-    //         // Khi tạo token mới
-    //         $token = $user->createToken('auth-token')->plainTextToken;
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Đăng nhập thành công',
-    //             'user' => [
-    //                 'id' => $user->id,
-    //                 'username' => $user->username,
-    //                 'status' => $user->status,
-    //                 'position' => $user->positionName,
-    //                 // 'employee' => $user->employee, //Cách này thì trả ra toàn bộ thông tin emp cx như toàn bộ tt khóa ngoại
-    //                 'employee' => [
-    //                     'id' => $user->employee->id,
-    //                     'name' => $user->employee->name,
-    //                     'email' => $user->employee->email,
-    //                     'phone' => $user->employee->phone,
-    //                     'birthday' => $user->employee->birthday,
-    //                     'sex' => $user->employee->sex ? 'Nam' : 'Nữ',
-    //                     'status' => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
-    //                     'department_id' => $user->employee->department->name,
-    //                     'position_id' => $user->employee->position->name,
-    //                 ]
-    //             ],
-    //             'token' => $token, // Nếu dùng Sanctum
-    //             // 'redirect' => $this->getDashboardRoute($user)
-    //         ]);
-    //     }
-
-    //     return response()->json([
-    //         'success' => false,
-    //         'message' => 'Tên đăng nhập hoặc mật khẩu không đúng.'
-    //     ], 401);
-    // }
-
-    // public function apiLogout(Request $request)
-    // {
-    //     try {
-    //         $request->user()->currentAccessToken()->delete();
-
-    //         Auth::logout();
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Đăng xuất thành công'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Có lỗi xảy ra khi đăng xuất'
-    //         ], 500);
-    //     }
-    // }
-
-    // // Để sẵn mốt tùy chỉnh sau
-    // private function getDashboardRoute($user)
-    // {
-    //     $positionName = $user->positionName;
-
-    //     switch ($positionName) {
-    //         case 'Admin':
-    //             return '/admin/dashboard';
-    //         case 'Quản lý':
-    //             return '/manager/dashboard';
-    //         case 'Thủ thư':
-    //             return '/librarian/dashboard';
-    //         case 'Nhân viên':
-    //             return '/employee/dashboard';
-    //         default:
-    //             return '/dashboard';
-    //     }
-    // }
-
-    // public function checkAuth(Request $request)
-    // {
-    //     if (Auth::check()) {
-    //         $user = Auth::user();
-    //         return response()->json([
-    //             'authenticated' => true,
-    //             'user' => [
-    //                 'id' => $user->id,
-    //                 'username' => $user->username,
-    //                 'email' => $user->email,
-    //                 'position' => $user->positionName,
-    //                 'employee' => $user->employee,
-    //             ]
-    //         ]);
-    //     }
-
-    //     return response()->json([
-    //         'authenticated' => false
-    //     ], 401);
-    // }
 }

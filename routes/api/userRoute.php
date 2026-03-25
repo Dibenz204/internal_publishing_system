@@ -5,15 +5,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('users')->group(function () {
 
+    // đổi pw
+    Route::put('/{id}/change-password', [UserController::class, 'changePassword']);
+
     Route::middleware('position:HR,Admin')->group(function () {
 
         Route::get('/', [UserController::class, 'index']);
 
         // theo tên nhân viên
         Route::get('/search', [UserController::class, 'search']);
-
-        // đổi pw
-        Route::put('/{id}/change-password', [UserController::class, 'changePassword'])->name('users.change-password');
     });
 
     // theo email/phone

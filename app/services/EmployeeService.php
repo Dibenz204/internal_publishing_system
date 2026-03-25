@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\Allocation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -11,17 +12,19 @@ use App\Models\Position;
 use App\Models\Department;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Str;
 
 class EmployeeService
 {
+    use LogsActivity;
 
     private function validateEmployee(array $data, ?int $id = null): array
     {
         $rules = [
             'name'          => 'sometimes|required|string|max:255',
             'email'         => 'sometimes|required|email|unique:employees,email' . ($id ? ',' . $id : ''),
-            'phone'         => 'sometimes|nullable|digits:11|unique:employees,phone' . ($id ? ',' . $id : ''),
+            'phone'         => 'sometimes|nullable|digits_between:10,11|unique:employees,phone' . ($id ? ',' . $id : ''),
             'birthday'      => 'nullable|date',
             'sex'           => 'nullable|in:0,1',
             'status'        => 'nullable|in:0,1',
@@ -38,11 +41,6 @@ class EmployeeService
         return $validator->validated();
     }
 
-
-
-    /**
-     * Lấy danh sách nhân viên (chỉ active)
-     */
     public function getAll()
     {
         return Employee::select(
@@ -61,12 +59,12 @@ class EmployeeService
                 'position:id,name'
             ])
             ->where('status', 1)
+            ->orderByDesc('status')
+            ->orderByDesc('position')
+            ->orderByDesc('id')
             ->get();
     }
 
-    /**
-     * Lấy danh sách nhân viên
-     */
     public function getAllEmployees()
     {
         return Employee::select(
@@ -87,9 +85,6 @@ class EmployeeService
             ->get();
     }
 
-    /**
-     * Tạo nhân viên mới
-     */
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -121,7 +116,6 @@ class EmployeeService
             $birthday = Carbon::parse($employee->birthday)->format('dmY');
             $username = $nameSlug . $birthday;
 
-            // Phòng hờ TH nếu username đã tồn tại
             $originalUsername = $username;
             $counter = 1;
             while (User::where('username', $username)->exists()) {
@@ -138,12 +132,26 @@ class EmployeeService
 
             app(UserService::class)->create($userData);
 
+            $this->logCreate('employee', $employee->id, [
+                'name' => $employee->name,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+                'sex' => $employee->sex == 1 ? 'Nam' : ($employee->sex == 2 ? 'Nữ' : 'Khác'),
+                'department' => [
+                    'id' => $department->id,
+                    'name' => $department->name
+                ],
+                'position' => [
+                    'id' => $position->id,
+                    'name' => $position->name
+                ],
+                'username' => $username,
+            ]);
+
             return $employee;
         });
     }
-    /**
-     * Cập nhật nhân viên
-     */
+
     public function update(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
@@ -152,7 +160,23 @@ class EmployeeService
 
             $data = $this->validateEmployee($data, $id);
 
-            //check department active nếu có gửi
+            $oldData = [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+                'department' => [
+                    'id' => $employee->department_id,
+                    'name' => $employee->department->name ?? null,
+                ],
+                'position' => [
+                    'id' => $employee->position_id,
+                    'name' => $employee->position->name ?? null,
+                ],
+                'status' => $employee->status,
+                'status_text' => $employee->status == 1 ? 'Đang làm' : 'Nghỉ làm',
+            ];
+
             if (isset($data['department_id'])) {
                 $department = Department::findOrFail($data['department_id']);
 
@@ -163,7 +187,7 @@ class EmployeeService
                 }
             }
 
-            // check position active nếu có gửi
+
             if (isset($data['position_id'])) {
                 $position = Position::findOrFail($data['position_id']);
 
@@ -174,7 +198,7 @@ class EmployeeService
                 }
             }
 
-            // normalize
+
             if (isset($data['name'])) {
                 $data['name'] = trim($data['name']);
             }
@@ -187,20 +211,46 @@ class EmployeeService
                 $data['sex'] = (int)$data['sex'];
             }
 
-            if (isset($data['status'])) {
-                $data['status'] = (int)$data['status'];
+            if (isset($data['status']) && $data['status'] != $employee->status) {
+
+                $hasActiveAllocation = Allocation::where('employee_id', $id)
+                    ->whereIn('status', [1, 3])
+                    ->exists();
+
+                if ($hasActiveAllocation) {
+                    throw ValidationException::withMessages([
+                        'status' => ['Employee is currently assigned to an active allocation'],
+                    ]);
+                }
             }
 
             $employee->update($data);
+
+            $employee->load(['department', 'position']);
+
+            $newData = [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+                'department' => [
+                    'id' => $employee->department_id,
+                    'name' => $employee->department->name ?? null,
+                ],
+                'position' => [
+                    'id' => $employee->position_id,
+                    'name' => $employee->position->name ?? null,
+                ],
+                'status' => $employee->status
+            ];
+
+            $this->logUpdate('employee', $id, $oldData, $newData);
 
             return $employee->fresh();
         });
     }
 
 
-    /**
-     * Vô hiệu hoá nhân viên( đổi trạng thái thành 0)
-     */
     public function deactivate(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -213,12 +263,17 @@ class EmployeeService
                 $employee->user->update(['status' => false]);
             }
 
+            $this->logUpdate(
+                'employee',
+                $id,
+                ['status' => 'Đang làm'],
+                ['status' => 'Nghỉ làm']
+            );
+
             return $employee->fresh()->load('user');
         });
     }
-    /**
-     * Tìm nhân viên theo id
-     */
+
     public function findById(int $id)
     {
         return Employee::with([
@@ -229,10 +284,6 @@ class EmployeeService
     }
 
 
-
-    /**
-     * Mở lại nhân viên (đổi trạng thái thành 1)
-     */
     public function activate(int $id)
     {
         return DB::transaction(function () use ($id) {
@@ -243,13 +294,18 @@ class EmployeeService
                 $employee->user->update(['status' => true]);
             }
 
+            $this->logUpdate(
+                'employee',
+                $id,
+                ['status' => 'Nghỉ làm'],
+                ['status' => 'Đang làm']
+            );
+
             return $employee->fresh()->load('user');
         });
     }
 
-    /**
-     * Search / Filter employees
-     */
+
     public function search(array $filters)
     {
         $query = Employee::with(['department', 'position']);
@@ -267,10 +323,17 @@ class EmployeeService
 
             $query->where(function ($q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
-                    ->orWhere('email', 'like', "%{$keyword}%");
+                    ->orWhere('phone', 'like', "%{$keyword}%")
+                    ->orWhereHas('position', function ($q2) use ($keyword) {
+                        $q2->where('name', 'like', "%{$keyword}%");
+                    });
             });
         }
 
-        return $query->orderByDesc('id')->paginate(10);
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $query->where('status', (int)$filters['status']);
+        }
+
+        return $query->orderByDesc('status')->orderByDesc('id')->paginate(10);
     }
 }

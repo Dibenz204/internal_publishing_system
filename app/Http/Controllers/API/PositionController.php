@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\PositionService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+
 class PositionController extends Controller
 {
     protected PositionService $positionService;
@@ -15,27 +16,22 @@ class PositionController extends Controller
         $this->positionService = $positionService;
     }
 
-    /**
-     * GET /api/positions
-     * Có thể filter theo status
-     */
+
     public function index(Request $request)
-{
-    $positions = $this->positionService->getAll(
-        $request->query('keyword')
-    );
+    {
+        $positions = $this->positionService->getAll(
+            $request->query('keyword')
+        );
 
-    return response()->json([
-        'success' => true,
-        'message' => 'List retrieved successfully',
-        'data'    => $positions
-    ], 200);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'List retrieved successfully',
+            'data'    => $positions
+        ], 200);
+    }
 
 
-    /**
-     * POST /api/positions
-     */
+
     public function store(Request $request)
     {
         $position = $this->positionService->create($request->all());
@@ -47,9 +43,7 @@ class PositionController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/positions/{id}
-     */
+
     public function update(Request $request, int $id)
     {
         $position = $this->positionService->update($id, $request->all());
@@ -61,9 +55,7 @@ class PositionController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/positions/{id}/activate
-     */
+
     public function activate(int $id)
     {
         return response()->json([
@@ -73,9 +65,7 @@ class PositionController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/positions/{id}/deactivate
-     */
+
     public function deactivate(int $id)
     {
         return response()->json([

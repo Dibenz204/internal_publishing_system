@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class UserService
 {
+    use LogsActivity;
+
     private function validateCreate(array $data): array
     {
         $validator = Validator::make($data, [
@@ -51,14 +54,45 @@ class UserService
 
         $validated = $this->validateCreate($data);
 
-        return User::create($validated);
+        $user = User::create($validated);
+
+        $this->logCreate('user', $user->id, [
+            'id' => $user->id,
+            'username' => $user->username,
+            'employee' => $user->employee->id,
+            'default_password' => '123456'
+        ]);
+
+        return $user;
     }
 
     public function update(User $user, array $data): User
     {
         $validated = $this->validateUpdate($data, $user->id);
 
+        $oldData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'employee' => $user->employee ? [
+                'id' => $user->employee->id,
+                'name' => $user->employee->name,
+            ] : null,
+            'status' => $user->status
+        ];
+
         $user->update($validated);
+
+        $user->load('employee');
+
+        $newData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'employee' => $user->employee ? [
+                'id' => $user->employee->id,
+                'name' => $user->employee->name,
+            ] : null,
+            'status' => $user->status
+        ];
 
         return $user->fresh();
     }
@@ -68,7 +102,6 @@ class UserService
         return User::with('employee.position')->get();
     }
 
-    // Search theo tên nhân viên (employee.name)
     public function getByEmployeeName(string $name)
     {
         return User::with('employee.position')
@@ -92,7 +125,29 @@ class UserService
             ]);
         }
 
+        if (Hash::check($newPassword, $user->password)) {
+            throw ValidationException::withMessages([
+                'new_password' => ['Mật khẩu mới không được trùng mật khẩu hiện tại']
+            ]);
+        }
+
+        $oldData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'password_changed' => false,
+        ];
+
         $user->update(['password' => $newPassword]);
+
+        $newData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'password_changed' => true,
+            'changed_at' => now()->toDateTimeString(),
+            'changed_by' => auth()->user()?->name ?? $user->username,
+        ];
+
+        $this->logUpdate('user', $user->id, $oldData, $newData);
 
         return true;
     }
@@ -121,8 +176,33 @@ class UserService
             ]);
         }
 
-        $user = User::findOrFail($userId);
+        $user = User::with('employee')->findOrFail($userId);
+
+        $oldData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'employee' => $user->employee ? [
+                'id' => $user->employee->id,
+                'name' => $user->employee->name,
+            ] : null,
+            'action' => 'reset_password',
+        ];
+
         $user->update(['password' => $newPassword]);
+
+        $newData = [
+            'id' => $user->id,
+            'username' => $user->username,
+            'employee' => $user->employee ? [
+                'id' => $user->employee->id,
+                'name' => $user->employee->name,
+            ] : null,
+            'action' => 'password_reset',
+            'reset_by' => auth()->user()?->name ?? 'Admin',
+            'reset_at' => now()->toDateTimeString()
+        ];
+
+        $this->logUpdate('user', $user->id, $oldData, $newData);
 
         return true;
     }

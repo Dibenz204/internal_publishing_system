@@ -1,40 +1,76 @@
-
-// import React from 'react';
-// import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// import Login from './pages/Login';
-// import Dashboard from './pages/dashboard';
-
-// function App() {
-//     return (
-//         <Routes>
-//             <Route path="/login" element={<Login />} />
-//             <Route path="/dashboard" element={<Dashboard />} />
-//             {/* <Route path="/" element={<Navigate to="/dashboard" replace />} />
-//                 <Route path="*" element={<Navigate to="/login" replace />} /> */}
-//         </Routes>
-//     );
-// }
-
-// export default App;
-
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/Protectedroute';
+import Layout from './components/Layout/Layout';
+
 import Login from './pages/Login';
-import Dashboard from './pages/dashboard';
+import Profile from './pages/Profile';
+import Users from './pages/Users';
+import Books from './pages/Books';
+import BookTransferDetail from './pages/BookTransferDetail';
+
+import Departments from './pages/Departments';
+import DepartmentDetail from './pages/DepartmentDetail';
+import Settings from './pages/Setting';
+
+import DepartmentBooks from './pages/DepartmentBook';
+import Allocation from './pages/Allocation';
+import MyAllocation from './pages/MyAllocation';
+
+import ReportPage from './pages/Reportpage';
+
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
 
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route element={<Layout />}>
 
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-        </BrowserRouter>
+                            <Route path="/profile" element={<Profile />} />
+
+                            <Route path="/books" element={<Books />} />
+                            <Route path="/books/:id/transfers" element={<BookTransferDetail />} />
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR', 'Trưởng phòng']} />}>
+                                <Route path="/departments/:id" element={<DepartmentDetail />} />
+                            </Route>}
+
+                            <Route path="/departmentbook" element={<DepartmentBooks />} />
+
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'HR', 'Thư kí biên tập', 'Trưởng phòng']} />}>
+                                <Route path="/departments" element={<Departments />} />
+                                <Route path="/users" element={<Users />} />
+                            </Route>}
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Thư kí biên tập', 'Kế toán']} />}>
+                                <Route path="/settings" element={<Settings />} />
+                            </Route>}
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Trưởng phòng']} />}>
+                                <Route path="/allocation/:projectId" element={<Allocation />} />
+                            </Route>}
+
+                            <Route path="/my-allocations" element={<MyAllocation />} />
+
+                            <Route path="/reports" element={<ReportPage />} />
+
+                            <Route path="/" element={<Navigate to="/login" replace />} />
+
+                            <Route path="*" element={<Navigate to="/login" replace />} />
+
+                        </Route>
+
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider >
     );
 }
 

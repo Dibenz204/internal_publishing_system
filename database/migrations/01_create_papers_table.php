@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('papers', function (Blueprint $table) {
-            $table->id(); //NOT NULL
-            $table->string('paperSize'); //NOT NULL
-            $table->double('paper_coefficient'); //NOT NULL
+            $table->id();
+            $table->string('paperSize');
+            $table->double('paper_coefficient');
             $table->boolean('status')->default(1);
             $table->timestamps();
         });

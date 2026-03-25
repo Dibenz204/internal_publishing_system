@@ -15,7 +15,7 @@ class JobCategoryController extends Controller
         $this->jobCategoryService = $jobCategoryService;
     }
 
-    // Lấy tất cả
+
     public function getAll()
     {
         $data = $this->jobCategoryService->getAll();
@@ -27,7 +27,6 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    // Lấy những cái đang hoạt động
     public function getActive()
     {
         $data = $this->jobCategoryService->getActive();
@@ -39,7 +38,6 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    // Tạo mới
     public function create(Request $request)
     {
         $data = $this->jobCategoryService->create($request->all());
@@ -51,7 +49,7 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    public function updateName(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $data = $this->jobCategoryService->update($id, $request->all());
 
@@ -62,15 +60,37 @@ class JobCategoryController extends Controller
         ]);
     }
 
-    // Tắt trạng thái
-    public function disable($id)
+    public function getByCategory($category)
     {
-        $data = $this->jobCategoryService->disable($id);
+        try {
+            $jobCategories = $this->jobCategoryService->getByCategory($category);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Job category disabled successfully',
-            'data' => $data
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $jobCategories
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function getGrouped()
+    {
+        try {
+            $data = $this->jobCategoryService->getAllGroupedByCategory();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 }

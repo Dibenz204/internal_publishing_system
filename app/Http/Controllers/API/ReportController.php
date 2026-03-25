@@ -2,71 +2,176 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Services\ReportService;
 use Illuminate\Http\Request;
+use App\Services\ReportService;
+use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
-    protected ReportService $reportService;
+    protected $reportService;
 
     public function __construct(ReportService $reportService)
     {
         $this->reportService = $reportService;
     }
 
-    //get tất cả
-    public function index(Request $request)
-    {
-        $data = $this->reportService->getAll(
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
-        );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Reports retrieved successfully',
-            'data' => $data
-        ]);
+    public function store($allocationId)
+    {
+        try {
+
+            $report = $this->reportService->createFromAllocation($allocationId);
+
+            return response()->json([
+                'message' => 'Create report successfully',
+                'data' => $report
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
 
-    //theo phòng ban
-    public function byDepartment(Request $request, $departmentId)
+    public function myDepartmentReport(Request $request)
     {
-        $data = $this->reportService->getByDepartment(
+        $departmentId = auth()->user()->department_id;
+
+        $data = $this->reportService->getDepartmentReport(
             $departmentId,
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
+            [
+                'year' => $request->year,
+                'month' => $request->month,
+                'employee_name' => $request->employee_name
+            ]
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Department reports retrieved successfully',
             'data' => $data
         ]);
     }
 
-
-    //theo cá nhân
-    public function byEmployee(Request $request, $employeeId)
+    public function overviewReport(Request $request)
     {
-        $data = $this->reportService->getByEmployee(
-            $employeeId,
-            $request->from_month,
-            $request->from_year,
-            $request->to_month,
-            $request->to_year
+        $data = $this->reportService->getOverviewReport([
+            'department_id' => $request->department_id,
+            'year' => $request->year,
+            'month' => $request->month,
+            'employee_name' => $request->employee_name
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+    public function completedProjects(Request $request)
+    {
+        $filters = $request->validate([
+            'department_id' => 'nullable|exists:departments,id',
+            'employee_name' => 'nullable|string|max:255',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date'
+        ]);
+
+        $report = $this->reportService->getCompletedProjectsReport($filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report
+        ]);
+    }
+
+    public function departmentReport(Request $request, int $departmentId)
+    {
+        $filters = $request->validate([
+            'employee_name' => 'nullable|string|max:255',
+            'employee_id'   => 'nullable|integer|exists:employees,id',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date'
+        ]);
+
+        $report = $this->reportService->getDepartmentReport($departmentId, $filters);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report
+        ]);
+    }
+
+    public function projectDetail(int $projectId)
+    {
+        try {
+            $report = $this->reportService->getProjectReportDetail($projectId);
+
+            return response()->json([
+                'success' => true,
+                'data' => $report
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy dự án hoàn thành với ID: ' . $projectId
+            ], 404);
+        }
+    }
+
+    public function monthlySummary(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => 'nullable|integer|between:1,12',
+            'year' => 'nullable|integer|min:2020|max:' . now()->year,
+            'department_id' => 'nullable|exists:departments,id'
+        ]);
+
+        $month = $validated['month'] ?? now()->month;
+        $year = $validated['year'] ?? now()->year;
+
+        $report = $this->reportService->getMonthlySummary(
+            $month,
+            $year,
+            $validated['department_id'] ?? null
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Employee reports retrieved successfully',
-            'data' => $data
+            'data' => $report
         ]);
+    }
+
+    public function exportDepartmentReport(Request $request, int $departmentId)
+    {
+        $filters = $request->validate([
+            'employee_name' => 'nullable|string|max:255',
+            'employee_id'   => 'nullable|integer|exists:employees,id',
+            'from_date'     => 'nullable|date',
+            'to_date'       => 'nullable|date|after_or_equal:from_date'
+        ]);
+
+        $data = $this->reportService->getDepartmentReport($departmentId, $filters);
+
+        // Nếu có filter employee thì dùng template employee
+        $template = (!empty($filters['employee_id']) || !empty($filters['employee_name']))
+            ? 'reports.employee_report'
+            : 'reports.department_report';
+
+        $pdf = Pdf::loadView($template, [
+            'rows'            => $data['projects'],
+            'total_salary'    => $data['total_salary'],
+            'generated_at'    => $data['generated_at'],
+            'department_name' => $data['projects'][0]['department'] ?? null,
+            'employee_name'   => $filters['employee_name'] ?? ($data['projects'][0]['employee_name'] ?? null),
+        ])->setPaper('a4', 'landscape');
+
+        $filename = (!empty($filters['employee_id']) || !empty($filters['employee_name']))
+            ? 'employee_report.pdf'
+            : 'department_report.pdf';
+
+        return $pdf->stream($filename);
     }
 }

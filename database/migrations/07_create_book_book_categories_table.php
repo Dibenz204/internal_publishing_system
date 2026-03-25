@@ -12,18 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('book_book_categories', function (Blueprint $table) {
-            $table->id(); //NOT NULL
+            $table->id();
 
-            $table->foreignId('book_id') //NOT NULL
+            $table->foreignId('book_id')
                 ->constrained('books')
                 ->cascadeOnDelete();
 
-            $table->foreignId('bookcategory_id') //NOT NULL
+            $table->foreignId('bookcategory_id')
                 ->constrained('bookcategories')
                 ->cascadeOnDelete();
 
-            $table->boolean('status')->default(1); //NOT NULL
-            $table->unique(['book_id', 'bookcategory_id']); //NOT NULL
+            $table->boolean('status')->default(1);
+            $table->unique(['book_id', 'bookcategory_id']);
             $table->timestamps();
         });
     }

@@ -11,9 +11,10 @@ class DepartmentSeeder extends Seeder
     {
         $departments = [
             ['name' => 'Phòng Toán', 'category' => 'Biên tập', 'status' => 1],
-            ['name' => 'Phòng Tin', 'category' => 'Sửa bài', 'status' => 1],
-            ['name' => 'Phòng Vật lý', 'category' => 'Đọc đính chính', 'status' => 0],
+            ['name' => 'Phòng Tin', 'category' => 'Biên tập', 'status' => 1],
+            ['name' => 'Phòng Vật lý', 'category' => 'Biên tập', 'status' => 0],
             ['name' => 'Phòng Tổng hợp', 'category' => 'Biên tập', 'status' => 1],
+            ['name' => 'Phòng kiểm lỗi', 'category' => 'Sửa bài', 'status' => 1],
         ];
 
         foreach ($departments as $item) {

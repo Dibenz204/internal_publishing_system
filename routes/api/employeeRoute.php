@@ -13,6 +13,8 @@ Route::prefix('employees')->group(function () {
 
         Route::get('/search', [EmployeeController::class, 'search']);
 
+        Route::get('/{id}', [EmployeeController::class, 'show']);
+
         Route::post('/', [EmployeeController::class, 'store']);
 
         Route::post('/{id}/create-user', [EmployeeController::class, 'createUser'])

@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Facades\Hash;
 
-// CẦN THÊM 2 ÔNG TRƯỞNG PHÒNG
-
 
 class UserDataSeeder extends Seeder
 {
@@ -88,7 +86,7 @@ class UserDataSeeder extends Seeder
         );
 
 
-        $editorPos = Position::where('name', 'Thư ký biên tập')->first();
+        $editorPos = Position::where('name', 'Thư kí biên tập')->first();
         $editorDep = Department::where('name', 'Phòng tổng hợp')->first();
         $editorEmp = Employee::firstOrCreate(
             ['email' => 'editor@nxb.com'],
@@ -112,6 +110,119 @@ class UserDataSeeder extends Seeder
             ]
         );
 
+        $editorEmp2 = Employee::firstOrCreate(
+            ['email' => 'truongtap@nxb.com'],
+            [
+                'name' => 'Nguyễn Vạn Trường Tập',
+                'phone' => '0789654322',
+                'birthday' => '1998-07-15',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $editorPos->id,
+                'department_id' => $editorDep->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'truongtap'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $editorEmp2->id,
+            ]
+        );
+
+        $staffPos = Position::where('name', 'Nhân viên')->first();
+
+        // PHÒNG TOÁN 
+        $empToan1 = Employee::firstOrCreate(
+            ['email' => 'nhanvientoan1@nxb.com'],
+            [
+                'name' => 'Nhân viên Toán 1',
+                'phone' => '0900000001',
+                'birthday' => '1998-01-01',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $staffPos->id,
+                'department_id' => 1,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'nvtoan1'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $empToan1->id,
+            ]
+        );
+
+        $empToan2 = Employee::firstOrCreate(
+            ['email' => 'nhanvientoan2@nxb.com'],
+            [
+                'name' => 'Nhân viên Toán 2',
+                'phone' => '0900000002',
+                'birthday' => '1999-02-02',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $staffPos->id,
+                'department_id' => 1,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'nvtoan2'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $empToan2->id,
+            ]
+        );
+
+        // PHÒNG TIN 
+        $empTin1 = Employee::firstOrCreate(
+            ['email' => 'nhanvientin1@nxb.com'],
+            [
+                'name' => 'Nhân viên Tin 1',
+                'phone' => '0900000003',
+                'birthday' => '1997-03-03',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $staffPos->id,
+                'department_id' => 2,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'nvtin1'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $empTin1->id,
+            ]
+        );
+
+        $empTin2 = Employee::firstOrCreate(
+            ['email' => 'nhanvientin2@nxb.com'],
+            [
+                'name' => 'Nhân viên Tin 2',
+                'phone' => '0900000004',
+                'birthday' => '1996-04-04',
+                'sex' => 1,
+                'status' => 1,
+                'position_id' => $staffPos->id,
+                'department_id' => 2,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'nvtin2'],
+            [
+                'password' => Hash::make('123456'),
+                'status' => 1,
+                'employee_id' => $empTin2->id,
+            ]
+        );
 
         $this->command->info('Đã tạo dữ liệu mẫu thành công!');
     }
