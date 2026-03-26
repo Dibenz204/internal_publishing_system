@@ -16,6 +16,22 @@ Route::get('/ping', function () {
     }
 });
 
+Route::get('/check-auth-debug', function (Request $request) {
+    try {
+        return response()->json([
+            'authenticated' => auth()->check(),
+            'user' => auth()->user(),
+            'session_id' => session()->getId(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+    }
+});
+
 //Protected Api
 Route::middleware('auth', 'web')->group(function () {
 
