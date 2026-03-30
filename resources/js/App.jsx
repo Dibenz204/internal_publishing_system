@@ -20,6 +20,7 @@ import Allocation from './pages/Allocation';
 import MyAllocation from './pages/MyAllocation';
 
 import ReportPage from './pages/Reportpage';
+import AuditLog from './pages/AuditLog';
 
 
 function App() {
@@ -55,6 +56,10 @@ function App() {
 
                             {<Route element={<ProtectedRoute allowedPositions={['Admin', 'Trưởng phòng']} />}>
                                 <Route path="/allocation/:projectId" element={<Allocation />} />
+                            </Route>}
+
+                            {<Route element={<ProtectedRoute allowedPositions={['Admin']} />}>
+                                <Route path="/auditlogs" element={<AuditLog />} />
                             </Route>}
 
                             <Route path="/my-allocations" element={<MyAllocation />} />

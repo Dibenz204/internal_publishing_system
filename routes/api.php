@@ -68,4 +68,5 @@ Route::middleware('auth', 'web')->group(function () {
     require __DIR__ . '/api/TruongPhongBookRoute.php';
     require __DIR__ . '/api/ReportRoute.php';
     require __DIR__ . '/api/AllocationRoute.php';
+    require __DIR__ . '/api/AuditLogRoute.php';
 });
