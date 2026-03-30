@@ -2,9 +2,16 @@ import axios from 'axios';
 import api from './api';
 
 const AuthService = {
+    // async getCsrfCookie() {
+    //     await axios.get('/sanctum/csrf-cookie', {
+    //         withCredentials: true,
+    //     });
+    // },
     async getCsrfCookie() {
-        // Gọi thẳng /sanctum/csrf-cookie của Laravel (không qua /api)
-        await axios.get('/sanctum/csrf-cookie', {
+        const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '')
+            || window.location.origin;
+
+        await axios.get(`${baseUrl}/sanctum/csrf-cookie`, {
             withCredentials: true,
         });
     },
