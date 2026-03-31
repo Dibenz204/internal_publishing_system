@@ -1,7 +1,7 @@
 <?php
 // routes/api.php
 
-use App\Http\Controllers\API\TruongPhongBookController;
+use App\Http\Controllers\Api\TruongPhongBookController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('books')->group(function () {

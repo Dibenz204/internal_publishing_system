@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\ReportController;
+use App\Http\Controllers\Api\ReportController;
 
 Route::prefix('reports')->group(function () {
 

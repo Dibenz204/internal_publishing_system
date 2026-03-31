@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\AuditLogController;
+use App\Http\Controllers\Api\AuditLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('audit-logs')->group(function () {

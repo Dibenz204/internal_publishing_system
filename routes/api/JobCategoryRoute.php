@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\JobCategoryController;
+use App\Http\Controllers\Api\JobCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('job-categories')->group(function () {

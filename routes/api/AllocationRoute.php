@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\AllocationController;
+use App\Http\Controllers\Api\AllocationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('allocations')->group(function () {

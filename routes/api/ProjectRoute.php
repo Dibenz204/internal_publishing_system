@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\ProjectController;
+use App\Http\Controllers\Api\ProjectController;
 
 Route::prefix('projects')->group(function () {
 
