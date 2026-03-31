@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\DB;
 
-Route::post('/login', [LoginController::class, 'apiLogin'])->middleware('web');
+Route::post('/login', [LoginController::class, 'apiLogin']);
+// ->middleware('web');
 
 Route::get('/ping', function () {
     try {
@@ -33,7 +34,8 @@ Route::get('/check-auth-debug', function (Request $request) {
 });
 
 //Protected Api
-Route::middleware('auth', 'web')->group(function () {
+// Route::middleware('auth', 'web')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
     Route::post('/logout', [LoginController::class, 'apiLogout']);
