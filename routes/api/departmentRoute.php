@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\API\DepartmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('departments')->group(function () {

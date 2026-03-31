@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\BookTransferController;
+use App\Http\Controllers\API\BookTransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/books/{bookId}/send-to-assigned', [BookTransferController::class, 'sendToAssignedBy'])

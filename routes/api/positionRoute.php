@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\PositionController;
+use App\Http\Controllers\API\PositionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('positions')->group(function () {

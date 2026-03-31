@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\PaperController;
+use App\Http\Controllers\API\PaperController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('papers')->group(function () {

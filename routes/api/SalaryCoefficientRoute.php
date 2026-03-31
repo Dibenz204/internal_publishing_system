@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\SalaryCoefficientController;
+use App\Http\Controllers\API\SalaryCoefficientController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('salary-coefficients')->group(function () {
