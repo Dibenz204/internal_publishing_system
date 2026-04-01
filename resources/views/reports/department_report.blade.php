@@ -62,7 +62,7 @@ th, td { padding: 4px; text-align: center; }
             <td>{{ $row['editing_page'] }}</td>
             <td>{{ $row['decision_page'] }}</td>
             <td>{{ $row['department'] }}</td>
-            <td>{{ number_format($row['salary'], 0, ',', '.') }}</td>
+            <td>{{ number_format($row['salary'], 4, ',', '.') }}</td>
             <td>{{ $row['employee_name'] }}</td>
         </tr>
         @empty
@@ -72,7 +72,7 @@ th, td { padding: 4px; text-align: center; }
     <tfoot>
         <tr class="total-row">
             <td colspan="16" style="text-align:right">Tổng cộng:</td>
-            <td>{{ number_format($total_salary, 0, ',', '.') }}</td>
+            <td>{{ number_format($total_salary, 4, ',', '.') }}</td>
             <td></td>
         </tr>
     </tfoot>

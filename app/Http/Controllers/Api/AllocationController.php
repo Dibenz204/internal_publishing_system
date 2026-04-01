@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\AllocationService;
-use App\Models\Allocation;
+use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -186,6 +186,58 @@ class AllocationController extends Controller
             'success' => true,
             'message' => 'Cập nhật công việc thành công',
             'data' => $allocation
+        ]);
+    }
+
+    public function getBookAllocationsReport($bookId)
+    {
+        $book = Book::with([
+            'paper',
+            'projects.allocations.employee.department',
+            'projects.allocations.employee.position',
+            'projects.allocations.jobCategory',
+        ])->findOrFail($bookId);
+
+        if ($book->status !== 3) {
+            return response()->json(['success' => false, 'message' => 'Sách chưa hoàn thành'], 400);
+        }
+
+        $rows = [];
+        foreach ($book->projects as $project) {
+            $grouped = $project->allocations->groupBy('employee_id');
+            foreach ($grouped as $employeeId => $allocations) {
+                $employee = $allocations->first()->employee;
+
+                // Lấy tất cả job names (hiển thị đầy đủ)
+                $jobs = $allocations->map(fn($a) => $a->jobCategory?->name)->filter()->unique()->values();
+
+                // Chỉ tính tổng completed_page cho các job có category = "Biên tập"
+                $completedPage = $allocations->filter(function ($allocation) {
+                    return $allocation->jobCategory && $allocation->jobCategory->category === 'Biên tập';
+                })->sum('completed_page');
+
+                $rows[] = [
+                    'employee_name' => $employee?->name,
+                    'department'    => $employee?->department?->name,
+                    'position'      => $employee?->position?->name,
+                    'completed_page' => $completedPage,
+                    'jobs'          => $jobs, // vẫn hiển thị tất cả công việc
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'book' => [
+                    'id'        => $book->id,
+                    'name'      => $book->name,
+                    'bookCode'  => $book->bookCode,
+                    'page'      => $book->page,
+                    'paper'     => $book->paper?->paperSize,
+                ],
+                'allocations' => $rows,
+            ]
         ]);
     }
 }
