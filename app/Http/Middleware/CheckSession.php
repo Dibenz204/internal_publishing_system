@@ -11,22 +11,22 @@ class CheckSession
 {
     public function handle($request, Closure $next)
     {
-        $user = $request->user();
+        $token = $request->bearerToken();
 
-        if ($user) {
-            $token = $request->bearerToken();
+        if ($token) {
             $currentToken = PersonalAccessToken::findToken($token);
-            $currentTokenId = $currentToken?->id;
 
-            if ($user->session_id && (string)$user->session_id !== (string)$currentTokenId) {
-                if ($currentToken) {
+            if ($currentToken) {
+                $user = $currentToken->tokenable;
+
+                if ($user->session_id && $user->session_id != $currentToken->id) {
                     $currentToken->delete();
-                }
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tài khoản đã được đăng nhập ở nơi khác. Vui lòng đăng nhập lại.'
-                ], 401);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tài khoản đã được đăng nhập ở nơi khác!'
+                    ], 401);
+                }
             }
         }
 

@@ -50,18 +50,18 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
     response => response,
     error => {
-        console.error('API Error:', error.response?.data || error.message);
+        if (error.response?.status === 401 || error.response?.status === 500) {
+            const message = error.response?.data?.message;
 
-        if (error.response?.status === 401) {
+            // Chỉ redirect nếu là lỗi auth
+            if (message === 'Unauthenticated.' || message?.includes('đăng nhập ở nơi khác')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
 
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-
-            const message = error.response?.data?.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-
-            if (!window.location.pathname.includes('/login')) {
-                alert(message);
-                window.location.href = '/login';
+                if (!window.location.pathname.includes('/login')) {
+                    alert('Tài khoản đã được đăng nhập ở nơi khác. Vui lòng đăng nhập lại.');
+                    window.location.href = '/login';
+                }
             }
         }
 

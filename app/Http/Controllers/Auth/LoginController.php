@@ -21,32 +21,82 @@ class LoginController extends Controller
     //         'password' => 'required|string',
     //     ]);
 
-    //     if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-
-    //         AuditLog::create([
-    //             'user_id'      => null,
-    //             'user_name'    => null,
-    //             'user_position' => null,
-    //             'action'       => 'login_failed',
-    //             'module'       => 'auth',
-    //             'record_id'    => null,
-    //             'old_data'     => null,
-    //             'new_data'     => ['username' => $request->username],
-    //             'ip_address'   => $request->ip(),
-    //             'user_agent'   => $request->userAgent(),
-    //             'method'       => $request->method(),
-    //             'url'          => $request->fullUrl(),
-    //         ]);
-
+    //     if (!Auth::attempt($credentials)) {
     //         return response()->json([
     //             'success' => false,
-    //             'message' => 'Tên đăng nhập hoặc mật khẩu không đúng.'
+    //             'message' => 'Sai tên đăng nhập hoặc mật khẩu'
     //         ], 401);
     //     }
 
-    //     $request->session()->regenerate();
-
     //     $user = Auth::user();
+
+    //     // Kiểm tra tài khoản bị khóa
+    //     if ($user->status == 0) {
+    //         AuditLog::create([
+    //             'user_id'       => $user->id,
+    //             'user_name'     => $user->username,
+    //             'user_position' => $user->positionName,
+    //             'action'        => 'login_blocked',
+    //             'module'        => 'auth',
+    //             'record_id'     => $user->id,
+    //             'old_data'      => null,
+    //             'new_data'      => ['reason' => 'Tài khoản bị khóa'],
+    //             'ip_address'    => $request->ip(),
+    //             'user_agent'    => $request->userAgent(),
+    //             'method'        => $request->method(),
+    //             'url'           => $request->fullUrl(),
+    //         ]);
+
+    //         Auth::logout();
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Tài khoản đã bị khóa.'
+    //         ], 403);
+    //     }
+
+    //     // Xóa hết token cũ (đẩy người đang đăng nhập trước ra)
+    //     $user->tokens()->delete();
+
+    //     // Tạo token mới
+    //     $tokenResult = $user->createToken('auth-token');
+    //     $token       = $tokenResult->plainTextToken;
+    //     $tokenId     = $tokenResult->accessToken->id;
+
+    //     // Lưu token ID mới vào session_id
+    //     $user->session_id = $tokenId;
+    //     $user->save();
+
+    //     $this->logActivity(
+    //         action: 'login',
+    //         module: 'auth',
+    //         recordId: $user->id,
+    //         newData: ['username' => $user->username]
+    //     );
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Đăng nhập thành công',
+    //         'token'   => $token,
+    //         'user'    => [
+    //             'id'       => $user->id,
+    //             'username' => $user->username,
+    //             'status'   => $user->status,
+    //             'position' => $user->positionName,
+    //             'employee' => $user->employee ? [
+    //                 'id'         => $user->employee->id,
+    //                 'name'       => $user->employee->name,
+    //                 'email'      => $user->employee->email,
+    //                 'phone'      => $user->employee->phone,
+    //                 'birthday'   => $user->employee->birthday,
+    //                 'sex'        => $user->employee->sex ? 'Nam' : 'Nữ',
+    //                 'status'     => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
+    //                 'department' => $user->employee->department->name ?? null,
+    //                 'position'   => $user->employee->position->name ?? null,
+    //             ] : null
+    //         ],
+    //     ]);
+    // }
 
     public function apiLogin(Request $request)
     {
@@ -56,77 +106,41 @@ class LoginController extends Controller
         ]);
 
         if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sai tên đăng nhập hoặc mật khẩu'
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'Sai tên đăng nhập hoặc mật khẩu'], 401);
         }
 
         $user = Auth::user();
 
-        // Kiểm tra tài khoản bị khóa
         if ($user->status == 0) {
-            AuditLog::create([
-                'user_id'       => $user->id,
-                'user_name'     => $user->username,
-                'user_position' => $user->positionName,
-                'action'        => 'login_blocked',
-                'module'        => 'auth',
-                'record_id'     => $user->id,
-                'old_data'      => null,
-                'new_data'      => ['reason' => 'Tài khoản bị khóa'],
-                'ip_address'    => $request->ip(),
-                'user_agent'    => $request->userAgent(),
-                'method'        => $request->method(),
-                'url'           => $request->fullUrl(),
-            ]);
-
-            Auth::logout();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Tài khoản đã bị khóa.'
-            ], 403);
+            return response()->json(['success' => false, 'message' => 'Tài khoản đã bị khóa.'], 403);
         }
 
-        // Xóa hết token cũ (đẩy người đang đăng nhập trước ra)
         $user->tokens()->delete();
 
-        // Tạo token mới
         $tokenResult = $user->createToken('auth-token');
-        $token       = $tokenResult->plainTextToken;
-        $tokenId     = $tokenResult->accessToken->id;
-
-        // Lưu token ID mới vào session_id
-        $user->session_id = $tokenId;
+        $token = $tokenResult->plainTextToken;
+        $user->session_id = (string) $tokenResult->accessToken->id;
         $user->save();
-
-        $this->logActivity(
-            action: 'login',
-            module: 'auth',
-            recordId: $user->id,
-            newData: ['username' => $user->username]
-        );
 
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công',
-            'token'   => $token,
-            'user'    => [
-                'id'       => $user->id,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
                 'username' => $user->username,
-                'status'   => $user->status,
+                'status' => $user->status,
                 'position' => $user->positionName,
                 'employee' => $user->employee ? [
-                    'id'         => $user->employee->id,
-                    'name'       => $user->employee->name,
-                    'email'      => $user->employee->email,
-                    'phone'      => $user->employee->phone,
-                    'birthday'   => $user->employee->birthday,
-                    'sex'        => $user->employee->sex ? 'Nam' : 'Nữ',
-                    'status'     => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
+                    'id' => $user->employee->id,
+                    'name' => $user->employee->name,
+                    'email' => $user->employee->email,
+                    'phone' => $user->employee->phone,
+                    'birthday' => $user->employee->birthday,
+                    'sex' => $user->employee->sex ? 'Nam' : 'Nữ',
+                    'status' => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
                     'department' => $user->employee->department->name ?? null,
-                    'position'   => $user->employee->position->name ?? null,
+                    'position' => $user->employee->position->name ?? null,
                 ] : null
             ],
         ]);
@@ -160,15 +174,12 @@ class LoginController extends Controller
             recordId: $request->user()->id,
         );
 
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        $user->session_id = null;
+        $user->save();
 
-        $request->user()->session_id = null;
-        $request->user()->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Đăng xuất thành công'
-        ]);
+        return response()->json(['success' => true, 'message' => 'Đăng xuất thành công']);
     }
 
     public function checkAuth(Request $request)
