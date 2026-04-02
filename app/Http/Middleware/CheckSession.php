@@ -20,7 +20,7 @@ class CheckSession
             $currentTokenId = $currentToken?->id;
 
             // Kiểm tra session_id trong DB
-            if ($user->session_id && $user->session_id !== $currentTokenId) {
+            if ($user->session_id && (string)$user->session_id !== (string)$currentTokenId) {
                 // Xóa token hiện tại
                 if ($currentToken) {
                     $currentToken->delete();

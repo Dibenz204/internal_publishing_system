@@ -56,32 +56,32 @@ class LoginController extends Controller
         ]);
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['success' => false, 'message' => 'Sai tên đăng nhập hoặc mật khẩu'], 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'Sai tên đăng nhập hoặc mật khẩu'
+            ], 401);
         }
 
         $user = Auth::user();
-        $user->tokens()->delete();
-        $token = $user->createToken('auth-token')->plainTextToken;
 
+        // Kiểm tra tài khoản bị khóa
         if ($user->status == 0) {
             AuditLog::create([
-                'user_id'      => $user->id,
-                'user_name'    => $user->username,
+                'user_id'       => $user->id,
+                'user_name'     => $user->username,
                 'user_position' => $user->positionName,
-                'action'       => 'login_blocked',
-                'module'       => 'auth',
-                'record_id'    => $user->id,
-                'old_data'     => null,
-                'new_data'     => ['reason' => 'Tài khoản bị khóa'],
-                'ip_address'   => $request->ip(),
-                'user_agent'   => $request->userAgent(),
-                'method'       => $request->method(),
-                'url'          => $request->fullUrl(),
+                'action'        => 'login_blocked',
+                'module'        => 'auth',
+                'record_id'     => $user->id,
+                'old_data'      => null,
+                'new_data'      => ['reason' => 'Tài khoản bị khóa'],
+                'ip_address'    => $request->ip(),
+                'user_agent'    => $request->userAgent(),
+                'method'        => $request->method(),
+                'url'           => $request->fullUrl(),
             ]);
 
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
 
             return response()->json([
                 'success' => false,
@@ -89,29 +89,17 @@ class LoginController extends Controller
             ], 403);
         }
 
-        // Lấy token hiện tại từ request
-        $currentToken = $request->bearerToken();
-        $currentTokenModel = PersonalAccessToken::findToken($currentToken);
-        $currentTokenId = $currentTokenModel?->id;
-
-        if ($user->session_id && $user->session_id !== $currentTokenId) {
-            // Xóa token cũ
-            $user->tokens()->delete();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Tài khoản đã được đăng nhập ở nơi khác. Vui lòng đăng nhập lại.'
-            ], 401);
-        }
-
+        // Xóa hết token cũ (đẩy người đang đăng nhập trước ra)
         $user->tokens()->delete();
-        $token = $user->createToken('auth-token')->plainTextToken;
 
-        // Lưu token ID vào session_id
-        $tokenModel = $user->tokens()->latest()->first();
-        $user->session_id = $tokenModel->id;
+        // Tạo token mới
+        $tokenResult = $user->createToken('auth-token');
+        $token       = $tokenResult->plainTextToken;
+        $tokenId     = $tokenResult->accessToken->id;
+
+        // Lưu token ID mới vào session_id
+        $user->session_id = $tokenId;
         $user->save();
-
 
         $this->logActivity(
             action: 'login',
@@ -123,22 +111,22 @@ class LoginController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công',
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
+            'token'   => $token,
+            'user'    => [
+                'id'       => $user->id,
                 'username' => $user->username,
-                'status' => $user->status,
+                'status'   => $user->status,
                 'position' => $user->positionName,
                 'employee' => $user->employee ? [
-                    'id' => $user->employee->id,
-                    'name' => $user->employee->name,
-                    'email' => $user->employee->email,
-                    'phone' => $user->employee->phone,
-                    'birthday' => $user->employee->birthday,
-                    'sex' => $user->employee->sex ? 'Nam' : 'Nữ',
-                    'status' => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
+                    'id'         => $user->employee->id,
+                    'name'       => $user->employee->name,
+                    'email'      => $user->employee->email,
+                    'phone'      => $user->employee->phone,
+                    'birthday'   => $user->employee->birthday,
+                    'sex'        => $user->employee->sex ? 'Nam' : 'Nữ',
+                    'status'     => $user->employee->status ? 'Đang làm việc' : 'Nghỉ làm',
                     'department' => $user->employee->department->name ?? null,
-                    'position' => $user->employee->position->name ?? null,
+                    'position'   => $user->employee->position->name ?? null,
                 ] : null
             ],
         ]);

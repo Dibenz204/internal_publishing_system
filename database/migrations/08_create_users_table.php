@@ -20,7 +20,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->rememberToken();
-            $table->string('session_id')->nullable()->after('remember_token');
+            $table->unsignedBigInteger('session_id')->nullable()->after('remember_token');
             $table->timestamps();
         });
     }
