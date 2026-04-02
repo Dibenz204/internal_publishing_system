@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('allocations')->group(function () {
 
+    // Lấy danh sách công việc theo từng nhân viên
+    Route::get('/my-allocations', [AllocationController::class, 'myAllocations']);    //
+
     Route::post('/assign', [AllocationController::class, 'assignEmployee'])
         ->middleware("position:Trưởng phòng"); //
 
@@ -14,9 +17,6 @@ Route::prefix('allocations')->group(function () {
     Route::patch('/complete/{allocationId}', [AllocationController::class, 'complete']); //
 
     Route::patch('/reopen/{allocationId}', [AllocationController::class, 'reopen']);
-
-    // Lấy danh sách công việc theo từng nhân viên
-    Route::get('/my-allocations', [AllocationController::class, 'myAllocations']);    //
 
     // Update completed_page và current_book
     Route::patch('/{allocationId}/completed-page', [AllocationController::class, 'updateCompletedPage']); //
@@ -30,3 +30,5 @@ Route::get('/projects/{projectId}/allocations', [AllocationController::class, 'g
 Route::get('/books/{bookId}/allocations', [AllocationController::class, 'getBookAllocations']); // lấy allocation theo book //
 
 Route::get('/projects/{projectId}/available-employees', [AllocationController::class, 'getAvailableEmployees']);
+
+Route::get('/books/{bookId}/allocations-report', [AllocationController::class, 'getBookAllocationsReport']); //Chưa kiểm tra

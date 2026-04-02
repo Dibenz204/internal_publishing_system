@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { modal, detail_s, STATUS_MAP, fmtDate } from './booksConstants';
+import BookAllocationModal from './BookAllocationModal';
 
 const BookDetailModal = ({ book, onClose, onSuccess, canManage }) => {
     const [detail, setDetail] = useState(null);
@@ -14,6 +15,7 @@ const BookDetailModal = ({ book, onClose, onSuccess, canManage }) => {
     const [actioning, setActioning] = useState(false);
     const [error, setError] = useState('');
     const [confirmAction, setConfirmAction] = useState(null);
+    const [showAllocation, setShowAllocation] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -301,6 +303,16 @@ const BookDetailModal = ({ book, onClose, onSuccess, canManage }) => {
                                 Hủy sách
                             </button>
                         )}
+
+                        {/* Dùng để xuất báo cáo theo sách*/}
+                        {!isEditing && bookData.status === 3 && (
+                            <button
+                                style={{ padding: '7px 16px', background: '#e8f0fe', color: '#1877f2', border: '1px solid #c5d8fc', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                                onClick={() => setShowAllocation(true)}
+                            >
+                                Xem thực hiện
+                            </button>
+                        )}
                     </div>
 
                     {/* Right: Edit / Close */}
@@ -325,6 +337,10 @@ const BookDetailModal = ({ book, onClose, onSuccess, canManage }) => {
                     </div>
                 </div>
             </div>
+            {showAllocation && (
+                console.log('Opening modal with bookData:', bookData),
+                <BookAllocationModal book={bookData} onClose={() => setShowAllocation(false)} />
+            )}
         </div>
     );
 };

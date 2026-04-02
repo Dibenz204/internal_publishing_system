@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\LogsActivity;
 use App\Models\AuditLog;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class LoginController extends Controller
 {
@@ -88,6 +89,29 @@ class LoginController extends Controller
             ], 403);
         }
 
+        // Lấy token hiện tại từ request
+        $currentToken = $request->bearerToken();
+        $currentTokenModel = PersonalAccessToken::findToken($currentToken);
+        $currentTokenId = $currentTokenModel?->id;
+
+        if ($user->session_id && $user->session_id !== $currentTokenId) {
+            // Xóa token cũ
+            $user->tokens()->delete();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Tài khoản đã được đăng nhập ở nơi khác. Vui lòng đăng nhập lại.'
+            ], 401);
+        }
+
+        $user->tokens()->delete();
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        // Lưu token ID vào session_id
+        $tokenModel = $user->tokens()->latest()->first();
+        $user->session_id = $tokenModel->id;
+        $user->save();
+
 
         $this->logActivity(
             action: 'login',
@@ -99,7 +123,7 @@ class LoginController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công',
-            'token' => $token,          
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'username' => $user->username,

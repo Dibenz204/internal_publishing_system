@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\ReportService;
 use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Book;
 
 class ReportController extends Controller
 {
@@ -173,5 +174,50 @@ class ReportController extends Controller
             : 'department_report.pdf';
 
         return $pdf->stream($filename);
+    }
+
+    public function exportBookAllocationsReport($bookId)
+    {
+        $book = Book::with([
+            'paper',
+            'projects.allocations.employee.department',
+            'projects.allocations.employee.position',
+            'projects.allocations.jobCategory',
+        ])->findOrFail($bookId);
+
+        if ($book->status !== 3) {
+            return response()->json(['success' => false, 'message' => 'Sách chưa hoàn thành'], 400);
+        }
+
+        $rows = [];
+        foreach ($book->projects as $project) {
+            $grouped = $project->allocations->groupBy('employee_id');
+            foreach ($grouped as $employeeId => $allocations) {
+                $employee = $allocations->first()->employee;
+
+                $jobs = $allocations->map(fn($a) => $a->jobCategory?->name)->filter()->unique()->values();
+
+                $completedPage = $allocations->filter(function ($allocation) {
+                    return $allocation->jobCategory && $allocation->jobCategory->category === 'Biên tập';
+                })->sum('completed_page');
+
+                $rows[] = [
+                    'employee_name' => $employee?->name,
+                    'department'    => $employee?->department?->name,
+                    'position'      => $employee?->position?->name,
+                    'completed_page' => $completedPage,
+                    'jobs'          => $jobs,
+                ];
+            }
+        }
+
+        $pdf = Pdf::loadView('reports.book-allocation-report', [
+            'book' => $book,
+            'allocations' => $rows,
+            'total_pages' => array_sum(array_column($rows, 'completed_page')),
+            'generated_date' => now()->format('d/m/Y H:i:s'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream("allocation-{$book->id}.pdf");
     }
 }

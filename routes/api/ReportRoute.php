@@ -26,4 +26,6 @@ Route::prefix('reports')->group(function () {
     Route::get('/monthly-summary', [ReportController::class, 'monthlySummary']);  // chưa sử dụng
 
     Route::get('department/{departmentId}/export', [ReportController::class, 'exportDepartmentReport']);
+
+    Route::get('/books/{bookId}/allocations-report/export', [ReportController::class, 'exportBookAllocationsReport']);
 });
