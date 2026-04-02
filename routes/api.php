@@ -35,7 +35,7 @@ Route::get('/check-auth-debug', function (Request $request) {
 
 //Protected Api
 // Route::middleware('auth', 'web')->group(function () {
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'check.session')->group(function () {
 
     // Auth
     Route::post('/logout', [LoginController::class, 'apiLogout']);
