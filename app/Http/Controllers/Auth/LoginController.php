@@ -132,19 +132,38 @@ class LoginController extends Controller
         ]);
     }
 
+    // public function apiLogout(Request $request)
+    // {
+
+    //     $this->logActivity(
+    //         action: 'logout',
+    //         module: 'auth',
+    //         recordId: Auth::id(),
+    //     );
+
+    //     Auth::logout();
+
+    //     $request->session()->invalidate();
+    //     $request->session()->regenerateToken();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Đăng xuất thành công'
+    //     ]);
+    // }
+
     public function apiLogout(Request $request)
     {
-
         $this->logActivity(
             action: 'logout',
             module: 'auth',
-            recordId: Auth::id(),
+            recordId: $request->user()->id,
         );
 
-        Auth::logout();
+        $request->user()->currentAccessToken()->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()->session_id = null;
+        $request->user()->save();
 
         return response()->json([
             'success' => true,
