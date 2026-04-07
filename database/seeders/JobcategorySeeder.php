@@ -17,6 +17,8 @@ class JobCategorySeeder extends Seeder
             ['name' => 'Đọc logic', 'category' => 'Đọc đính chính', 'work_coefficient' => 0.02, 'status' => 1],
 
             ['name' => 'Sửa bài', 'category' => 'Sửa bài', 'work_coefficient' => 0.03, 'status' => 1],
+
+            ['name' => 'Sửa logic', 'category' => 'Sửa bài', 'work_coefficient' => 0.03, 'status' => 1],
         ];
 
         foreach ($categories as $item) {
