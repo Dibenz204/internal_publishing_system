@@ -269,18 +269,3 @@ Một số nhánh tiêu biểu:
 | `Frontend` | Giao diện React |
 | `feature/deploy` | Cấu hình triển khai |
 
----
-
-## Tác Giả
-
-- **Nguyễn Đình Phong** – Trưởng nhóm, Backend & Database design  
-  MSSV: 3122480044 | Lớp: DTU1221  
-  Trường Đại học Sài Gòn – Khoa Toán – Ứng dụng
-
-**Giảng viên hướng dẫn:** PGS.TS. Lê Minh Triết  
-**Đơn vị thực tập:** Công ty Cổ phần DVXB Giáo dục Gia Định  
-**Địa chỉ:** 231 Nguyễn Văn Cừ, Phường 4, Quận 5, TP. Hồ Chí Minh
-
----
-
-*Dự án hoàn thành tháng 3/2026 – Báo cáo thực tập tốt nghiệp*
