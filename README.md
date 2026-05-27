@@ -1,9 +1,7 @@
 # Hệ Thống Quản Lý Công Việc Nội Bộ Nhà Xuất Bản
 
 > **Internal Publishing Workflow Management System**  
-> Dự án thực tập tốt nghiệp – Trường Đại học Sài Gòn  
-> Sinh viên: **Nguyễn Đình Phong** (MSSV: 3122480044)  
-> Đơn vị thực tập: **Công ty Cổ phần DVXB Giáo dục Gia Định (GIAEP JSC)**
+> Đơn vị thực tập: **Công ty Cổ phần DVXB Giáo dục Gia Định**
 
 ---
 
