@@ -2,6 +2,12 @@
 
 > Developed during internship at **Công ty Cổ phần DVXB Giáo dục Gia Định** (Gia Dinh Education Publishing Co., Ltd.)
 
+**Live Demo:** https://internal-publishing-system.vercel.app/login  
+
+**Demo credentials:** Username: `admin` | Password: `123456` (admin)
+
+**Demo credentials:** Username: `truongphongtin` | Password: `123456` (Trưởng phòng)
+
 ---
 
 ## Overview
