@@ -1,85 +1,73 @@
-# Hệ Thống Quản Lý Công Việc Nội Bộ Nhà Xuất Bản
+# Internal Publishing Workflow Management System
 
-> **Internal Publishing Workflow Management System**  
-> Đơn vị thực tập: **Công ty Cổ phần DVXB Giáo dục Gia Định**
-
----
-
-## Mục Lục
-
-- [Giới thiệu](#giới-thiệu)
-- [Tính năng](#tính-năng)
-- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Cài đặt & Chạy dự án](#cài-đặt--chạy-dự-án)
-- [Cấu trúc cơ sở dữ liệu](#cấu-trúc-cơ-sở-dữ-liệu)
-- [Phân quyền người dùng](#phân-quyền-người-dùng)
-- [Các module chính](#các-module-chính)
+> Developed during internship at **Công ty Cổ phần DVXB Giáo dục Gia Định** (Gia Dinh Education Publishing Co., Ltd.)
 
 ---
 
-## Giới thiệu
+## Overview
 
-Nhà Xuất Bản Giáo dục Gia Định xử lý hàng trăm đầu sách mỗi năm, mỗi cuốn phải trải qua nhiều công đoạn: lên ý tưởng → phê duyệt → biên tập → đính chính → kiểm duyệt → in ấn → phát hành. Trước đây, toàn bộ quy trình này được quản lý thủ công qua Excel và giấy tờ, dẫn đến:
+Gia Dinh Education Publishing processes hundreds of book titles each year. Each title goes through multiple stages: concept → approval → editing → correction → review → printing → publishing. Previously, this entire workflow was managed manually via Excel and paper documents, leading to:
 
-- Khó theo dõi tiến độ tổng thể
-- Dễ bỏ sót công việc, phân công trùng lặp
-- Phụ thuộc nhiều vào Thư ký biên tập (TKBT) làm trung gian
+- Difficulty tracking overall progress across departments
+- Missed tasks and duplicated assignments
+- Heavy reliance on the Editorial Secretary as a manual coordinator
 
-Hệ thống này được xây dựng để **số hóa và tối ưu hóa** toàn bộ quy trình trên, giúp các phòng ban phối hợp rõ ràng, minh bạch và hiệu quả hơn.
-
----
-
-## Tính Năng
-
-### Quản lý người dùng & phân quyền
-- Tạo tài khoản tự động (username = họ tên + ngày sinh) khi thêm nhân viên
-- Phân quyền theo chức vụ (RBAC): Admin, TKBT, Trưởng phòng, Nhân viên, HR, Kế toán
-- Xác thực bằng session + CSRF, mật khẩu mã hóa hash
-
-### Quản lý sách (đầu sách)
-- Thêm, cập nhật, ngừng phát hành đầu sách
-- Theo dõi song song **trang ước tính** và **trang thực tế**
-- Phân loại theo danh mục, khổ giấy
-- Phân công phòng ban tham gia từng đầu sách
-
-### Theo dõi vận hành (BookTransfer)
-- Lịch sử luân chuyển sách qua các phòng ban theo mốc thời gian
-- Thống kê số lần xử lý theo từng phòng
-- Trực quan hóa phòng ban đang xử lý hiện tại
-
-### Quản lý phân công (Allocation)
-- Trưởng phòng phân công nhân viên với công việc cụ thể (Biên tập, Đính chính, Sửa bài,...)
-- Hệ số công việc được lấy động từ bảng cấu hình
-- Theo dõi tiến độ số trang từng nhân viên
-- Nhân viên tự cập nhật trạng thái hoàn thành / mở lại tiến độ
-
-### Báo cáo
-- Tổng hợp theo phòng ban hoặc từng nhân viên cụ thể
-- Lọc theo tháng/năm
-- Xuất file **PDF** để lưu hành nội bộ
-
-### Nhật ký hoạt động (Audit Log)
-- Ghi nhận tự động toàn bộ hành động: đăng nhập, tạo, cập nhật, phân công,...
-- Lưu IP, URL, dữ liệu cũ/mới (old_data / new_data) theo JSON
-- Không cho phép sửa/xóa log, chỉ Admin truy cập
-- Bộ lọc theo nhân viên, module, hành động, khoảng thời gian
-
-### Quản lý thông số
-- Hệ số công việc (Biên tập, Đính chính, Sửa bài,...)
-- Hệ số khổ giấy (a4, 17x24, 19x26.5,...)
-- Hệ số lương theo năm (lưu lịch sử, không ảnh hưởng năm cũ)
-- Chức vụ, danh mục sách
+This system was built to **digitize and optimize** the entire workflow, enabling departments to collaborate with greater clarity, transparency, and efficiency.
 
 ---
 
-## Kiến Trúc Hệ Thống
+## Features
+
+### User Management & Access Control
+- Auto-generated accounts (username = full name + date of birth) when adding employees
+- Role-based access control (RBAC): Admin, Editorial Secretary, Department Head, Employee, HR, Accountant
+- Session-based authentication with CSRF protection and hashed passwords
+- Custom middleware-based position check applied per route group
+
+### Book Management
+- Add, update, and discontinue book titles
+- Track both **estimated pages** and **actual pages** in parallel
+- Classify by category and paper size
+- Assign departments to each book title
+
+### Operation Tracking (BookTransfer)
+- Full history of book transfers across departments with timestamps
+- Statistics on processing count per department
+- Visual indicator of the department currently handling each book
+
+### Task Allocation
+- Department heads assign employees to specific tasks (Editing, Proofreading, Revision, etc.)
+- Job coefficients dynamically loaded from configuration tables
+- Track page progress per employee
+- Employees can self-update completion status or reopen progress
+
+### Reporting
+- Aggregated reports by department or individual employee
+- Filter by month and year
+- Export to **PDF** for internal circulation
+
+### Audit Log
+- Automatic logging of all actions: login, create, update, assignment, etc.
+- Records IP address, URL, and old/new data (JSON format)
+- Logs are read-only; only Admin can access
+- Filter by employee, module, action type, and date range
+- Audit logging extracted into reusable Trait, applied across all mutating controllers
+
+### System Configuration
+- Job type coefficients (Editing, Proofreading, Revision, etc.)
+- Paper size coefficients (A4, 17×24, 19×26.5, etc.)
+- Annual salary coefficients (versioned — updates do not affect prior years)
+- Positions and book categories
+
+---
+
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                   Frontend                       │
 │            React + Vite (SPA)                    │
-│    Giao diện phân theo từng vai trò người dùng   │
+│       Role-based UI per user type                │
 └──────────────────────┬──────────────────────────┘
                        │ HTTP / REST API
 ┌──────────────────────▼──────────────────────────┐
@@ -92,45 +80,109 @@ Hệ thống này được xây dựng để **số hóa và tối ưu hóa** to
 ┌──────────────────────▼──────────────────────────┐
 │                  Database                        │
 │                   MySQL                          │
-│        Quản lý migration theo phiên bản          │
+│          Version-controlled migrations           │
 └─────────────────────────────────────────────────┘
 ```
 
-Hệ thống triển khai trên **XAMPP (localhost)** trong giai đoạn phát triển, và **server nội bộ** của Nhà Xuất Bản khi production.
+Deployed on **XAMPP (localhost)** during development and on the **publisher's internal server** in production.
+
+### ERD Overview
+
+<img width="1102" height="630" alt="image" src="https://github.com/user-attachments/assets/81cb3b62-7630-467e-9e30-2c40e2481a37" />
 
 ---
 
-## Công Nghệ Sử Dụng
+## Tech Stack
 
-| Thành phần | Công nghệ |
+| Layer | Technology |
 |---|---|
 | Backend | PHP / Laravel |
 | Frontend | React + Vite |
 | Database | MySQL |
 | Authentication | Session + CSRF |
 | API | RESTful (GET, POST, PUT, PATCH) |
-| Dev environment | XAMPP (localhost) |
-| Version control | Git / GitHub |
+| Dev Environment | XAMPP (localhost) |
+| Version Control | Git / GitHub |
 
 ---
 
-## Cài Đặt & Chạy Dự Án
+## Screenshots
 
-### Yêu cầu
+### Book Management
+
+**Book processing status and progress overview**
+<img width="1102" height="630" alt="image" src="https://github.com/user-attachments/assets/412b26e3-889c-418e-8b14-8c758a9b2f4a" />
+
+**Department assignment management**
+<img width="772" height="468" alt="image" src="https://github.com/user-attachments/assets/d510cae7-4ea5-493d-af11-c10d48bcf510" />
+
+**Inter-department operation tracking**
+<img width="965" height="483" alt="image" src="https://github.com/user-attachments/assets/1348d42c-47ac-40c2-a68e-9bdcd450f11b" />
+
+### System Configuration
+
+**Position management**
+<img width="877" height="444" alt="image" src="https://github.com/user-attachments/assets/1a0e61e3-14ea-4753-8c3a-0dce1ec16b16" />
+
+**Coefficient management — updates do not affect previously recorded entries**
+<img width="963" height="328" alt="image" src="https://github.com/user-attachments/assets/d09bbef2-eef6-41dd-8b31-ba950a7f7e10" />
+
+*(Additional configuration views: paper size, job type coefficients, etc.)*
+
+### Department Head — Task Allocation
+
+**Assigned task overview**
+<img width="1098" height="636" alt="image" src="https://github.com/user-attachments/assets/a0ea1017-b986-404c-b6f8-d98f43bb9006" />
+
+**Individual task and member assignment**
+<img width="1098" height="456" alt="image" src="https://github.com/user-attachments/assets/42a62aef-2c4f-4814-a63b-e18b58661ca0" />
+
+### Employee — Personal Tasks
+
+**Main dashboard**
+<img width="1098" height="456" alt="image" src="https://github.com/user-attachments/assets/ee54c83c-6ae3-46d8-9807-bd15596bb7e7" />
+
+**Progress and page count update per editing task**
+<img width="1102" height="397" alt="image" src="https://github.com/user-attachments/assets/d86e9b9f-ff7e-480a-8c1e-9efb4c5e2349" />
+
+### Reports
+
+> Salary calculation is derived from job coefficients, paper size coefficients, and annual salary coefficients — all linked to task allocation records per employee.
+
+**On-system report view**
+<img width="1098" height="682" alt="image" src="https://github.com/user-attachments/assets/331c614a-0b21-4d20-ae58-30c84179cc45" />
+
+**PDF export preview**
+<img width="1102" height="604" alt="image" src="https://github.com/user-attachments/assets/0e6c3e42-0afc-4a00-a868-6f1a50c56966" />
+
+### Audit Log
+
+**Activity summary — total operations on system**
+<img width="1025" height="471" alt="image" src="https://github.com/user-attachments/assets/5e33c32b-8033-4cee-8fde-736d4f29bc08" />
+
+**Detailed log view**
+<img width="533" height="453" alt="image" src="https://github.com/user-attachments/assets/949e2419-f47e-43b4-b5e9-c6fa6f01fcf6" />
+
+---
+
+## Getting Started
+
+### Prerequisites
+
 - PHP >= 8.1
 - Composer
 - Node.js >= 18
 - MySQL
-- XAMPP (hoặc bất kỳ web server tương đương)
+- XAMPP (or equivalent local web server)
 
-### 1. Clone repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Dibenz204/internal_publishing_system.git
 cd internal_publishing_system
 ```
 
-### 2. Cài đặt Backend (Laravel)
+### 2. Backend setup (Laravel)
 
 ```bash
 composer install
@@ -138,7 +190,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Cấu hình file `.env`:
+Configure your `.env` file:
 
 ```env
 DB_CONNECTION=mysql
@@ -149,22 +201,22 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Chạy migration và seed dữ liệu mẫu:
+Run migrations and seed sample data:
 
 ```bash
 php artisan migrate
 php artisan db:seed
 ```
 
-### 3. Cài đặt Frontend (React + Vite)
+### 3. Frontend setup (React + Vite)
 
 ```bash
 npm install
 ```
 
-### 4. Chạy dự án
+### 4. Run the project
 
-Chạy đồng thời Backend và Frontend:
+Run backend and frontend concurrently:
 
 ```bash
 # Terminal 1 – Backend
@@ -174,96 +226,103 @@ php artisan serve
 npm run dev
 ```
 
-Truy cập: `http://localhost:5173`
+Access at: `http://localhost:5173`
 
 ---
 
-## Cấu Trúc Cơ Sở Dữ Liệu
+## Database Schema
 
-Các bảng chính trong hệ thống:
-
-| Bảng | Mô tả |
+| Table | Description |
 |---|---|
-| `employees` | Thông tin nhân viên |
-| `users` | Tài khoản đăng nhập (1-1 với employee) |
-| `positions` | Chức vụ (Trưởng phòng, TKBT, Nhân viên,...) |
-| `departments` | Phòng ban |
-| `books` | Thông tin đầu sách |
-| `book_categories` | Danh mục sách |
-| `book_book_category` | Bảng trung gian (sách – danh mục) |
-| `papers` | Khổ giấy và hệ số quy đổi |
-| `projects` | Dự án (sách × phòng ban) |
-| `book_transfers` | Lịch sử luân chuyển sách giữa các phòng |
-| `allocations` | Phân công nhân viên trong từng dự án |
-| `job_categories` | Loại công việc và hệ số (Biên tập, Đính chính,...) |
-| `salary_coefficients` | Hệ số lương theo năm |
-| `reports` | Báo cáo tổng hợp |
+| `employees` | Employee information |
+| `users` | Login accounts (1-to-1 with employee) |
+| `positions` | Positions (Department Head, Editorial Secretary, Employee, etc.) |
+| `departments` | Department records |
+| `books` | Book title information |
+| `book_categories` | Book category definitions |
+| `book_book_category` | Pivot table (book ↔ category) |
+| `papers` | Paper sizes and conversion coefficients |
+| `projects` | Projects (book × department) |
+| `book_transfers` | Book transfer history across departments |
+| `allocations` | Employee task assignments per project |
+| `job_categories` | Job types and coefficients (Editing, Proofreading, etc.) |
+| `salary_coefficients` | Annual salary coefficients (versioned) |
+| `reports` | Aggregated report records |
 
 ---
 
-## Phân Quyền Người Dùng
+## Role-based Access Control
 
-| Chức vụ | Quyền hạn chính |
+| Role | Primary Permissions |
 |---|---|
-| **Admin** | Quản trị toàn hệ thống, xem Audit Log, quản lý thông số |
-| **Thư ký biên tập (TKBT)** | Thêm/quản lý sách, phân công phòng ban, phê duyệt chuyển giao, xác nhận hoàn thành |
-| **Trưởng phòng** | Nhận/từ chối dự án, phân công nhân viên, gửi kết quả lên TKBT |
-| **Nhân viên** | Xem công việc được giao, cập nhật số trang, đánh dấu hoàn thành |
-| **HR** | Thêm/cập nhật thông tin nhân viên |
-| **Kế toán** | Xem và xuất báo cáo lương theo phòng ban/cá nhân |
+| **Admin** | Full system access, Audit Log, system configuration |
+| **Editorial Secretary (TKBT)** | Add/manage books, assign departments, approve transfers, confirm completion |
+| **Department Head** | Accept/reject projects, assign employees, submit results to Editorial Secretary |
+| **Employee** | View assigned tasks, update page progress, mark tasks complete |
+| **HR** | Add/update employee records |
+| **Accountant** | View and export salary reports by department or individual |
 
 ---
 
-## Các Module Chính
+## Modules
 
 ```
 internal_publishing_system/
-├── Backend (Laravel)
-│   ├── Auth              – Đăng nhập / đăng xuất (session + CSRF)
-│   ├── Employee          – Quản lý nhân sự
-│   ├── Department        – Quản lý phòng ban
-│   ├── Position          – Quản lý chức vụ
-│   ├── Book              – Quản lý đầu sách
-│   ├── BookCategory      – Danh mục sách
-│   ├── Paper             – Khổ giấy & hệ số
-│   ├── Project           – Dự án (sách × phòng)
-│   ├── BookTransfer      – Luân chuyển sách
-│   ├── Allocation        – Phân công công việc
-│   ├── JobCategory       – Loại hình công việc
-│   ├── SalaryCoefficient – Hệ số lương theo năm
-│   ├── Report            – Báo cáo & xuất PDF
-│   └── AuditLog          – Nhật ký hệ thống
-│
-└── Frontend (React + Vite)
-    ├── /login            – Đăng nhập
-    ├── /profile          – Hồ sơ cá nhân
-    ├── /books            – Quản lý sách (TKBT)
-    ├── /books/:id/track  – Theo dõi vận hành
-    ├── /employees        – Quản lý nhân sự (HR)
-    ├── /settings         – Thông số hệ thống (Admin)
-    ├── /projects         – Công việc phòng (Trưởng phòng)
-    ├── /my-tasks         – Công việc cá nhân (Nhân viên)
-    ├── /reports          – Báo cáo
-    └── /audit-logs       – Nhật ký hoạt động (Admin)
+├── app/
+│   ├── Console/                    # Artisan commands
+│   ├── Exceptions/                 # Exception handling
+│   ├── Http/
+│   │   ├── Controllers/            # Request handlers per module
+│   │   └── Middleware/
+│   │       ├── Authenticate.php            # Auth check
+│   │       ├── CheckPosition.php           # Custom role/position verification
+│   │       ├── CheckSession.php            # Session validation
+│   │       ├── EncryptCookies.php          # Cookie encryption
+│   │       ├── PreventRequestsDuringMaintenance.php
+│   │       ├── RedirectIfAuthenticated.php
+│   │       ├── TrimStrings.php
+│   │       ├── TrustHosts.php
+│   │       ├── TrustProxies.php
+│   │       ├── ValidateSignature.php
+│   │       └── VerifyCsrfToken.php         # CSRF protection
+│   ├── Models/                     # Eloquent models
+│   ├── Providers/                  # Service providers
+│   ├── Services/                   # Business logic layer
+│   └── Traits/                     # Reusable traits (audit logging)
+├── bootstrap/
+├── config/                         # App configuration
+├── database/                       # Migrations & seeders
+├── public/                         # Entry point (index.php, assets)
+├── resources/
+├── routes/                         # API & web route definitions
+└── storage/                        # Logs, cache, uploads
 ```
 
 ---
 
-## Chiến Lược Phân Nhánh (Git)
+## Branching Strategy
 
-Dự án sử dụng **feature branching**: mỗi tính năng được phát triển trên nhánh riêng, sau đó merge vào `main` qua Pull Request.
+The project follows **feature branching**: each feature is developed on a dedicated branch and merged into `main` via Pull Request.
 
-Một số nhánh tiêu biểu:
-
-| Nhánh | Mô tả |
+| Branch | Description |
 |---|---|
-| `main` | Nhánh chính, phiên bản ổn định |
-| `Autentication_Authorization` | Xác thực & phân quyền |
-| `Lam-book_bookcategory` | Module sách & danh mục |
-| `Lam-project` | Module dự án |
-| `Lam-Allocation` | Module phân công |
-| `yen-report-service` | API báo cáo |
-| `yen-migrationnn` | Migration cơ sở dữ liệu |
-| `Frontend` | Giao diện React |
-| `feature/deploy` | Cấu hình triển khai |
+| `main` | Main branch — stable release |
+| `Autentication_Authorization` | Auth & access control |
+| `Lam-book_bookcategory` | Book & category module |
+| `Lam-project` | Project module |
+| `Lam-Allocation` | Task allocation module |
+| `yen-report-service` | Report API |
+| `yen-migrationnn` | Database migrations |
+| `Frontend` | React UI |
+| `feature/deploy` | Deployment configuration |
 
+---
+
+## Team
+
+| Role | Member |
+|---|---|
+| Backend Lead, Database Architect & Team Leader | Nguyễn Đình Phong |
+| Backend Developer | Nguyễn Thị Yến |
+| Backend Developer | Nguyễn Huỳnh Lâm |
+| Frontend | React + AI-assisted UI, API integration by Nguyễn Đình Phong |
