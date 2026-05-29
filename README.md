@@ -84,8 +84,6 @@ This system was built to **digitize and optimize** the entire workflow, enabling
 └─────────────────────────────────────────────────┘
 ```
 
-Deployed on **XAMPP (localhost)** during development and on the **publisher's internal server** in production.
-
 ### ERD Overview
 
 <img width="1102" height="630" alt="image" src="https://github.com/user-attachments/assets/81cb3b62-7630-467e-9e30-2c40e2481a37" />
@@ -111,7 +109,7 @@ Deployed on **XAMPP (localhost)** during development and on the **publisher's in
 ### Book Management
 
 **Book processing status and progress overview**
-<img width="1102" height="630" alt="image" src="https://github.com/user-attachments/assets/412b26e3-889c-418e-8b14-8c758a9b2f4a" />
+<img width="1119" height="510" alt="image" src="https://github.com/user-attachments/assets/ae2c4963-9d40-40a0-a46d-3c22d3d4711a" />
 
 **Department assignment management**
 <img width="772" height="468" alt="image" src="https://github.com/user-attachments/assets/d510cae7-4ea5-493d-af11-c10d48bcf510" />
